@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Book a Table — TableBook (Zomato Style)</title>
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+
+<style>
+  :root{
+    --accent:#e53935;
+    --accent-2:#ff6b6b;
+    --muted:#6b6b6b;
+    --bg:#fff7f7;
+    --card:#fff;
+    --radius:14px;
+    --shadow:0 18px 40px rgba(0,0,0,0.06);
+    --green:#0f9d58;
+    --red:#d93025;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Poppins,system-ui,Arial;background:linear-gradient(180deg,#fff7f7,#ffffff);color:#111;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1200px;margin:28px auto;padding:18px}
+  .topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .vendor-load{display:flex;gap:8px;align-items:center}
+  input[type="text"].vendor{padding:10px 12px;border-radius:10px;border:1px solid #eee;background:#fff}
+  button.load{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+  .banner{height:200px;border-radius:16px;overflow:hidden;display:flex;align-items:flex-end;padding:18px;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,0.04);background-size:cover;background-position:center}
+  .vendor-info{color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.35)}
+  .vendor-title{font-size:22px;font-weight:800}
+  .vendor-sub{font-size:13px;opacity:0.95;margin-top:6px}
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:22px;margin-top:18px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}.banner{height:140px}}
+  .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,0.04)}
+  h2{margin:0 0 8px 0;font-size:18px}
+  label{display:block;margin-top:12px;font-size:13px;color:#333}
+  select,input[type="date"],input[type="tel"],input[type="text"],input[type="email"]{width:100%;padding:10px;border-radius:10px;border:1px solid #eee;background:#fafafa;margin-top:8px}
+  .row{display:flex;gap:12px;margin-top:10px}
+  .col{flex:1}
+  .btn{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:10px 14px;border-radius:999px;border:0;font-weight:700;cursor:pointer}
+  .muted{color:var(--muted);font-size:13px}
+  .price{font-weight:800;color:var(--accent);margin-top:10px}
+  .small{font-size:13px;color:var(--muted)}
+  .tables-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .table-card{min-width:110px;padding:12px;border-radius:10px;background:#fff;border:1px solid #eee;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .18s, box-shadow .18s}
+  .table-card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(0,0,0,0.08)}
+  .table-num{font-weight:800}
+  .table-meta{font-size:12px;color:var(--muted);margin-top:6px}
+  .table-available{border:2px solid rgba(15,157,88,0.12);box-shadow:0 6px 18px rgba(15,157,88,0.06)}
+  .table-unavailable{border:2px solid rgba(217,48,37,0.12);opacity:0.92;background:linear-gradient(180deg,#fff8f8,#fff);filter:grayscale(0.05)}
+  .tag-available{background:#eaffea;color:var(--green);padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px}
+  .tag-unavailable{background:#fff0f0;color:var(--red);padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px}
+  .summary{border-radius:12px;padding:18px;background:linear-gradient(180deg,#fff,#fffbfb);border:1px solid rgba(0,0,0,0.03);box-shadow:0 10px 30px rgba(0,0,0,0.04)}
+  .sticky{position:sticky;top:24px}
+  .conf-modal, .upi-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,8,8,0.45);z-index:9999}
+  .modal-card{background:#fff;padding:18px;border-radius:12px;max-width:520px;width:94%}
+  .hint{font-size:13px;color:var(--muted);margin-top:8px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .chip{padding:8px 10px;border-radius:999px;background:#fff;border:1px solid #eee;font-weight:700}
+  .empty{color:var(--muted);padding:18px;text-align:center}
+  /* small helpers */
+  .disabled{opacity:0.6;pointer-events:none}
+  .summary-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+   
+    <div class="topbar">
+      <div class="vendor-load">
+        <input id="vendorParam" class="vendor" type="text" placeholder="vendor@example.com or leave blank if URL contains vendor param">
+        <button id="loadBtn" class="load">Load</button>
+        <div id="liveBadge" class="muted" style="margin-left:12px"></div>
+      </div>
+      <div class="muted">Booking powered by <strong style="color:var(--accent)">TableBook</strong></div>
+    </div>
+
+
+    <div id="banner" class="banner" aria-hidden="false">
+      <div style="width:100%;display:flex;justify-content:space-between;align-items:flex-end">
+        <div class="vendor-info">
+          <div id="restName" class="vendor-title">Restaurant</div>
+          <div id="restLoc" class="vendor-sub">City • Address</div>
+          <div class="hint" id="restTimes" style="opacity:0.95"></div>
+        </div>
+        <div style="text-align:right">
+          <div class="small">Reserve instantly — secure with UPI</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+   
+      <div>
+        <div class="card">
+          <h2>Select booking details</h2>
+          <div class="hint">All changes are live. If vendor updates availability elsewhere, this page auto-refreshes.</div>
+
+          <div class="row" style="margin-top:14px">
+            <div class="col">
+              <label>Full name</label>
+              <input id="custName" type="text" placeholder="Your name">
+            </div>
+            <div style="width:160px">
+              <label>Phone</label>
+              <input id="custPhone" type="tel" placeholder="10-digit phone">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label>Date</label>
+              <input id="dateInput" type="date">
+            </div>
+            <div style="width:160px">
+              <label>Slot</label>
+              <select id="slotSelect"></select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label>Table type</label>
+              <select id="typeSelect"></select>
+            </div>
+            <div style="width:160px">
+              
+            </div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between">
+            <div><label>Tables</label><div class="hint">Click to select table(s). You can select multiple.</div></div>
+            <div class="muted" id="availCount">—</div>
+          </div>
+
+          <div id="tablesContainer" class="tables-grid"></div>
+
+        
+          <div class="summary-row" style="margin-top:14px">
+            <div class="muted">How many tables selected</div>
+            <div id="selectedCount" style="font-weight:800">0</div>
+          </div>
+
+          <div class="row" style="align-items:center;margin-top:14px">
+            <div class="col">
+              <div id="priceLine" class="price">₹0</div>
+              <div id="formError" class="hint" style="color:var(--red);display:none"></div>
+            </div>
+            <div style="width:220px;display:flex;gap:8px">
+              <button id="payBtn" class="btn">Pay (UPI)</button>
+              <button id="resetBtn" class="chip">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="muted">Live tips</div>
+              <div class="hint">If a table shows red it’s reserved/unavailable — you cannot select it.</div>
+            </div>
+            <div class="chips">
+              <div class="chip"><span style="width:10px;height:10px;background:var(--green);display:inline-block;border-radius:50%;margin-right:6px"></span> Available</div>
+              <div class="chip"><span style="width:10px;height:10px;background:var(--red);display:inline-block;border-radius:50%;margin-right:6px"></span> Unavailable</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+     
+      <div class="sticky">
+        <div class="summary card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="small">Summary</div>
+              <div id="sumMain" style="font-weight:800;margin-top:6px">No selection</div>
+            </div>
+            <div style="text-align:right">
+              <div class="small muted">Total</div>
+              <div id="sumPrice" style="font-weight:900;color:var(--accent);font-size:20px">₹0</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div class="small muted">Customer</div>
+            <div id="sumCust" class="small">—</div>
+          </div>
+          <div style="margin-top:8px">
+            <div class="small muted">Date & Slot</div>
+            <div id="sumDateSlot" class="small">—</div>
+          </div>
+          <div style="margin-top:8px">
+            <div class="small muted">Tables</div>
+            <div id="sumTables" class="small">—</div>
+          </div>
+
+          <div style="margin-top:14px;display:flex;gap:8px">
+            <button id="openPay" class="btn" style="flex:1">Open UPI</button>
+            <button id="openVendor" class="chip" style="width:110px">Open vendor</button>
+          </div>
+          <div class="hint" style="margin-top:12px">This demo uses localStorage. The vendor dashboard will reflect bookings immediately.</div>
+        </div>
+      </div>
+    </div>
+
+    <footer style="text-align:center;color:var(--muted);margin-top:28px">© TableBook • Local demo</footer>
+  </div>
+
+ 
+  <div id="upiModal" class="upi-modal" role="dialog" aria-hidden="true">
+    <div class="modal-card">
+      <h3>Pay with UPI (demo)</h3>
+      <div class="hint">Enter a UPI ID to simulate payment</div>
+      <label style="margin-top:12px">UPI ID</label>
+      <input id="upiInput" type="text" placeholder="name@bank">
+      <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px">
+        <button id="upiCancel" class="chip">Cancel</button>
+        <button id="upiConfirm" class="btn">Pay & Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <div id="confModal" class="conf-modal" role="dialog" aria-hidden="true">
+    <div class="modal-card">
+      <h3>Thank you — Booking Confirmed</h3>
+      <div id="confBody" style="margin-top:10px"></div>
+      <div style="text-align:right;margin-top:14px">
+        <button id="confClose" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+
+const urlParams = new URLSearchParams(location.search);
+let vendorParam = urlParams.get('vendor') || '';  // email used as vendor id
+const K_TYPES = v => 'tb_types_' + v;
+const K_SLOTS = v => 'tb_slots_' + v;
+const K_BOOKS = v => 'tb_bookings_' + v;
+const K_REST = v => 'tb_restname_' + v;
+const K_BANNER = v => 'tb_banner_' + v;
+const K_LOCATION = v => 'tb_location_' + v;
+
+function q(s){ return document.querySelector(s); }
+function qa(s){ return Array.from(document.querySelectorAll(s)); }
+function idGen(p='id'){ return p+'_'+Date.now()+'_'+Math.floor(Math.random()*9000); }
+function escapeHtml(s){ if(s === null || s === undefined) return ''; return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+
+let types = [], slots = [], settings = { maxAdvanceDays:365 }, banner = '', restName = '', locationObj = {};
+let selectedTables = new Set();
+
+function loadVendor(vendor){
+  if(!vendor){ showEmpty('Enter vendor email and click Load'); return; }
+  vendorParam = vendor;
+  // load data
+  types = JSON.parse(localStorage.getItem(K_TYPES(vendor)) || '[]');
+  slots = JSON.parse(localStorage.getItem(K_SLOTS(vendor)) || '[]');
+  banner = localStorage.getItem(K_BANNER(vendor)) || '';
+  restName = localStorage.getItem(K_REST(vendor)) || vendor;
+  locationObj = JSON.parse(localStorage.getItem(K_LOCATION(vendor)) || '{}');
+  // header
+  q('#restName').textContent = restName || vendor;
+  q('#restLoc').textContent = `${locationObj.city || ''} ${locationObj.addr1 || ''}`.trim() || 'Location';
+  // banner
+  if(banner){
+    q('#banner').style.backgroundImage = `linear-gradient(180deg,rgba(0,0,0,0.12),rgba(0,0,0,0.18)), url("${banner}")`;
+  } else {
+    q('#banner').style.backgroundImage = `linear-gradient(180deg,rgba(0,0,0,0.12),rgba(0,0,0,0.18)), url("https://source.unsplash.com/1400x600/?restaurant")`;
+  }
+  // date range
+  const today = new Date(); const min = today.toISOString().slice(0,10);
+  const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + (settings.maxAdvanceDays || 365));
+  q('#dateInput').min = min; q('#dateInput').max = maxDate.toISOString().slice(0,10);
+  if(!q('#dateInput').value) q('#dateInput').value = min;
+  // render selectors and tables
+  renderSlots(); renderTypes(); renderTables();
+  updateSummary();
+  q('#liveBadge').textContent = `Loaded: ${vendor}`;
+}
+
+
+function showEmpty(msg){
+  q('#restName').textContent = 'No vendor';
+  q('#restLoc').textContent = '';
+  q('#banner').style.backgroundImage = `linear-gradient(180deg,rgba(0,0,0,0.12),rgba(0,0,0,0.18)), url("https://source.unsplash.com/1400x600/?restaurant")`;
+  q('#slotSelect').innerHTML = ''; q('#typeSelect').innerHTML = ''; q('#tablesContainer').innerHTML = '';
+  q('#sumMain').textContent = msg; q('#sumPrice').textContent = '₹0'; q('#liveBadge').textContent = '';
+}
+
+
+function formatTime(t){ if(!t) return ''; const [hh,mm]=t.split(':').map(Number); const p = hh>=12 ? 'PM':'AM'; let h12 = hh%12; if(h12===0) h12=12; return `${h12}:${String(mm).padStart(2,'0')} ${p}`; }
+
+function renderSlots(){
+  const sel = q('#slotSelect'); sel.innerHTML = '';
+  if(!slots.length){ sel.appendChild(new Option('No slots','')); return; }
+  slots.forEach(s => sel.appendChild(new Option(`${s.name} (${formatTime(s.start)} - ${formatTime(s.end)})`, s.id)));
+}
+
+function renderTypes(){
+  const sel = q('#typeSelect'); sel.innerHTML = '';
+  if(!types.length){ sel.appendChild(new Option('No table types','')); return; }
+  types.forEach(t => {
+    const free = (t.tables||[]).filter(x=>x.status==='free').length;
+    sel.appendChild(new Option(`${t.name} — ₹${t.price} • ${free} free`, t.id));
+  });
+}
+
+
+function renderTables(){
+  selectedTables.clear();
+  const container = q('#tablesContainer');
+  container.innerHTML = '';
+  const typeId = q('#typeSelect').value;
+  const type = types.find(t => t.id === typeId);
+  if(!type){
+    container.innerHTML = '<div class="empty">Select a table type to view tables</div>';
+    q('#availCount').textContent = '—';
+    q('#selectedCount').textContent = '0';
+    return;
+  }
+  const freeCount = (type.tables||[]).filter(t=>t.status==='free').length;
+  q('#availCount').textContent = `${freeCount} free`;
+  (type.tables || []).forEach(tb => {
+    const div = document.createElement('div');
+    div.className = 'table-card ' + (tb.status === 'free' ? 'table-available' : 'table-unavailable');
+    if(tb.status !== 'free') div.classList.add('disabled');
+    div.dataset.table = tb.num;
+    div.innerHTML = `<div class="table-num">Table ${tb.num}</div><div class="table-meta">${tb.seats ? tb.seats + ' seats' : ''}</div><div style="margin-top:8px">${tb.status === 'free' ? '<span class="tag-available">Available</span>' : '<span class="tag-unavailable">Unavailable</span>'}</div>`;
+   
+
+    div.addEventListener('click', ()=> {
+      if(tb.status !== 'free') { flashError('Table not available'); return; }
+      const tnum = tb.num;
+      if(selectedTables.has(tnum)){
+        selectedTables.delete(tnum);
+        div.style.boxShadow=''; div.style.transform='';
+      } else {
+        selectedTables.add(tnum);
+        div.style.boxShadow='0 18px 40px rgba(0,0,0,0.12)'; div.style.transform='translateY(-6px)';
+      }
+      updateSelectionUI();
+    });
+    container.appendChild(div);
+  });
+  updateSelectionUI();
+}
+
+
+function updateSelectionUI(){
+  
+  const typeId = q('#typeSelect').value;
+  const type = types.find(t => t.id === typeId);
+  const price = type ? Number(type.price || 0) : 0;
+  const total = price * selectedTables.size;
+  q('#priceLine').textContent = `₹${price} x ${selectedTables.size} = ₹${total}`;
+  q('#sumPrice').textContent = `₹${total}`;
+  const name = q('#custName').value.trim() || 'Guest';
+  q('#sumCust').textContent = name;
+  const date = q('#dateInput').value || '-';
+  const slotName = (slots.find(s=>s.id === q('#slotSelect').value) || {}).name || '-';
+  q('#sumDateSlot').textContent = `${date} • ${slotName}`;
+  q('#sumTables').textContent = selectedTables.size ? Array.from(selectedTables).join(', ') : '—';
+  q('#sumMain').textContent = (selectedTables.size ? `${date} • ${type ? type.name : ''}` : 'No selection');
+  q('#selectedCount').textContent = String(selectedTables.size);
+}
+
+
+function flashError(msg){
+  const el = q('#formError'); el.style.display = 'block'; el.textContent = msg;
+  setTimeout(()=> el.style.display = 'none', 3500);
+}
+
+
+q('#loadBtn').addEventListener('click', ()=> {
+  const v = q('#vendorParam').value.trim() || vendorParam;
+  if(!v) { alert('Enter vendor email or include vendor param in URL'); return; }
+  loadVendor(v);
+  q('#vendorParam').value = v;
+});
+
+
+q('#typeSelect').addEventListener('change', ()=> { renderTables(); updateSelectionUI(); });
+q('#slotSelect').addEventListener('change', updateSelectionUI);
+q('#dateInput').addEventListener('change', updateSelectionUI);
+q('#custName').addEventListener('input', updateSelectionUI);
+q('#custPhone').addEventListener('input', updateSelectionUI);
+
+
+q('#resetBtn').addEventListener('click', ()=> {
+  q('#custName').value = ''; q('#custPhone').value = '';
+  selectedTables.clear(); renderTables(); updateSelectionUI();
+});
+
+
+q('#openVendor').addEventListener('click', ()=> {
+  if(!vendorParam) return alert('No vendor loaded');
+  const win = window.open('vendor_table.html?vendor=' + encodeURIComponent(vendorParam), '_blank');
+  if(win) win.focus();
+});
+
+// Pay flow (open UPI modal)
+q('#payBtn').addEventListener('click', ()=> {
+  if(!vendorParam) return flashError('Load a vendor first');
+  if(selectedTables.size === 0) return flashError('Select at least one table');
+  if(!q('#custName').value.trim()) return flashError('Enter your name');
+  if(!/^\d{10}$/.test(q('#custPhone').value.trim())) return flashError('Enter 10-digit phone');
+  if(!q('#slotSelect').value) return flashError('Pick a slot');
+  q('#upiModal').style.display = 'flex'; q('#upiModal').setAttribute('aria-hidden','false');
+});
+q('#openPay').addEventListener('click', ()=> q('#payBtn').click());
+q('#upiCancel').addEventListener('click', ()=> { q('#upiModal').style.display = 'none'; q('#upiModal').setAttribute('aria-hidden','true'); });
+q('#upiConfirm').addEventListener('click', ()=> {
+  const upi = q('#upiInput').value.trim();
+  if(!upi || upi.indexOf('@') === -1) return alert('Enter valid UPI ID');
+  q('#upiModal').style.display = 'none'; q('#upiModal').setAttribute('aria-hidden','true');
+  confirmBooking(upi);
+});
+
+/* confirmBooking: mark tables reserved and save booking */
+function confirmBooking(upi){
+  // reload to avoid race
+  types = JSON.parse(localStorage.getItem(K_TYPES(vendorParam)) || '[]');
+  slots = JSON.parse(localStorage.getItem(K_SLOTS(vendorParam)) || '[]');
+  const typeId = q('#typeSelect').value;
+  const slotId = q('#slotSelect').value;
+  const date = q('#dateInput').value;
+  const name = q('#custName').value.trim();
+  const phone = q('#custPhone').value.trim();
+  const type = types.find(t => t.id === typeId);
+  const slot = slots.find(s => s.id === slotId);
+  if(!type || !slot) { flashError('Selected type or slot not available'); return; }
+
+  // verify all selected tables are still free
+  const selected = Array.from(selectedTables);
+  for(const num of selected){
+    const tb = (type.tables || []).find(x=>x.num === Number(num));
+    if(!tb || tb.status !== 'free'){ flashError(`Table ${num} no longer available`); renderTables(); return; }
+  }
+
+  // mark as reserved
+  const bookingId = idGen('bk');
+  selected.forEach(n => {
+    const tb = (type.tables || []).find(x=>x.num === Number(n));
+    if(tb){ tb.status = 'reserved'; tb.bookingId = bookingId; }
+  });
+
+  // build booking object
+  const isoTime = (slot.start && slot.start.length===5) ? slot.start : (slot.start + ':00');
+  const datetimeISO = new Date(date + 'T' + isoTime).toISOString();
+  const pricePer = Number(type.price || 0);
+  const priceTot = pricePer * selected.length;
+  const booking = {
+    id: bookingId,
+    customer: name,
+    phone: phone,
+    email: '',
+    typeId: type.id,
+    typeName: type.name,
+    tables: selected.map(Number),
+    date: date,
+    slotName: slot.name,
+    datetimeISO,
+    price: priceTot,
+    count: selected.length,
+    status: 'upcoming',
+    createdAt: new Date().toISOString(),
+    upi: upi || ''
+  };
+
+  // save booking list and update types (reserved status)
+  const all = JSON.parse(localStorage.getItem(K_BOOKS(vendorParam)) || '[]');
+  all.push(booking);
+  localStorage.setItem(K_BOOKS(vendorParam), JSON.stringify(all));
+  localStorage.setItem(K_TYPES(vendorParam), JSON.stringify(types)); // update reserved status
+
+  
+  showConfirmation(booking);
+
+  
+  renderTables();
+  updateSelectionUI();
+
+  
+  try {
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: K_BOOKS(vendorParam),
+      newValue: JSON.stringify(all)
+    }));
+  } catch(e) {
+   
+  }
+}
+
+
+function showConfirmation(b){
+  q('#confBody').innerHTML = `
+    <div style="font-weight:800">${escapeHtml(b.customer)}</div>
+    <div class="small muted" style="margin-top:6px">Booking ID: ${b.id}</div>
+    <div style="margin-top:10px">Date: ${b.date} • ${escapeHtml(b.slotName)}</div>
+    <div style="margin-top:6px">Tables: ${b.tables.join(', ')}</div>
+    <div style="margin-top:8px">Total: ₹${b.price}</div>
+    <div style="margin-top:12px;font-weight:700;color:var(--green)">Thank you — your booking is confirmed.</div>
+  `;
+  q('#confModal').style.display = 'flex'; q('#confModal').setAttribute('aria-hidden','false');
+}
+q('#confClose').addEventListener('click', ()=> { q('#confModal').style.display = 'none'; q('#confModal').setAttribute('aria-hidden','true'); });
+
+
+window.addEventListener('storage', (ev) => {
+  if(!ev.key) return;
+  const relevant = [K_TYPES(vendorParam), K_SLOTS(vendorParam), K_BOOKS(vendorParam), K_BANNER(vendorParam), K_REST(vendorParam), K_LOCATION(vendorParam)];
+  if(relevant.includes(ev.key)){
+    // small debounce
+    setTimeout(()=> { loadVendor(vendorParam); }, 120);
+  }
+});
+
+
+(function init(){
+  if(vendorParam){
+    q('#vendorParam').value = vendorParam;
+    loadVendor(vendorParam);
+  } else {
+    showEmpty('Load vendor to begin');
+  }
+
+  
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign Up - Zomato Clone</title>
+    <link rel="icon" href="./Images/ZomaCloneFavicon.svg" />
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <header class="navbar" style="position: static;">
+      <a href="#">Get the App</a>
+      <div class="navbar__menu_container">
+        <a href="index.html" class="link">Home</a>
+        <a href="login.html" class="link">Log in</a>
+      </div>
+    </header>
+
+    <main class="login-page">
+      <div class="login-card">
+        <div class="login-left">
+          <img src="./Images/collection1.jpg" alt="food collage" />
+        </div>
+
+        <div class="login-right">
+          <h2>Create your account</h2>
+          <p class="muted">Join ZomaClone to discover great places, order food, and more.</p>
+
+          <form id="signupForm" class="login-form" novalidate>
+            
+            <label>Full name</label>
+            <input id="name" type="text" placeholder="Your full name" required />
+
+            <label>Email</label>
+            <input id="email" type="text" placeholder="you@example.com" required />
+
+            <label>Password</label>
+            <input id="password" type="password" placeholder="Create a password" required />
+
+            <label>Enter Contact Number</label>
+            <input id="phonenumber" type="text" maxlength="10" placeholder="10-digit number" required />
+
+            <label>Confirm password</label>
+            <input id="confirm" type="password" placeholder="Confirm password" required />
+
+            <div class="login-row">
+              <label class="checkbox">
+                <input type="checkbox" id="newsletter" /> Subscribe to offers
+              </label>
+            </div>
+
+            <button type="submit" class="btn login-btn">Create account</button>
+          </form>
+
+          <div class="divider"><span>or</span></div>
+
+          <div class="socials">
+            <button class="btn social google">
+              <i class="fa-brands fa-google"></i> Continue with Google
+            </button>
+
+            <button class="btn social apple">
+              <i class="fa-brands fa-apple"></i> Continue with Apple
+            </button>
+          </div>
+
+          <p class="center muted">
+            Already have an account? <a href="login.html">Log in</a>
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      document.getElementById('signupForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('confirm').value;
+        const phonenumber = document.getElementById('phonenumber').value.trim();
+
+        // --- VALIDATION ---
+        if (!name || !email || !password || !confirm || !phonenumber) {
+          alert("Please fill all fields");
+          return;
+        }
+
+        if (password !== confirm) {
+          alert("Passwords do not match");
+          return;
+        }
+
+        // Phone number must be 10 digits
+        if (!/^\d{10}$/.test(phonenumber)) {
+          alert("Please enter a valid 10-digit phone number");
+          return;
+        }
+
+        // Check if email already exists
+        const users = JSON.parse(localStorage.getItem("users") || "[]");
+        if (users.some(u => u.email === email)) {
+          alert("An account with this email already exists");
+          return;
+        }
+
+        const newUser = {
+          name,
+          email,
+          password,
+          phonenumber,
+          location: null
+        };
+
+        users.push(newUser);
+        localStorage.setItem("users", JSON.stringify(users));
+
+        localStorage.setItem("currentUser", JSON.stringify({ email }));
+        localStorage.setItem("isLoggedIn", "true");
+
+        alert("Account created successfully");
+
+        window.location.href = "user.html";
+      });
+    </script>
+  </body>
+</html>

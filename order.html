@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZomaClone | Order Food</title>
+
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+
+
+<style>
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background:#fafafa;
+}
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 40px;
+  background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+.logo{
+  color:#e23744;
+  font-weight:700;
+  font-size:22px;
+}
+.container{
+  max-width:900px;
+  margin:30px auto;
+  padding:0 20px;
+}
+.heading{
+  font-size:24px;
+  font-weight:700;
+  margin-bottom:18px;
+  color:#e23744;
+}
+.restaurant-card{
+  background:#fff;
+  padding:14px;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+  cursor:pointer;
+  transition:.2s;
+}
+.restaurant-card:hover{
+  transform:translateY(-3px);
+}
+.restaurant-card img{
+  width:90px;
+  height:90px;
+  border-radius:10px;
+  object-fit:cover;
+}
+.restaurant-info{
+  margin-left:15px;
+  flex:1;
+}
+.restaurant-name{
+  font-size:18px;
+  font-weight:600;
+  color:#333;
+}
+.restaurant-meta{
+  font-size:14px;
+  color:#777;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <div class="logo">ZomaClone</div>
+  <a href="user.html" style="text-decoration:none;color:#1674ff;font-weight:600;">My Profile</a>
+</header>
+
+<div class="container">
+  <div class="heading">Order Food Online</div>
+
+  <div id="restaurantList"></div>
+</div>
+
+<script>
+/* -------------------- CHECK USER LOGIN -------------------- */
+let user = JSON.parse(localStorage.getItem("currentUser") || "null");
+if (!user) {
+  alert("Please login first!");
+  window.location.href = "login.html";
+}
+
+/* -------------------- LOAD ONLY REAL VENDORS -------------------- */
+function loadRestaurants() {
+
+  // ✔ Only real vendor data from vendorList
+  const vendors = JSON.parse(localStorage.getItem("vendorList") || "[]");
+
+  const box = document.getElementById("restaurantList");
+
+  if (!vendors.length) {
+    box.innerHTML = "<p>No restaurants available yet.</p>";
+    return;
+  }
+
+  box.innerHTML = "";
+
+  vendors.forEach(v => {
+    const img = v.bannerImage || "./Images/default_restaurant.jpg";
+    const name = v.restaurantName || "Unnamed Restaurant";
+    const city = v.address?.city || "Unknown";
+    const rating = v.rating || "4.5";
+
+    box.innerHTML += `
+      <div class="restaurant-card" onclick="openRestaurant('${v.email}')">
+        <img src="${img}">
+        <div class="restaurant-info">
+          <div class="restaurant-name">${name}</div>
+          <div class="restaurant-meta">⭐ ${rating} · ${city}</div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+/* -------------------- OPEN RESTAURANT -------------------- */
+function openRestaurant(email) {
+  localStorage.setItem("selected_restaurant", email);
+  window.location.href = "restaurant.html";
+}
+
+loadRestaurants();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ZomaClone | Restaurant</title>
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+
+<style>
+  :root{--accent:#e23744;--primary:#1674ff;--muted:#666;--card:#fff}
+  body{font-family:'Poppins',sans-serif;margin:0;background:#fafafa;color:#111}
+  .navbar{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .logo{color:var(--accent);font-weight:700}
+  .container{max-width:980px;margin:20px auto;padding:0 16px}
+  .banner{width:100%;height:220px;border-radius:10px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+  .header-info{text-align:center;margin:12px 0}
+  .header-info h1{color:var(--accent);margin:0;font-size:24px}
+  .meta{color:var(--muted);font-size:13px}
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:14px}
+  .card{background:var(--card);padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.04)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
+  .filter-btn{border:1px solid var(--accent);color:var(--accent);padding:6px 10px;border-radius:18px;background:#fff;cursor:pointer}
+  .filter-btn.active{background:var(--accent);color:#fff}
+  .menu-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;margin-bottom:10px;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.03)}
+  .menu-left{display:flex;align-items:center;gap:12px}
+  .thumb{width:72px;height:64px;border-radius:8px;object-fit:cover}
+  .price-old{color:#999;text-decoration:line-through;margin-right:6px;font-size:13px}
+  .price-new{font-weight:700}
+  .offer-badge{background:#fef3c7;color:#92400e;padding:4px 6px;border-radius:6px;font-size:12px}
+  .btn{background:var(--primary);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+  /* cart */
+  .cart{position:sticky;top:20px}
+  .cart .title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .cart-items{max-height:320px;overflow:auto;margin-bottom:10px}
+  .cart-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #eee}
+  .qty-controls{display:flex;align-items:center;gap:8px}
+  .qty-btn{padding:5px 8px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer}
+  .summary{font-size:14px;line-height:1.6;color:var(--muted)}
+  .summary strong{color:#111}
+  .apply-offers{background:#10b981;color:#fff;border:none;padding:8px;border-radius:8px;cursor:pointer;font-weight:700;width:100%;margin-top:8px}
+  .savings{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:8px;border-radius:6px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .savings .remove{background:transparent;border:1px solid #065f46;color:#065f46;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:700}
+  .popup{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:999}
+  .popup-card{background:#fff;padding:18px;border-radius:10px;width:420px;max-width:95%}
+  .small{font-size:13px;color:var(--muted)}
+  .coupon-row{display:flex;gap:8px;margin-top:8px}
+  input.coupon-input{flex:1;padding:8px;border-radius:8px;border:1px solid #ddd}
+  .coupon-apply-btn{padding:8px 10px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer}
+  .coupon-list{max-height:300px;overflow:auto;margin-top:8px}
+  .coupon-card{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;border:1px solid #f1f3f5;background:#fff;margin-bottom:8px}
+  .coupon-card .meta{font-size:12px;color:var(--muted)}
+  .rating{display:inline-flex;gap:6px;align-items:center}
+  .star{font-size:18px;cursor:pointer;color:#eab308}
+  .star.inactive{color:#ddd}
+  @media(max-width:920px){.layout{grid-template-columns:1fr}.cart{position:static;margin-top:12px}}
+  /* toast */
+  .toast{position:fixed;right:18px;bottom:18px;background:#111;color:#fff;padding:8px 12px;border-radius:8px;z-index:1200;opacity:0;transform:translateY(6px);transition:all .18s}
+  .toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<header class="navbar">
+  <div class="logo">ZomaClone</div>
+  <div><a href="order.html" style="color:var(--primary);text-decoration:none;font-weight:600">⬅ Back</a></div>
+</header>
+
+<main class="container">
+  <img id="resBanner" class="banner" src="" alt="banner">
+  <div class="header-info">
+    <h1 id="resName">Restaurant</h1>
+    <div style="display:flex;justify-content:center;gap:10px;align-items:center;margin-top:6px">
+      <div class="meta" id="resTagline">⭐ 4.5</div>
+      <div id="ratingContainer" class="rating" title="Rate this restaurant"></div>
+    </div>
+    <div class="meta" id="resAddr"></div>
+  </div>
+
+  <div class="layout">
+    <!-- menu column -->
+    <section>
+      <div class="card">
+        <div id="categoryFilters" class="filters"></div>
+        <div id="menuContainer"></div>
+      </div>
+    </section>
+
+    <!-- cart / checkout column -->
+    <aside class="card cart">
+      <div class="title">
+        <h3 style="margin:0">Your Order</h3>
+        <div class="small" id="itemCount">0 items</div>
+      </div>
+
+      <div id="cartItemsBox" class="cart-items"><div class="small">Cart is empty</div></div>
+
+      <div id="priceBreakdown" class="summary"></div>
+
+      <!-- coupon input + Apply Offers button -->
+      <div style="margin-top:8px">
+        <div class="coupon-row">
+          <input id="couponInput" class="coupon-input" placeholder="Enter coupon code (optional)" />
+          <button id="openCouponBtn" class="coupon-apply-btn">Apply</button>
+        </div>
+        <!-- Auto-apply removed by choice A -->
+      </div>
+
+      <div id="savingsBox"></div>
+
+      <div style="margin-top:10px">
+        <button id="checkoutBtn" class="btn" style="width:100%">Proceed to Pay</button>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<!-- coupon modal (Zomato-style) -->
+<div id="couponModal" class="popup" aria-hidden="true">
+  <div class="popup-card">
+    <h3 style="margin:0 0 8px">Available Coupons</h3>
+    <div class="small">Select a coupon to apply. Coupons apply only on item subtotal that is not already discounted by item offers.</div>
+
+    <div style="margin-top:10px">
+      <input id="manualCouponInput" placeholder="Enter coupon code manually" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd" />
+      <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+        <button id="applyManualBtn" class="btn">Apply Code</button>
+        <button id="closeCouponBtn" class="btn" style="background:#999">Close</button>
+      </div>
+    </div>
+
+    <div class="coupon-list" id="couponListBox"></div>
+  </div>
+</div>
+
+<!-- payment popup -->
+<div id="paymentPopup" class="popup" aria-hidden="true">
+  <div class="popup-card">
+    <h3 style="margin:0 0 8px">Payment</h3>
+    <div class="small">Amount to pay: ₹<span id="payAmount">0</span></div>
+
+    <div style="margin-top:10px">
+      <label><input type="radio" name="pay" value="cod" checked> Cash on Delivery</label><br>
+      <label><input type="radio" name="pay" value="online"> Online Payment</label>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button id="payConfirmBtn" class="btn">Confirm</button>
+      <button id="payCancelBtn" class="btn" style="background:#999">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- basic toast container -->
+<div id="toastContainer"></div>
+
+<script>
+/* Keys/Helpers */
+const vendorListKey = 'vendorList';
+const adminCouponsKey = 'admin_coupons';
+const selectedRestaurantKeys = ['selected_restaurant','selectedRestaurant'];
+
+/* small toast helper */
+function toast(msg){
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(()=> t.classList.add('show'), 10);
+  setTimeout(()=> {
+    t.classList.remove('show');
+    setTimeout(()=> t.remove(), 220);
+  }, 2400);
+}
+
+/* state */
+let restaurant = null;
+let dishes = [];
+let cart = [];
+let offersApplied = false;
+let adminCfg = {};
+window.couponDiscount = 0;
+window.couponCode = null;
+window.couponObj = null;
+
+/* utility */
+function formatMoney(x){ return Number(x || 0).toLocaleString('en-IN'); }
+function readAdminConfig(){
+  try{ return JSON.parse(localStorage.getItem('admin_settings') || '{}') } catch(e){ return {}; }
+}
+function getCurrentUser(){
+  const possible = ['currentUser','zoma_current_user','current_user'];
+  for(const k of possible){
+    const raw = localStorage.getItem(k);
+    if(!raw) continue;
+    try{ const p = JSON.parse(raw); if(p && (p.email||p.name)) return p; }
+    catch(e){ return { email: raw }; }
+  }
+  return null;
+}
+function getSelectedRestaurantEmail(){
+  for(const k of selectedRestaurantKeys){
+    const v = localStorage.getItem(k);
+    if(v) return v;
+  }
+  return null;
+}
+function hashCode(s){ let h=0; for(let i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h|=0 } return h; }
+function escapeHtml(s){ if(s===null||s===undefined) return ''; return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- Load restaurant + dishes ---------- */
+function loadRestaurant(){
+  const email = getSelectedRestaurantEmail();
+  if(!email){ alert('No restaurant selected'); return location.href='order.html'; }
+
+  const vList = JSON.parse(localStorage.getItem(vendorListKey) || '[]');
+  restaurant = vList.find(v => v.email === email);
+
+  if(!restaurant){ alert('Restaurant not found'); return location.href='order.html'; }
+
+  const perKey = `vendorProducts_${restaurant.email}`;
+  let prods = JSON.parse(localStorage.getItem(perKey) || '[]');
+
+  if(!prods.length && Array.isArray(restaurant.dishes) && restaurant.dishes.length)
+    prods = restaurant.dishes.slice();
+
+  dishes = prods.map((d,i) => ({
+    id: d.id || `d_${i}_${Math.abs(hashCode(restaurant.email))}`,
+    name: d.name || 'Item',
+    price: Number(d.price || 0),
+    category: d.category || 'Other',
+    image: d.image || './Images/default_restaurant.jpg',
+    offer: Number(d.offer || 0),
+    foodType: d.foodType || d.type || ''
+  }));
+
+  document.getElementById('resBanner').src = restaurant.bannerImage || './Images/default_restaurant.jpg';
+  document.getElementById('resName').textContent = restaurant.restaurantName || 'Restaurant';
+
+  renderRatingUI();
+
+  // ⭐ UPDATED — show only street + city (Zomato style)
+  let street = restaurant.address?.street || "";
+  let city = restaurant.address?.city || "";
+  let loc = "";
+
+  if(street && city) loc = `${street}, ${city}`;
+  else if(city) loc = city;
+  else if(street) loc = street;
+  else loc = "Location unavailable";
+
+  document.getElementById('resAddr').textContent = `📍 ${loc}`;
+}
+
+/* ---------- Filters ---------- */
+function loadFilters(){
+  const box = document.getElementById('categoryFilters');
+  box.innerHTML = '';
+  const setCats = new Set(dishes.map(d => d.category || 'Other'));
+  const cats = ['All', ...setCats];
+
+  cats.forEach((cat, idx) => {
+    const b = document.createElement('button');
+    b.className = 'filter-btn' + (idx===0 ? ' active' : '');
+    b.textContent = cat;
+    b.onclick = () => {
+      document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      renderMenu(cat);
+    };
+    box.appendChild(b);
+  });
+}
+
+function renderMenu(category='All'){
+  const container = document.getElementById('menuContainer');
+  container.innerHTML = '';
+
+  const list = (category==='All') ? dishes : dishes.filter(d => d.category === category);
+
+  if(!list.length){
+    container.innerHTML = '<div class="small">No items in this category</div>';
+    return;
+  }
+
+  list.forEach(d => {
+    const div = document.createElement('div');
+    div.className = 'menu-item';
+    div.innerHTML = `
+      <div class="menu-left">
+        <img src="${d.image}" class="thumb" />
+        <div>
+          <div style="font-weight:600">${escapeHtml(d.name)}</div>
+          <div class="small">${escapeHtml(d.category)}</div>
+          <div style="margin-top:6px">
+            ${
+              d.offer>0 
+              ? `<span class="price-old">₹${formatMoney(d.price)}</span>
+                 <span class="price-new">₹${formatMoney(Math.round(d.price * (1 - d.offer/100)))}</span>
+                 <span class="offer-badge">${d.offer}% OFF</span>`
+              : `<span class="price-new">₹${formatMoney(d.price)}</span>`
+            }
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <div class="small">${d.foodType}</div>
+        <button class="btn" onclick="addToCart('${d.id}')">Add</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+/* ---------- Cart ---------- */
+function addToCart(id){
+  const dish = dishes.find(x => x.id == id);
+  if(!dish) return toast('Item not found');
+
+  const found = cart.find(c => c.id === id);
+  if(found) found.qty++;
+  else cart.push({ id: dish.id, name:dish.name, price:dish.price, offer:dish.offer, qty:1 });
+
+  window.couponDiscount = 0;
+  window.couponCode = null;
+
+  renderCart();
+  toast('Added to cart');
+}
+
+function changeQty(id, delta){
+  const it = cart.find(c => c.id === id);
+  if(!it) return;
+  it.qty += delta;
+  if(it.qty <= 0) cart = cart.filter(c => c.id !== id);
+
+  window.couponDiscount = 0;
+  window.couponCode = null;
+
+  renderCart();
+}
+
+function renderCart(){
+  const box = document.getElementById('cartItemsBox');
+  box.innerHTML = '';
+
+  if(!cart.length){
+    box.innerHTML = '<div class="small">Cart is empty</div>';
+    document.getElementById('itemCount').textContent = '0 items';
+    renderSummary();
+    return;
+  }
+
+  let totalItems = 0;
+
+  cart.forEach(it => {
+    totalItems += it.qty;
+    const row = document.createElement('div');
+    row.className = 'cart-row';
+
+    const discounted = Math.round(it.price * (1 - (offersApplied ? it.offer/100 : 0)));
+
+    row.innerHTML = `
+      <div style="flex:1">
+        <div style="font-weight:600">${escapeHtml(it.name)}</div>
+        <div class="small">
+          ${
+            it.offer>0 
+            ? `<span class="price-old">₹${formatMoney(it.price)}</span>
+               <span class="small">(${it.offer}% OFF)</span>`
+            : `₹${formatMoney(it.price)}`
+          }
+        </div>
+      </div>
+
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="changeQty('${it.id}', -1)">−</button>
+        <div style="min-width:28px;text-align:center">${it.qty}</div>
+        <button class="qty-btn" onclick="changeQty('${it.id}', 1)">＋</button>
+      </div>
+    `;
+
+    box.appendChild(row);
+  });
+
+  document.getElementById('itemCount').textContent = `${totalItems} items`;
+  renderSummary();
+}
+
+/* ---------- Totals ---------- */
+function getVendorFees(){
+  return {
+    delivery: Number(restaurant.deliveryFee || 0),
+    packaging: Number(restaurant.packagingFee || 0)
+  };
+}
+
+function computeTotals(){
+  const admin = readAdminConfig();
+  const vendorFees = getVendorFees();
+
+  let base = 0, eligibleBase = 0, totalOfferSavings = 0;
+
+  cart.forEach(it => {
+    const pricePer = Number(it.price || 0);
+    const discounted = it.offer>0 
+      ? Math.round(pricePer * (1 - it.offer/100))
+      : pricePer;
+
+    base += discounted * it.qty;
+
+    if(it.offer <= 0) eligibleBase += pricePer * it.qty;
+    else totalOfferSavings += (pricePer - discounted) * it.qty;
+  });
+
+  const gstRate = Number(admin.gst || 5);
+  const gst = Math.round(base * (gstRate/100));
+
+  const platformFee = Number(admin.platformFee || 0);
+
+  const delivery = vendorFees.delivery;
+  const packaging = vendorFees.packaging;
+
+  const coupon = Math.min(window.couponDiscount, eligibleBase);
+
+  const final = Math.max(0, base + gst + platformFee + delivery + packaging - coupon);
+
+  return { base, eligibleBase, gst, platformFee, delivery, packaging, totalOfferSavings, couponDiscount:coupon, final };
+}
+
+/* ---------- Summary ---------- */
+function renderSummary(){
+  const s = computeTotals();
+  const el = document.getElementById('priceBreakdown');
+  const sbox = document.getElementById('savingsBox');
+
+  if(!cart.length){
+    el.innerHTML = '';
+    sbox.innerHTML = '';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="small">Items total: <strong>₹${formatMoney(s.base)}</strong></div>
+    <div class="small">GST: <strong>₹${formatMoney(s.gst)}</strong></div>
+    <div class="small">Platform fee: <strong>₹${formatMoney(s.platformFee)}</strong></div>
+    <div class="small">Delivery: <strong>₹${formatMoney(s.delivery)}</strong></div>
+    <div class="small">Packaging: <strong>₹${formatMoney(s.packaging)}</strong></div>
+    <hr style="margin:8px 0"/>
+    <div style="font-weight:700">Grand total: ₹${formatMoney(s.final)}</div>
+  `;
+
+  sbox.innerHTML = '';
+
+  if(s.totalOfferSavings > 0){
+    sbox.innerHTML += `<div class="savings">Offer savings: ₹${formatMoney(s.totalOfferSavings)}</div>`;
+  }
+
+  if(s.couponDiscount > 0){
+    sbox.innerHTML += `
+      <div class="savings">
+        Coupon "${window.couponCode}" applied: -₹${formatMoney(s.couponDiscount)}
+        <button class="remove" onclick="removeCoupon()">Remove</button>
+      </div>`;
+  }
+}
+
+/* ---------- Coupon Modal ---------- */
+function getAvailableCouponsList(){
+  const admin = JSON.parse(localStorage.getItem(adminCouponsKey) || '[]');
+  const vendor = JSON.parse(localStorage.getItem(`vendor_coupon_${restaurant.email}`) || 'null');
+
+  let list = [];
+  if(vendor) list.push({...vendor, source:'vendor'});
+  admin.forEach(c => list.push({...c, source:'admin'}));
+
+  return list;
+}
+
+document.getElementById('openCouponBtn').onclick = () => {
+  if(!cart.length) return toast('Cart is empty');
+  renderCouponModal();
+  couponModal.style.display='flex';
+};
+
+document.getElementById('closeCouponBtn').onclick = () => {
+  couponModal.style.display = 'none';
+};
+
+document.getElementById('applyManualBtn').onclick = () => {
+  const code = manualCouponInput.value.trim();
+  if(!code) return toast('Enter coupon');
+  if(applyCouponByCode(code)){
+    couponModal.style.display='none';
+    manualCouponInput.value='';
+  }
+};
+
+function renderCouponModal(){
+  const box = couponListBox;
+  box.innerHTML = '';
+  const list = getAvailableCouponsList();
+
+  const tot = computeTotals();
+  const eligible = tot.eligibleBase;
+
+  if(!list.length){ box.innerHTML='<div class="small">No coupons available</div>'; return; }
+
+  list.forEach(c => {
+    let type = c.type || 'flat';
+    let value = Number(c.value || c.amount || 0);
+    const min = Number(c.min || 0);
+
+    let discount = (type==='percent') ? Math.round(eligible * value/100) : value;
+    discount = Math.min(discount, eligible);
+
+    const eligibleText = eligible >= min ? '' : ` (add ₹${formatMoney(min-eligible)} more)`;
+    const allowed = eligible >= min && eligible > 0;
+
+    const div = document.createElement('div');
+    div.className = 'coupon-card';
+    div.innerHTML = `
+      <div>
+        <div style="font-weight:700">${c.code} <span style="color:#065f46">${discount>0?`-₹${discount}`:''}</span></div>
+        <div class="meta">Min: ₹${formatMoney(min)}${eligibleText}</div>
+      </div>
+
+      <button class="btn" ${!allowed?'disabled':''} onclick="applyFromModal('${c.code}')">
+        ${allowed?'Apply':'Not eligible'}
+      </button>
+    `;
+    box.appendChild(div);
+  });
+}
+
+function applyFromModal(code){
+  applyCouponByCode(code);
+  couponModal.style.display='none';
+}
+
+function applyCouponByCode(codeInput){
+  if(!cart.length) return toast('Cart empty');
+
+  const code = String(codeInput || '').trim().toUpperCase();
+
+  const vendor = JSON.parse(localStorage.getItem(`vendor_coupon_${restaurant.email}`) || 'null');
+  const admin = JSON.parse(localStorage.getItem(adminCouponsKey) || '[]');
+
+  let chosen = null;
+  if(vendor && vendor.code.toUpperCase() === code) chosen = vendor;
+  else chosen = admin.find(c => c.code.toUpperCase() === code);
+
+  if(!chosen) return toast('Coupon not found');
+
+  const tot = computeTotals();
+  const eligible = tot.eligibleBase;
+  const min = Number(chosen.min || 0);
+
+  if(eligible < min){
+    toast(`Add ₹${formatMoney(min-eligible)} more to apply this coupon`);
+    return false;
+  }
+
+  let discount = 0;
+  if(chosen.type === 'percent'){
+    discount = Math.round(eligible * (chosen.value/100));
+  } else {
+    discount = Number(chosen.value || chosen.amount || 0);
+  }
+
+  discount = Math.min(discount, eligible);
+
+  window.couponDiscount = discount;
+  window.couponCode = chosen.code;
+
+  renderCart();
+  toast(`Coupon "${chosen.code}" applied`);
+  return true;
+}
+
+function removeCoupon(){
+  window.couponDiscount = 0;
+  window.couponCode = null;
+  renderCart();
+  toast('Coupon removed');
+}
+
+/* ---------- Checkout ---------- */
+checkoutBtn.onclick = () => {
+  if(!cart.length) return toast('Cart empty');
+  const tot = computeTotals();
+  payAmount.textContent = formatMoney(tot.final);
+  paymentPopup.style.display='flex';
+};
+
+payCancelBtn.onclick = () => paymentPopup.style.display='none';
+
+payConfirmBtn.onclick = () => {
+  const paymentMethod = document.querySelector('input[name="pay"]:checked').value;
+  const user = getCurrentUser();
+  if(!user) return toast('Login required');
+
+  const totals = computeTotals();
+  const vendorEarning = Math.max(0, (totals.base - totals.couponDiscount)) + totals.packaging;
+
+  const order = {
+    orderId: 'ORD'+Date.now(),
+    restaurantEmail: restaurant.email,
+    restaurantName: restaurant.restaurantName,
+    customerEmail: user.email,
+    customerName: user.name || '',
+    items: cart.map(i => ({ id:i.id, name:i.name, qty:i.qty })),
+    itemNames: cart.map(i => `${i.name} x${i.qty}`).join(', '),
+    baseTotal: totals.base,
+    gst: totals.gst,
+    deliveryFee: totals.delivery,
+    finalTotal: totals.final,
+    vendorEarning: vendorEarning,
+    payment: paymentMethod==='online'?'Online':'Cash on Delivery',
+    status: 'Pending',
+    date: new Date().toLocaleString()
+  };
+
+  // vendor orders
+  const vKey = `vendorOrders_${restaurant.email}`;
+  const vOrders = JSON.parse(localStorage.getItem(vKey) || '[]');
+  vOrders.push(order);
+  localStorage.setItem(vKey, JSON.stringify(vOrders));
+
+  // user orders
+  const uKey = `userOrders_${user.email}`;
+  const uOrders = JSON.parse(localStorage.getItem(uKey) || '[]');
+  uOrders.push(order);
+  localStorage.setItem(uKey, JSON.stringify(uOrders));
+
+  // revenue
+  const rKey = `vendorRevenue_${restaurant.email}`;
+  const rev = JSON.parse(localStorage.getItem(rKey) || '[]');
+  rev.push({ date:new Date().toLocaleDateString(), amount:vendorEarning });
+  localStorage.setItem(rKey, JSON.stringify(rev));
+
+  cart = [];
+  window.couponDiscount = 0;
+  window.couponCode = null;
+
+  renderCart();
+  paymentPopup.style.display='none';
+  toast('Order placed!');
+  location.href='track_order.html';
+};
+
+/* ---------- Rating System ---------- */
+function getRatingsForVendor(email){
+  return JSON.parse(localStorage.getItem(`vendorRatings_${email}`) || '[]');
+}
+function saveRatingForVendor(email, rating){
+  const arr = getRatingsForVendor(email);
+  arr.push(rating);
+  localStorage.setItem(`vendorRatings_${email}`, JSON.stringify(arr));
+}
+function computeAvgRating(email){
+  const arr = getRatingsForVendor(email);
+  if(!arr.length) return null;
+  return arr.reduce((a,b)=>a+b,0) / arr.length;
+}
+
+function renderRatingUI(){
+  const container = document.getElementById('ratingContainer');
+  container.innerHTML = '';
+
+  const avg = computeAvgRating(restaurant.email);
+  const display = avg ? avg.toFixed(1) : (restaurant.rating || '4.5');
+
+  const wrap = document.createElement('div');
+  wrap.style.display='inline-flex';
+  wrap.style.gap='6px';
+
+  for(let i=1; i<=5; i++){
+    const s = document.createElement('span');
+    s.className = 'star inactive';
+    s.textContent = '★';
+    s.dataset.val = i;
+
+    s.addEventListener('mouseenter', () => {
+      [...wrap.children].forEach(st => {
+        st.classList.toggle('inactive', Number(st.dataset.val) > i);
+      });
+    });
+    s.addEventListener('mouseleave', () => {
+      [...wrap.children].forEach(st => st.classList.remove('inactive'));
+    });
+    s.addEventListener('click', () => {
+      saveRatingForVendor(restaurant.email, i);
+      renderRatingUI();
+      toast('Thanks for rating!');
+    });
+
+    wrap.appendChild(s);
+  }
+
+  const avgDiv = document.createElement('div');
+  avgDiv.className='small';
+  avgDiv.textContent = `(${display})`;
+
+  container.appendChild(wrap);
+  container.appendChild(avgDiv);
+}
+
+/* ---------- Distance formula (optional use) ---------- */
+function calcDistanceKm(lat1, lon1, lat2, lon2){
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI/180;
+  const dLon = (lon2 - lon1) * Math.PI/180;
+  const a =
+    Math.sin(dLat/2)**2 +
+    Math.cos(lat1*Math.PI/180) *
+    Math.cos(lat2*Math.PI/180) *
+    Math.sin(dLon/2)**2;
+
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+/* ---------- Init ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  adminCfg = readAdminConfig();
+  loadRestaurant();
+  loadFilters();
+  renderMenu('All');
+  renderCart();
+});
+
+
+</script>
+</body>
+</html>

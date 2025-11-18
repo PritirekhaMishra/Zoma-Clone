@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ZomaClone | Vendor Dashboard (Fixed)</title>
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+
+<style>
+  body{font-family:'Poppins',sans-serif;margin:0;background:#f7f8fa;color:#333;display:flex;min-height:100vh}
+  .sidebar{background:#e23744;width:250px;color:#fff;display:flex;flex-direction:column;padding:22px}
+  .sidebar h2{text-align:center;margin-bottom:30px;font-size:24px;font-weight:700}
+  .sidebar a{color:#fff;text-decoration:none;padding:12px 15px;border-radius:6px;margin-bottom:10px;font-weight:500;transition:0.25s}
+  .sidebar a:hover,.sidebar a.active{background:#fff;color:#e23744}
+  .main{flex:1;padding:30px 40px;overflow-y:auto}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  header h1{color:#e23744;font-size:26px;font-weight:700}
+  header button{background:#e23744;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-weight:600}
+  #restInfo{background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.1);margin-bottom:25px;display:none}
+  #restInfo img{width:100%;max-width:640px;border-radius:10px;margin-top:12px}
+  .stats{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:25px}
+  .stat-card{background:#fff;flex:1;min-width:200px;text-align:center;padding:22px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,.08)}
+  .stat-card h3{margin:0;color:#e23744;font-size:22px}
+  .settings-box{background:#fff;padding:20px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,.1);margin-bottom:25px}
+  .settings-box input{padding:10px;width:100%;margin-bottom:10px;border-radius:6px;border:1px solid #ccc}
+  .settings-box button{background:#1674ff;color:#fff;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-weight:600;width:100%}
+  form{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+  input,select{padding:10px;border:1px solid #ccc;border-radius:6px;font-size:14px;width:30%}
+  .add-btn{background:#1674ff;color:#fff;border:none;padding:12px 22px;border-radius:6px;cursor:pointer;font-weight:600}
+  .table{margin-top:25px;width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,.1)}
+  .table th,.table td{padding:12px;text-align:center;border-bottom:1px solid #eee}
+  .table th{background:#f2f2f2}
+  .product-img{width:60px;height:60px;border-radius:6px;object-fit:cover}
+  .veg-badge{background:#e9ffe6;color:#15803d;padding:4px 8px;border-radius:4px}
+  .nonveg-badge{background:#ffe4e6;color:#b91c1c;padding:4px 8px;border-radius:4px}
+  .status-btn{background:#1674ff;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:600}
+  .order-status{padding:4px 8px;border-radius:5px;color:#fff;font-weight:600}
+  .pending{ background:#f59e0b }
+  .preparing{ background:#3b82f6 }
+  .outfordelivery{ background:#9333ea }
+  .delivered{ background:#22c55e }
+  .toast{position:fixed;bottom:20px;right:20px;background:#111;color:#fff;padding:12px 18px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.2);animation:fadeInOut 4s ease;z-index:9999}
+  @keyframes fadeInOut{0%{opacity:0;transform:translateY(20px)}10%,90%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(20px)}}
+  .small{font-size:13px;color:#666}
+  .coupon-box{background:#fff;padding:16px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,.08);margin-bottom:20px}
+  .coupon-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .coupon-row input{padding:8px;border:1px solid #ccc;border-radius:6px}
+  .coupon-actions button{padding:8px 12px;margin-right:8px;border-radius:6px;border:none;cursor:pointer}
+  .coupon-list{margin-top:10px}
+  .coupon-item{padding:10px;border-radius:8px;border:1px dashed #eee;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2>ZomaClone</h2>
+    <a href="#" class="active">Dashboard</a>
+    <a href="#products">Products</a>
+    <a href="#orders">Orders</a>
+    <a href="#revenueSection">Revenue History</a>
+    <a href="#feedbacks">Feedbacks</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </aside>
+
+  <div class="main">
+    <header>
+      <h1>🍴 Vendor Dashboard</h1>
+      <button onclick="logout()">Logout</button>
+    </header>
+
+    <!-- Restaurant Info -->
+    <div id="restInfo" aria-hidden="true">
+      <h2 id="restName" style="color:#e23744;margin:0"></h2>
+      <div id="restEmail" class="small"></div>
+      <div id="restAddress" class="small"></div>
+      <div id="restRating" style="margin-top:6px;font-weight:600"></div>
+      <div id="restCharges" class="small" style="margin-top:6px"></div>
+      <img id="restBanner" alt="Banner" />
+    </div>
+
+    <!-- Settings: banner + delivery/package -->
+    <div class="settings-box" aria-labelledby="settingsTitle">
+      <h3 id="settingsTitle" style="margin:0 0 12px;color:#e23744">Restaurant Settings</h3>
+      <label class="small">Banner image (optional)</label>
+      <input type="file" id="bannerImage" accept="image/*">
+
+      <label class="small">Delivery fee (₹) — <small>Platform receives this in your setup</small></label>
+      <input type="number" id="deliveryFee" placeholder="0">
+
+      <label class="small">Packaging fee (₹) — <small>Goes to vendor</small></label>
+      <input type="number" id="packagingFee" placeholder="0">
+
+      <button id="saveSettingsBtn">Save Settings</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card"><h3 id="totalCuisines">0</h3><p>Total Cuisines</p></div>
+      <div class="stat-card"><h3 id="activeOrders">0</h3><p>Active Orders</p></div>
+      <div class="stat-card"><h3 id="avgRating">0⭐</h3><p>Average Rating</p></div>
+      <div class="stat-card"><h3>₹<span id="todaysRevenue">0</span></h3><p>Today's Revenue</p></div>
+    </div>
+
+    <!-- Coupon Management -->
+    <section id="couponSection" style="margin-bottom:18px">
+      <h2 style="margin-top:0">Coupon Management</h2>
+      <div class="coupon-box">
+        <div style="font-weight:600;margin-bottom:6px">Create / Update Vendor Coupon</div>
+        <div class="coupon-row">
+          <input id="couponCode" placeholder="Code (e.g., SAVE40)" />
+          <select id="couponType">
+            <option value="percent">Percent (%)</option>
+            <option value="flat">Flat (₹)</option>
+          </select>
+          <input id="couponValue" type="number" placeholder="Value (e.g., 40)" />
+          <input id="couponMin" type="number" placeholder="Min order (₹) e.g., 199" />
+        </div>
+        <div class="coupon-actions">
+          <button id="saveCouponBtn" style="background:#10b981;color:#fff">Save Coupon</button>
+          <button id="clearCouponBtn" style="background:#f59e0b;color:#fff">Clear</button>
+        </div>
+
+        <div class="coupon-list" id="couponListBox"></div>
+        <div class="small" style="margin-top:8px">Vendor coupon will be shown to users on the restaurant page and will override admin coupon if present.</div>
+      </div>
+    </section>
+
+    <!-- Products -->
+    <section id="products">
+      <h2 style="margin-top:0">Add / Manage Cuisines</h2>
+      <form id="productForm">
+        <input type="text" id="productName" placeholder="Cuisine Name" required>
+        <input type="number" id="price" placeholder="Price (₹)" required>
+        <input type="number" id="offer" placeholder="Offer (%)">
+        <select id="category" required>
+          <option disabled selected>Select Category</option>
+          <option>Indian</option><option>Chinese</option><option>Italian</option>
+          <option>Dessert</option><option>Beverage</option>
+        </select>
+        <select id="foodType" required>
+          <option value="Veg">Veg</option>
+          <option value="Non-Veg">Non-Veg</option>
+        </select>
+        <select id="availability" required>
+          <option>Available</option>
+          <option>Out of Stock</option>
+        </select>
+        <input type="file" id="productImage" accept="image/*" required>
+        <button class="add-btn" type="submit">Add Product</button>
+      </form>
+
+      <table class="table" id="productTable">
+        <thead>
+          <tr><th>Image</th><th>Name</th><th>Category</th><th>Type</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Orders -->
+    <section id="orders" style="margin-top:30px">
+      <h2>Orders</h2>
+      <table class="table" id="ordersTable">
+        <thead>
+          <tr><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Update</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Revenue -->
+    <section id="revenueSection" style="margin-top:30px">
+      <h2>Revenue History</h2>
+      <table class="table" id="dailyRevenueTable">
+        <thead><tr><th>Date</th><th>Total Revenue</th><th>Orders</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div style="margin-top:12px" class="small">Monthly & yearly totals are computed from the same revenue data (see code)</div>
+    </section>
+
+    <!-- Feedbacks -->
+    <section id="feedbacks" style="margin-top:30px">
+      <h2>Customer Feedbacks</h2>
+      <table class="table" id="feedbackTable">
+        <thead><tr><th>Customer</th><th>Dish</th><th>Rating</th><th>Feedback</th><th>Date</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </div>
+
+<script>
+/* ---------------- Helpers ---------------- */
+const $ = s => document.querySelector(s);
+const getLS = (k, fallback='[]') => {
+  try { return JSON.parse(localStorage.getItem(k) || fallback); } catch(e) { return JSON.parse(fallback); }
+};
+const setLS = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const toast = (m) => { const t = document.createElement('div'); t.className='toast'; t.textContent = m; document.body.appendChild(t); setTimeout(()=>t.remove(),2500); };
+
+/* ---------------- keys & current vendor detection ---------------- */
+function getCurrentVendorEmail(){
+  const candidates = ['zoma_current_user', 'currentUser', 'current_user', 'vendorEmail', 'vendor_current'];
+  for(const k of candidates){
+    if(!localStorage.getItem(k)) continue;
+    try {
+      const raw = JSON.parse(localStorage.getItem(k));
+      if(raw && typeof raw === 'object' && raw.email) return raw.email;
+      if(typeof raw === 'string') return raw;
+    } catch(e){
+      const val = localStorage.getItem(k);
+      if(val && val.includes('@')) return val;
+    }
+  }
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith('zoma_user_')) {
+      try { const u = JSON.parse(localStorage.getItem(k)); if(u && u.email) return u.email; } catch(e){}
+    }
+    if(k && k.startsWith('vendor_') && k.includes('email')) {
+      try { const v = JSON.parse(localStorage.getItem(k)); if(v && v.email) return v.email; } catch(e){}
+    }
+  }
+  const tryDirect = localStorage.getItem('zoma_current_user') || localStorage.getItem('currentUser');
+  if(tryDirect && tryDirect.includes && tryDirect.includes('@')) return tryDirect;
+  return null;
+}
+
+const currentVendorEmail = getCurrentVendorEmail();
+if(!currentVendorEmail){
+  alert('Please login as vendor first.');
+  location.href = 'vendor.html';
+}
+
+/* ---------------- keys ---------------- */
+const VENDOR_LIST_KEY = 'vendorList';
+const VENDOR_ACCOUNTS_KEY = 'vendorAccounts';
+const GLOBAL_VENDOR_PRODUCTS = 'vendorProducts'; // legacy global
+const vendorProductsKey = (email) => `vendorProducts_${email}`;
+const vendorOrdersKey = (email) => `vendorOrders_${email}`;
+const vendorRevenueKey = (email) => `vendorRevenue_${email}`;
+const vendorCouponKey = (email) => `vendor_coupon_${email}`;
+
+/* ----------------- Legacy migration ----------------- */
+function migrateLegacyData(){
+  let vendorList = getLS(VENDOR_LIST_KEY, '[]');
+  if(!Array.isArray(vendorList)) vendorList = [];
+
+  const legacyAccounts = getLS(VENDOR_ACCOUNTS_KEY, '[]');
+  if(Array.isArray(legacyAccounts) && legacyAccounts.length){
+    legacyAccounts.forEach(acc => {
+      if(!acc || !acc.email) return;
+      if(!vendorList.find(v => v.email === acc.email)){
+        vendorList.push({
+          email: acc.email,
+          restaurantName: acc.restaurantName || acc.name || 'My Restaurant',
+          rating: acc.rating || '4.5',
+          address: acc.address || {line:'', street:'', city:'', state:'', pin:''},
+          dishes: Array.isArray(acc.dishes) ? acc.dishes : (acc.menu || []),
+          bannerImage: acc.bannerImage || acc.banner || '',
+          deliveryFee: acc.deliveryFee || acc.delivery || 0,
+          packagingFee: acc.packagingFee || acc.packaging || 0
+        });
+      } else {
+        const v = vendorList.find(x => x.email === acc.email);
+        if(Array.isArray(acc.dishes) && acc.dishes.length) v.dishes = (v.dishes || []).concat(acc.dishes);
+      }
+    });
+  }
+
+  const curVendor = vendorList.find(v => v.email === currentVendorEmail);
+  if(curVendor && Array.isArray(curVendor.dishes) && curVendor.dishes.length && !localStorage.getItem(vendorProductsKey(currentVendorEmail))){
+    setLS(vendorProductsKey(currentVendorEmail), curVendor.dishes);
+  }
+
+  const globalProducts = getLS(GLOBAL_VENDOR_PRODUCTS, '[]');
+  if(globalProducts && globalProducts.length && !localStorage.getItem(vendorProductsKey(currentVendorEmail))){
+    setLS(vendorProductsKey(currentVendorEmail), globalProducts);
+  }
+
+  setLS(VENDOR_LIST_KEY, vendorList);
+  return vendorList;
+}
+
+/* ---------------- ensure vendor exists ---------------- */
+function ensureVendorRecord(){
+  let vendorList = getLS(VENDOR_LIST_KEY,'[]');
+  vendorList = migrateLegacyData();
+  if(!Array.isArray(vendorList)) vendorList = getLS(VENDOR_LIST_KEY,'[]');
+  let vendor = vendorList.find(v => v.email === currentVendorEmail);
+  if(!vendor){
+    vendor = {
+      email: currentVendorEmail,
+      restaurantName: 'My Restaurant',
+      rating: '4.5',
+      address: {line:'',street:'',city:'',state:'',pin:''},
+      dishes: [],
+      bannerImage: '',
+      deliveryFee: 0,
+      packagingFee: 0
+    };
+    vendorList.push(vendor);
+    setLS(VENDOR_LIST_KEY, vendorList);
+  }
+}
+
+/* ---------------- vendor products helpers ---------------- */
+function getVendorProducts(){
+  const key = vendorProductsKey(currentVendorEmail);
+  let prods = getLS(key, '[]');
+  if(!Array.isArray(prods) || !prods.length){
+    const vendor = getLS(VENDOR_LIST_KEY, '[]').find(v => v.email === currentVendorEmail);
+    if(vendor && Array.isArray(vendor.dishes)) {
+      prods = vendor.dishes.slice();
+      setLS(key, prods);
+    } else {
+      prods = getLS(GLOBAL_VENDOR_PRODUCTS, '[]');
+      setLS(key, prods);
+    }
+  }
+  return prods;
+}
+function setVendorProducts(prods){
+  setLS(vendorProductsKey(currentVendorEmail), prods);
+  const vendorList = getLS(VENDOR_LIST_KEY, '[]');
+  const vendor = vendorList.find(v => v.email === currentVendorEmail);
+  if(vendor){ vendor.dishes = prods; setLS(VENDOR_LIST_KEY, vendorList); }
+}
+
+/* ---------------- Render functions ---------------- */
+function loadRestaurantInfo(){
+  const vendorList = getLS(VENDOR_LIST_KEY, '[]');
+  const vendor = vendorList.find(v => v.email === currentVendorEmail) || {};
+  $('#restName').textContent = vendor.restaurantName || 'My Restaurant';
+  $('#restEmail').textContent = '📧 ' + (vendor.email || currentVendorEmail);
+  const a = vendor.address || {};
+  $('#restAddress').textContent = '📍 ' + [a.line,a.street,a.city,a.state,a.pin].filter(Boolean).join(', ');
+  $('#restRating').textContent = `⭐ ${vendor.rating || '4.5'} — ${(vendor.dishes||[]).length} Dishes`;
+  $('#restCharges').textContent = `Delivery: ₹${Number(vendor.deliveryFee||0)} • Packaging: ₹${Number(vendor.packagingFee||0)}`;
+  $('#restBanner').src = vendor.bannerImage || './Images/default_restaurant.jpg';
+  $('#restInfo').style.display = 'block';
+
+  $('#deliveryFee').value = vendor.deliveryFee || 0;
+  $('#packagingFee').value = vendor.packagingFee || 0;
+}
+
+/* ---------------- Products table ---------------- */
+function loadProductsTable(){
+  const prods = getVendorProducts();
+  const tbody = document.querySelector('#productTable tbody');
+  tbody.innerHTML = '';
+  prods.forEach((p,i) => {
+    tbody.innerHTML += `<tr>
+      <td><img src="${p.image}" class="product-img" alt=""></td>
+      <td>${escapeHTML(p.name)}</td>
+      <td>${escapeHTML(p.category)}</td>
+      <td><span class="${p.foodType==='Non-Veg'?'nonveg-badge':'veg-badge'}">${escapeHTML(p.foodType)}</span></td>
+      <td>₹${Number(p.price || 0)}</td>
+      <td>${escapeHTML(p.availability || 'Available')}</td>
+      <td><button class="add-btn" style="background:#e23744" onclick="deleteProduct(${i})">Delete</button></td>
+    </tr>`;
+  });
+  $('#totalCuisines').textContent = prods.length;
+}
+
+/* Add product */
+document.getElementById('productForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const name = $('#productName').value.trim();
+  const price = Number($('#price').value || 0);
+  const offer = Number($('#offer').value || 0);
+  const category = $('#category').value;
+  const foodType = $('#foodType').value;
+  const availability = $('#availability').value;
+  const file = $('#productImage').files[0];
+  if(!name || !price || !category || !foodType || !file) return toast('Fill all fields');
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const prods = getVendorProducts();
+    prods.push({
+      id: 'p' + Date.now(),
+      name, price, offer, category, foodType, availability, image: ev.target.result
+    });
+    setVendorProducts(prods);
+    loadProductsTable();
+    document.getElementById('productForm').reset();
+    toast('Product added');
+  };
+  reader.readAsDataURL(file);
+});
+
+/* Delete product */
+window.deleteProduct = (i) => {
+  const prods = getVendorProducts();
+  prods.splice(i,1);
+  setVendorProducts(prods);
+  loadProductsTable();
+  toast('Product deleted');
+};
+
+/* ---------------- Orders table & update ---------------- */
+function safeOrderAmount(o){
+  return Number(o.totalPrice || o.baseTotal || o.finalTotal || 0);
+}
+
+function loadOrdersTable(){
+  const orders = getLS(vendorOrdersKey(currentVendorEmail), '[]');
+  const tbody = document.querySelector('#ordersTable tbody');
+  tbody.innerHTML = '';
+  orders.forEach((o,i) => {
+    const cls = (o.status || 'Pending').replace(/\s/g,'').toLowerCase();
+    const updateBtn = (o.status === 'Delivered') ? `<span style="color:green;font-weight:600">Completed</span>` : `<button class="status-btn" onclick="updateOrder(${i})">Next</button>`;
+    const itemNames = o.itemNames || (Array.isArray(o.items) ? o.items.map(it => it.name + ' x' + (it.qty||1)).join(', ') : '');
+    const total = safeOrderAmount(o);
+    tbody.innerHTML += `<tr>
+      <td>${escapeHTML(o.customerName || o.customer || 'Guest')}</td>
+      <td>${escapeHTML(itemNames)}</td>
+      <td>₹${total}</td>
+      <td><span class="order-status ${cls}">${escapeHTML(o.status || 'Pending')}</span></td>
+      <td>${updateBtn}</td>
+    </tr>`;
+  });
+  $('#activeOrders').textContent = orders.filter(o=> (o.status||'') !== 'Delivered').length;
+}
+
+/* Update order: advance status in flow. When Delivered, record revenue */
+window.updateOrder = (index) => {
+  const key = vendorOrdersKey(currentVendorEmail);
+  const orders = getLS(key,'[]');
+  if(!orders[index]) return toast('Order not found');
+  const flow = ['Pending','Preparing','Out for Delivery','Delivered'];
+  const cur = flow.indexOf(orders[index].status || 'Pending');
+  const next = flow[Math.min(flow.length-1, cur+1)];
+  orders[index].status = next;
+  orders[index].date = new Date().toLocaleString();
+  setLS(key, orders);
+
+  // When delivered, revenue already stored at order placement as vendorEarning;
+  // we keep that historic revenue entry in vendorRevenueKey - no duplication here.
+
+  loadOrdersTable();
+  loadRevenueTable();
+  updateStats();
+  toast('Order updated');
+};
+
+/* ---------------- Revenue ---------------- */
+function loadRevenueTable(){
+  const revKey = vendorRevenueKey(currentVendorEmail);
+  const hist = getLS(revKey,'[]');
+  const grouped = {};
+  hist.forEach(h => {
+    if(!h || !h.date) return;
+    grouped[h.date] = grouped[h.date] || { total:0, count:0 };
+    grouped[h.date].total += Number(h.amount || 0);
+    grouped[h.date].count += 1;
+  });
+
+  const tbody = document.querySelector('#dailyRevenueTable tbody');
+  tbody.innerHTML = '';
+  Object.keys(grouped).sort((a,b)=> new Date(b) - new Date(a)).forEach(d => {
+    tbody.innerHTML += `<tr>
+      <td>${d}</td>
+      <td>₹${grouped[d].total.toFixed(2)}</td>
+      <td>${grouped[d].count}</td>
+    </tr>`;
+  });
+
+  const today = new Date().toLocaleDateString();
+  const todayTotal = hist.filter(h=>h.date === today).reduce((s,x)=> s + Number(x.amount || 0), 0);
+  $('#todaysRevenue').textContent = todayTotal.toFixed(2);
+}
+
+/* ---------------- Feedbacks ---------------- */
+function loadFeedbacks(){
+  const fb = getLS('vendorFeedbacks','[]');
+  const tbody = document.querySelector('#feedbackTable tbody');
+  tbody.innerHTML = '';
+  (fb || []).forEach(f => {
+    tbody.innerHTML += `<tr>
+      <td>${escapeHTML(f.customer || '')}</td>
+      <td>${escapeHTML(f.item || '')}</td>
+      <td>${'⭐'.repeat(Number(f.rating || 0))}</td>
+      <td>${escapeHTML(f.feedback || '')}</td>
+      <td>${escapeHTML(f.date || '')}</td>
+    </tr>`;
+  });
+  const avg = (fb && fb.length) ? (fb.reduce((s,x)=>s+Number(x.rating||0),0)/fb.length).toFixed(1) : '0';
+  $('#avgRating').textContent = avg + '⭐';
+}
+
+/* ---------------- Stats ---------------- */
+function updateStats(){
+  const prods = getVendorProducts();
+  const orders = getLS(vendorOrdersKey(currentVendorEmail),'[]');
+  const fb = getLS('vendorFeedbacks','[]');
+  $('#totalCuisines').textContent = prods.length;
+  $('#activeOrders').textContent = orders.filter(o=> (o.status||'') !== 'Delivered').length;
+  const avg = (fb && fb.length) ? (fb.reduce((s,x)=>s+Number(x.rating||0),0)/fb.length).toFixed(1) : '0';
+  $('#avgRating').textContent = avg + '⭐';
+}
+
+/* ---------------- Coupon management ---------------- */
+function loadVendorCouponUI(){
+  const box = $('#couponListBox'); box.innerHTML = '';
+  const c = getLS(vendorCouponKey(currentVendorEmail),'null') || null;
+  if(!c || c === 'null'){
+    box.innerHTML = '<div class="small">No vendor coupon saved.</div>';
+    $('#couponCode').value = '';
+    $('#couponType').value = 'percent';
+    $('#couponValue').value = '';
+    $('#couponMin').value = '';
+    return;
+  }
+  // show coupon details
+  $('#couponCode').value = c.code || '';
+  $('#couponType').value = c.type || 'percent';
+  $('#couponValue').value = c.value || '';
+  $('#couponMin').value = c.minOrder || '';
+  box.innerHTML = `<div class="coupon-item">
+    <div><strong>${escapeHTML(c.code)}</strong> • ${escapeHTML(String(c.type).toUpperCase())} ${escapeHTML(String(c.value))} • Min: ₹${escapeHTML(String(c.minOrder||0))}</div>
+    <div><button onclick="deleteVendorCoupon()" style="background:#ef4444;color:#fff;border:none;padding:6px 10px;border-radius:6px">Delete</button></div>
+  </div>`;
+}
+
+$('#saveCouponBtn').addEventListener('click', () => {
+  const code = $('#couponCode').value.trim();
+  const type = $('#couponType').value;
+  const value = Number($('#couponValue').value || 0);
+  const minOrder = Number($('#couponMin').value || 0);
+  if(!code || !type || !value) return toast('Fill coupon code, type and value');
+  const obj = { code, type, value, minOrder };
+  setLS(vendorCouponKey(currentVendorEmail), obj);
+  toast('Coupon saved');
+  loadVendorCouponUI();
+});
+
+$('#clearCouponBtn').addEventListener('click', ()=> {
+  $('#couponCode').value=''; $('#couponValue').value=''; $('#couponMin').value='';
+  $('#couponType').value='percent';
+  toast('Cleared form (not deleted)');
+});
+
+function deleteVendorCoupon(){
+  localStorage.removeItem(vendorCouponKey(currentVendorEmail));
+  toast('Coupon deleted');
+  loadVendorCouponUI();
+}
+
+/* ---------------- Save settings (banner, fees) ---------------- */
+$('#saveSettingsBtn').addEventListener('click', ()=>{
+  const vendorList = getLS(VENDOR_LIST_KEY,'[]');
+  const vendor = vendorList.find(v=>v.email === currentVendorEmail);
+  if(!vendor) return toast('Vendor missing');
+  vendor.deliveryFee = Number($('#deliveryFee').value || 0);
+  vendor.packagingFee = Number($('#packagingFee').value || 0);
+
+  const f = $('#bannerImage').files[0];
+  if(f){
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      vendor.bannerImage = ev.target.result;
+      setLS(VENDOR_LIST_KEY, vendorList);
+      loadRestaurantInfo();
+      toast('Settings saved');
+    };
+    reader.readAsDataURL(f);
+  } else {
+    setLS(VENDOR_LIST_KEY, vendorList);
+    loadRestaurantInfo();
+    toast('Settings saved');
+  }
+});
+
+/* ---------------- Logout ---------------- */
+function logout(){
+  localStorage.removeItem('zoma_current_user');
+  localStorage.removeItem('currentUser');
+  toast('Logged out');
+  setTimeout(()=> location.href = 'vendor.html', 900);
+}
+
+/* ---------------- Boot sequence ---------------- */
+(function boot(){
+  ensureVendorRecord();
+  const vendorList = getLS(VENDOR_LIST_KEY,'[]');
+  const vendor = vendorList.find(v => v.email === currentVendorEmail);
+  if(vendor && Array.isArray(vendor.dishes) && vendor.dishes.length && !localStorage.getItem(vendorProductsKey(currentVendorEmail))){
+    setLS(vendorProductsKey(currentVendorEmail), vendor.dishes);
+  }
+  loadRestaurantInfo();
+  loadProductsTable();
+  loadOrdersTable();
+  loadRevenueTable();
+  loadFeedbacks();
+  updateStats();
+  loadVendorCouponUI();
+
+  window.addEventListener('storage', (e) => {
+    if(!e.key) return;
+    if(e.key.startsWith('vendorOrders_') || e.key === VENDOR_LIST_KEY || e.key.startsWith('vendorProducts_') || e.key.startsWith('vendorRevenue_') || e.key.startsWith('vendor_coupon_')) {
+      loadRestaurantInfo();
+      loadProductsTable();
+      loadOrdersTable();
+      loadRevenueTable();
+      loadFeedbacks();
+      updateStats();
+      loadVendorCouponUI();
+    }
+  });
+})();
+function escapeHTML(s){ if(s===null||s===undefined) return ''; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ZomaClone | Vendor Dashboard</title>
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+
+
+<style>
+:root {
+  --accent:#e23744;
+  --bg:#fffaf6;
+  --text:#111;
+  --muted:#555;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:'Poppins',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+/* Navbar */
+.nav {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 36px;
+  background:#fff;
+  box-shadow:0 1px 0 rgba(0,0,0,0.05);
+}
+.logo {
+  font-weight:700;
+  font-size:22px;
+  color:var(--accent);
+}
+.btn {
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  padding:8px 16px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  transition:all .3s ease;
+}
+.btn:hover {
+  background:#c72f3a;
+}
+
+/* Hero Section */
+.hero {
+  text-align:center;
+  padding:70px 20px 40px;
+}
+.hero h1 {
+  font-size:30px;
+  color:var(--accent);
+  margin-bottom:8px;
+}
+.hero p {
+  color:var(--muted);
+  font-size:15px;
+}
+
+/* Cards Grid */
+.container {
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(340px,1fr));
+  gap:30px;
+  max-width:1150px;
+  margin:40px auto 80px;
+  padding:0 20px;
+}
+.card {
+  background:#fff;
+  border-radius:22px;
+  overflow:hidden;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  transition:transform .3s ease, box-shadow .3s ease;
+  cursor:pointer;
+}
+.card:hover {
+  transform:translateY(-8px);
+  box-shadow:0 14px 35px rgba(0,0,0,0.1);
+}
+.card img {
+  width:100%;
+  height:210px;
+  object-fit:cover;
+  border-top-left-radius:22px;
+  border-top-right-radius:22px;
+}
+.card-content {
+  padding:20px 22px;
+}
+.card-content h3 {
+  font-size:20px;
+  margin-bottom:8px;
+  font-weight:600;
+}
+.card-content p {
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.5;
+}
+
+/* Footer */
+footer {
+  text-align:center;
+  background:#fff;
+  color:#666;
+  font-size:14px;
+  padding:20px;
+  border-top:1px solid #eee;
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<header class="nav">
+  <div class="logo">ZomaClone Vendor</div>
+  <button class="btn" id="logoutBtn">Logout</button>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+  <h1>Choose What You Want to Manage</h1>
+  <p>Manage your restaurant’s food orders, tables, or events — all from one dashboard.</p>
+</section>
+
+<!-- Service Cards -->
+<main class="container">
+  <!-- Order Online -->
+  <div class="card" onclick="openPage('vendor_use.html')">
+    <img src="Images/food.png" alt="Order Online">
+    <div class="card-content">
+      <h3>Order Online</h3>
+      <p>Stay home and manage your food delivery orders with ease.</p>
+    </div>
+  </div>
+
+  <!-- Table Booking -->
+  <div class="card" onclick="openPage('vendor_table.html')">
+    <img src="Images/table.png" alt="Table Booking">
+    <div class="card-content">
+      <h3>Table Booking</h3>
+      <p>Let customers reserve tables and manage your dining experience.</p>
+    </div>
+  </div>
+
+  <!-- Nightlife -->
+  <div class="card" onclick="openPage('vendor_night.html')">
+    <img src="Images/item3.png" alt="Nightlife and Clubs">
+    <div class="card-content">
+      <h3>Nightlife and Clubs</h3>
+      <p>Host events, track bookings, and showcase your nightlife activities.</p>
+    </div>
+  </div>
+</main>
+
+<footer>&copy; 2025 ZomaClone — Vendor Portal</footer>
+
+<script>
+// redirect to chosen page
+function openPage(page){
+  localStorage.setItem("zoma_selected_service", page);
+  window.location.href = page;
+}
+
+// logout function
+document.getElementById("logoutBtn").addEventListener("click", ()=>{
+  localStorage.removeItem("zoma_current_user");
+  window.location.href="vendor.html";
+});
+</script>
+</body>
+</html>

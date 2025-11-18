@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - ZomaClone</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+ <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <header class="navbar" style="position: static;">
+    <a href="#">Get the App</a>
+    <div class="navbar__menu_container">
+      <a href="index.html" class="link">Home</a>
+      <a href="vendor.html" class="link signup-btn">Register your restaurant</a>
+    </div>
+  </header>
+
+  <main class="login-page">
+    <div class="login-card">
+      <div class="login-left">
+        <img src="./Images/mobileBanner.png" alt="food" />
+      </div>
+
+      <div class="login-right">
+        <h2>Welcome back</h2>
+        <p class="muted">Log in to continue to ZomaClone</p>
+
+        <form id="loginForm" class="login-form">
+          <label>Email or phone</label>
+          <input id="email" type="text" placeholder="you@example.com or phone" required />
+
+          <label>Password</label>
+          <input id="password" type="password" placeholder="Enter your password" required />
+
+          <button type="submit" class="btn login-btn">Log in</button>
+        </form>
+
+        <div class="divider"><span>or</span></div>
+
+        <div class="socials">
+          <button class="btn social google"><i class="fa-brands fa-google"></i> Continue with Google</button>
+          <button class="btn social apple"><i class="fa-brands fa-apple"></i> Continue with Apple</button>
+        </div>
+
+        <p class="center muted">Don't have an account? <a href="signup.html">Sign up</a></p>
+      </div>
+    </div>
+  </main>
+
+<script>
+/* SIMPLE LOGIN — NO GLOBAL FILE, NO COMPLEXITY */
+
+/* When clicking login */
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!email || !password) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  // Get saved users
+  const users = JSON.parse(localStorage.getItem("users") || "[]");
+
+  // Find matching user by email or phone
+  const user = users.find(u =>
+    (u.email === email || u.phonenumber === email) &&
+    u.password === password
+  );
+
+  if (!user) {
+    alert("Invalid login details");
+    return;
+  }
+
+  // Save current user
+  localStorage.setItem("currentUser", JSON.stringify(user));
+  localStorage.setItem("isLoggedIn", "true");
+
+  alert("Login successful!");
+
+  // redirect after login
+  window.location.href = "user.html";
+});
+
+/* GOOGLE DEMO LOGIN */
+document.querySelector(".google").addEventListener("click", function() {
+  const email = prompt("Enter your Google email:");
+  if (!email) return;
+
+  const user = { name: "Google User", email: email };
+  localStorage.setItem("currentUser", JSON.stringify(user));
+  localStorage.setItem("isLoggedIn", "true");
+
+  alert("Logged in with Google!");
+  window.location.href = "user.html";
+});
+
+/* APPLE DEMO LOGIN */
+document.querySelector(".apple").addEventListener("click", function() {
+  const email = prompt("Enter your Apple email:");
+  if (!email) return;
+
+  const user = { name: "Apple User", email: email };
+  localStorage.setItem("currentUser", JSON.stringify(user));
+  localStorage.setItem("isLoggedIn", "true");
+
+  alert("Logged in with Apple!");
+  window.location.href = "user.html";
+});
+</script>
+
+</body>
+</html>
