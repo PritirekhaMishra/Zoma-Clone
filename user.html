@@ -84,7 +84,22 @@ body{
 }
 </style>
 </head>
+
 <body>
+
+<script>
+// ---------------- LOGIN CHECK ----------------
+if (localStorage.getItem("isLoggedIn") !== "true") {
+    window.location.href = "login.html";
+}
+
+// Load current user
+let user = JSON.parse(localStorage.getItem("currentUser") || "null");
+
+if (!user) {
+    window.location.href = "login.html";
+}
+</script>
 
 <div class="container">
 
@@ -120,7 +135,7 @@ body{
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-/* ---------------- Toast ---------------- */
+// ---------------- Toast ----------------
 function showToast(msg){
   const t=document.getElementById("toast");
   t.textContent=msg;
@@ -128,20 +143,14 @@ function showToast(msg){
   setTimeout(()=>t.style.display="none",1500);
 }
 
-/* ---------------- Load User ---------------- */
-let user = JSON.parse(localStorage.getItem("zoma_user") || "null");
+// ---------------- Autofill Profile ----------------
+window.onload = () => {
+    document.getElementById("name").value = user.name || "";
+    document.getElementById("email").value = user.email || "";
+    document.getElementById("phone").value = user.phonenumber || user.phone || "";
+};
 
-if(!user){
-  // If user not logged in, redirect
-  alert("Please login first.");
-  window.location.href = "login.html";
-}
-
-document.getElementById("name").value = user.name || "";
-document.getElementById("email").value = user.email || "";
-document.getElementById("phone").value = user.phone || "";
-
-/* ---------------- Save Profile ---------------- */
+// ---------------- Save Profile ----------------
 document.getElementById("saveProfileBtn").onclick = () => {
   user.name = document.getElementById("name").value.trim();
   user.email = document.getElementById("email").value.trim();
@@ -152,13 +161,13 @@ document.getElementById("saveProfileBtn").onclick = () => {
     return;
   }
 
-  localStorage.setItem("zoma_user", JSON.stringify(user));
-
+  localStorage.setItem("currentUser", JSON.stringify(user));
   showToast("Profile Updated ✔");
+
   setTimeout(()=> window.location.href="order.html",800);
 };
 
-/* ---------------- Map Setup ---------------- */
+// ---------------- Map Setup ----------------
 let map = L.map("map").setView([20.2961, 85.8245], 6);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
@@ -173,7 +182,7 @@ function setMarker(lat, lon, label){
   map.setView([lat,lon], 15);
 }
 
-/* ---------------- Reverse Geocode ---------------- */
+// ---------------- Reverse Geocode ----------------
 async function reverseGeo(lat,lon){
   try{
     const r = await fetch(
@@ -186,7 +195,7 @@ async function reverseGeo(lat,lon){
   }
 }
 
-/* ---------------- Detect My Location ---------------- */
+// ---------------- Detect My Location ----------------
 document.getElementById("detectBtn").onclick = () => {
   if(!navigator.geolocation){
     showToast("Location not supported");
@@ -209,7 +218,7 @@ document.getElementById("detectBtn").onclick = () => {
   });
 };
 
-/* ---------------- Save Address ---------------- */
+// ---------------- Save Address ----------------
 document.getElementById("saveAddressBtn").onclick = () => {
   let saved = JSON.parse(localStorage.getItem("zoma_detected_location") || "null");
 
@@ -227,7 +236,7 @@ document.getElementById("saveAddressBtn").onclick = () => {
     saved.name;
 
   user.address = finalAddress;
-  localStorage.setItem("zoma_user", JSON.stringify(user));
+  localStorage.setItem("currentUser", JSON.stringify(user));
 
   showToast("Address Saved ✔");
 
