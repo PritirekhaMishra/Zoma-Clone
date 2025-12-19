@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ZomaClone | Restaurant</title>
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+
+<style>
+  :root{--accent:#e23744;--primary:#1674ff;--muted:#666;--card:#fff}
+  body{font-family:'Poppins',sans-serif;margin:0;background:#fafafa;color:#111}
+  .navbar{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .logo{color:var(--accent);font-weight:700}
+  .container{max-width:980px;margin:20px auto;padding:0 16px}
+  .banner{width:100%;height:220px;border-radius:10px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+  .header-info{text-align:center;margin:12px 0}
+  .header-info h1{color:var(--accent);margin:0;font-size:24px}
+  .meta{color:var(--muted);font-size:13px}
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:14px}
+  .card{background:var(--card);padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.04)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
+  .filter-btn{border:1px solid var(--accent);color:var(--accent);padding:6px 10px;border-radius:18px;background:#fff;cursor:pointer;font-size:13px}
+  .filter-btn.active{background:var(--accent);color:#fff}
+  .menu-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;margin-bottom:10px;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.03)}
+  .menu-left{display:flex;align-items:center;gap:12px}
+  .thumb{width:72px;height:64px;border-radius:8px;object-fit:cover}
+  .price-old{color:#999;text-decoration:line-through;margin-right:6px;font-size:13px}
+  .price-new{font-weight:700}
+  .offer-badge{background:#fef3c7;color:#92400e;padding:4px 6px;border-radius:6px;font-size:12px}
+  .btn{background:var(--primary);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px}
+  /* cart */
+  .cart{position:sticky;top:20px}
+  .cart .title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .cart-items{max-height:320px;overflow:auto;margin-bottom:10px}
+  .cart-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #eee}
+  .qty-controls{display:flex;align-items:center;gap:8px}
+  .qty-btn{padding:5px 8px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer}
+  .summary{font-size:14px;line-height:1.6;color:var(--muted)}
+  .summary strong{color:#111}
+  .savings{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:8px;border-radius:6px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}
+  .savings .remove{background:transparent;border:1px solid #065f46;color:#065f46;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px}
+  .popup{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:999}
+  .popup-card{background:#fff;padding:18px;border-radius:10px;width:420px;max-width:95%}
+  .small{font-size:13px;color:var(--muted)}
+  .coupon-row{display:flex;gap:8px;margin-top:8px}
+  input.coupon-input{flex:1;padding:8px;border-radius:8px;border:1px solid #ddd;font-size:13px}
+  .coupon-apply-btn{padding:8px 10px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-size:13px}
+  .coupon-list{max-height:300px;overflow:auto;margin-top:8px}
+  .coupon-card{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;border:1px solid #f1f3f5;background:#fff;margin-bottom:8px;font-size:13px}
+  .coupon-card .meta{font-size:12px;color:var(--muted)}
+  .rating{display:inline-flex;gap:6px;align-items:center}
+  .star{font-size:18px;color:#eab308}
+  @media(max-width:920px){.layout{grid-template-columns:1fr}.cart{position:static;margin-top:12px}}
+  /* toast */
+  .toast{position:fixed;right:18px;bottom:18px;background:#111;color:#fff;padding:8px 12px;border-radius:8px;z-index:1200;opacity:0;transform:translateY(6px);transition:all .18s;font-size:13px}
+  .toast.show{opacity:1;transform:translateY(0)}
+  input,textarea{font-family:inherit}
+</style>
+</head>
+<body>
+
+<header class="navbar">
+  <div class="logo">ZomaClone</div>
+  <div><a href="order.html" style="color:var(--primary);text-decoration:none;font-weight:600">⬅ Back</a></div>
+</header>
+
+<main class="container">
+  <img id="resBanner" class="banner" src="Images/collection4.jpg" alt="banner">
+  <div class="header-info">
+    <h1 id="resName">Restaurant</h1>
+    <div style="display:flex;justify-content:center;gap:10px;align-items:center;margin-top:6px">
+      <div class="meta" id="resTagline">Best food near you</div>
+      <div id="ratingContainer" class="rating"></div>
+    </div>
+    <div class="meta" id="resAddr"></div>
+    <div class="meta" id="resOfferTag"></div>
+  </div>
+
+  <div class="layout">
+    <!-- menu column -->
+    <section>
+      <div class="card">
+        <div id="categoryFilters" class="filters"></div>
+        <div id="menuContainer"></div>
+      </div>
+    </section>
+
+    <!-- cart / checkout column -->
+    <aside class="card cart">
+      <div class="title">
+        <h3 style="margin:0">Your Order</h3>
+        <div class="small" id="itemCount">0 items</div>
+      </div>
+
+      <div id="cartItemsBox" class="cart-items">
+        <div class="small">Cart is empty</div>
+      </div>
+
+      <div id="priceBreakdown" class="summary"></div>
+
+      <!-- coupon input + Apply button -->
+      <div style="margin-top:8px">
+        <div class="coupon-row">
+          <input id="couponInput" class="coupon-input" placeholder="Enter coupon code (optional)" />
+          <button id="openCouponBtn" class="coupon-apply-btn">Apply</button>
+        </div>
+      </div>
+
+      <div id="savingsBox"></div>
+
+      <div style="margin-top:10px">
+        <button id="checkoutBtn" class="btn" style="width:100%">Proceed to Pay</button>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<!-- coupon modal -->
+<div id="couponModal" class="popup" aria-hidden="true">
+  <div class="popup-card">
+    <h3 style="margin:0 0 8px">Available Coupons</h3>
+    <div class="small">Select a coupon to apply. Coupons apply only on non-discounted items.</div>
+
+    <div style="margin-top:10px">
+      <input id="manualCouponInput" placeholder="Enter coupon code manually"
+             style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;font-size:13px" />
+      <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+        <button id="applyManualBtn" class="btn">Apply Code</button>
+        <button id="closeCouponBtn" class="btn" style="background:#999">Close</button>
+      </div>
+    </div>
+
+    <div class="coupon-list" id="couponListBox"></div>
+  </div>
+</div>
+
+<!-- address popup -->
+<div id="addressPopup" class="popup" aria-hidden="true">
+  <div class="popup-card">
+    <h3 style="margin:0 0 8px">Delivery address</h3>
+    <div class="small">We’ll deliver your order to this location.</div>
+
+    <div style="margin-top:10px;font-size:14px;display:grid;gap:6px">
+      <input id="addrName" placeholder="Full name" style="padding:8px;border-radius:8px;border:1px solid #ddd">
+      <input id="addrPhone" placeholder="Phone number" style="padding:8px;border-radius:8px;border:1px solid #ddd">
+
+      <input id="addrLine1" placeholder="House / Plot no." style="padding:8px;border-radius:8px;border:1px solid #ddd">
+      <input id="addrLine2" placeholder="Street / Area / Road" style="padding:8px;border-radius:8px;border:1px solid #ddd">
+      <input id="addrLandmark" placeholder="Nearest landmark (optional)" style="padding:8px;border-radius:8px;border:1px solid #ddd">
+
+      <div style="display:flex;gap:6px">
+        <input id="addrCity"  placeholder="City"  style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd">
+        <input id="addrState" placeholder="State" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd">
+      </div>
+
+      <div style="display:flex;gap:6px">
+        <input id="addrPincode" placeholder="Pincode" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd">
+        <input id="addrCountry" value="India" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd">
+      </div>
+
+      <!-- hidden lat/lng will be filled by geolocation -->
+      <input type="hidden" id="addrLat">
+      <input type="hidden" id="addrLng">
+
+      <button id="useLocationBtn" class="btn" type="button" style="margin-top:4px;width:100%">
+        Use current location
+      </button>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button id="addrCancelBtn" class="btn" style="background:#999">Cancel</button>
+      <button id="addrContinueBtn" class="btn">Continue to payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR Popup for Desktop -->
+<div id="qrPopup" class="popup">
+  <div class="popup-card" style="text-align:center;max-width:350px">
+    <h3>Scan & Pay</h3>
+    <p class="small">Use any UPI app to scan and complete payment.</p>
+
+    <img id="qrImage" width="240" style="border-radius:10px;margin-top:10px">
+
+    <p class="small" style="margin-top:10px">
+      After successful payment, click Continue.
+    </p>
+
+    <button id="qrContinueBtn" class="btn" style="margin-top:10px">Continue</button>
+  </div>
+</div>
+
+<!-- payment popup -->
+<div id="paymentPopup" class="popup" aria-hidden="true">
+  <div class="popup-card">
+    <h3 style="margin:0 0 8px">Payment</h3>
+    <div class="small">Amount to pay: ₹<span id="payAmount">0</span></div>
+
+    <div style="margin-top:10px;font-size:14px">
+      <label><input type="radio" name="pay" value="cod" checked> Cash on Delivery</label><br>
+      <label><input type="radio" name="pay" value="online"> Online Payment (UPI)</label>
+    </div>
+
+    <div class="small" style="margin-top:6px">
+      For online, we’ll open your UPI app with vendor’s UPI ID.
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button id="payConfirmBtn" class="btn">Confirm Order</button>
+      <button id="payCancelBtn" class="btn" style="background:#999">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- toast container -->
+<div id="toastContainer"></div>
+
+<!-- UPI Reference ID Popup -->
+<div id="upiRefPopup" class="popup">
+  <div class="popup-card">
+    <h3>UPI Payment Confirmation</h3>
+
+    <p class="small">Enter the UPI Reference ID shown in your payment app.</p>
+
+    <input id="upiRefInput"
+           placeholder="Example: T1234567890"
+           style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;font-size:14px;margin-top:10px" />
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button id="upiRefSubmitBtn" class="btn">Submit</button>
+      <button id="upiRefCancelBtn" class="btn" style="background:#999">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ----------------------------------------
+   CONFIG
+----------------------------------------- */
+const API = "http://127.0.0.1:5000";
+const GST_RATE = 5;
+
+/* ----------------------------------------
+   HELPERS
+----------------------------------------- */
+function toast(msg) {
+  let box = document.getElementById("toastContainer");
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "toastContainer";
+    box.style.position = "fixed";
+    box.style.right = "18px";
+    box.style.bottom = "18px";
+    box.style.zIndex = "2000";
+    document.body.appendChild(box);
+  }
+
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+
+  t.style.background = "#111";
+  t.style.color = "#fff";
+  t.style.padding = "10px 14px";
+  t.style.marginTop = "8px";
+  t.style.borderRadius = "8px";
+  t.style.opacity = "0";
+  t.style.transform = "translateY(6px)";
+  t.style.transition = "all .18s";
+
+  box.appendChild(t);
+
+  requestAnimationFrame(() => {
+    t.style.opacity = "1";
+    t.style.transform = "translateY(0)";
+  });
+
+  setTimeout(() => {
+    t.style.opacity = "0";
+    t.style.transform = "translateY(6px)";
+    setTimeout(() => t.remove(), 200);
+  }, 2400);
+}
+
+function formatMoney(x){ return Number(x || 0).toLocaleString("en-IN"); }
+
+function escapeHtml(s){
+  if(s === null || s === undefined) return "";
+  return String(s).replace(/[&<>"']/g, c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function getQueryParam(name){
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}
+
+/* ----------------------------------------
+   GLOBAL STATE
+----------------------------------------- */
+let restaurantId = null;
+let restaurant = null;
+let vendor = null;
+let dishes = [];
+let cart = [];
+let couponDiscount = 0;
+let couponCode = null;
+let currentAddress = null;
+let gpsLat = null;
+let gpsLng = null;
+
+// from backend config
+let restaurantDeliveryFee = 0;
+let restaurantPackingFee  = 0;
+let restaurantOffers = [];
+
+/* ----------------------------------------
+   LOAD RESTAURANT + MENU
+----------------------------------------- */
+async function loadRestaurant(){
+  restaurantId = getQueryParam("restaurant_id");
+  if(!restaurantId){
+    alert("Restaurant not selected.");
+    location.href = "order.html";
+    return;
+  }
+
+  try{
+    const res = await fetch(`${API}/food/restaurants`);
+    const list = await res.json();
+    restaurant = list.find(r => r.id == restaurantId);
+    if(!restaurant){
+      alert("Restaurant not found.");
+      location.href = "order.html";
+      return;
+    }
+
+    document.getElementById("resBanner").src =
+      restaurant.banner_image || "Images/default_restaurant.jpg";
+    document.getElementById("resName").textContent = restaurant.name;
+    document.getElementById("resTagline").textContent =
+      restaurant.description || "Delicious food, fast delivery.";
+    document.getElementById("resAddr").textContent =
+      restaurant.address ? "📍 " + restaurant.address : "";
+
+    // pick config from backend
+    restaurantDeliveryFee = Number(restaurant.delivery_charge || 0);
+    restaurantPackingFee  = Number(restaurant.packing_charge || 0);
+    restaurantOffers      = Array.isArray(restaurant.offers) ? restaurant.offers : [];
+
+    // simple text for best restaurant offer
+    if (restaurantOffers.length > 0) {
+      let best = restaurantOffers.reduce((a,b) =>
+        (b.percent || 0) > (a.percent || 0) ? b : a
+      );
+      document.getElementById("resOfferTag").textContent =
+        `✨ Upto ${best.percent}% OFF above ₹${formatMoney(best.min_amount)}`;
+    }
+
+    await Promise.all([loadMenu(), loadVendor()]);
+    loadFilters();
+    renderMenu("All");
+    renderCart();
+  }catch(err){
+    console.error(err);
+    alert("Failed to load restaurant.");
+  }
+}
+
+async function loadMenu(){
+  try{
+    const res = await fetch(`${API}/api/vendor/restaurants/${restaurant.id}/menu`);
+    const menu = await res.json();
+    dishes = menu.map(d => ({
+      id: d.id,
+      name: d.name,
+      price: Number(d.price),
+      category: d.category,
+      image: d.image_url || "Images/default_restaurant.jpg",
+      // backend sends `offer_percent`
+      offer: Number(d.offer_percent || 0),
+      foodType: d.food_type || ""
+    }));
+  }catch(err){
+    console.error("Menu load failed", err);
+    dishes = [];
+  }
+}
+
+async function loadVendor(){
+  try{
+    const res = await fetch(`${API}/api/vendors/${restaurant.vendor_id}`);
+    const data = await res.json();
+    vendor = data.vendor;
+  }catch(err){
+    vendor = null;
+  }
+}
+
+/* ----------------------------------------
+   MENU + FILTERS
+----------------------------------------- */
+function loadFilters(){
+  const box = document.getElementById("categoryFilters");
+  box.innerHTML = "";
+
+  const categories = [...new Set(dishes.map(d => d.category).filter(Boolean))];
+  const list = ["All", ...categories];
+
+  list.forEach((cat, idx)=>{
+    const b = document.createElement("button");
+    b.className = "filter-btn" + (idx === 0 ? " active":"");
+    b.textContent = cat;
+    b.onclick = ()=>{
+      document.querySelectorAll(".filter-btn").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      renderMenu(cat);
+    };
+    box.appendChild(b);
+  });
+}
+
+function renderMenu(cat="All"){
+  const box = document.getElementById("menuContainer");
+  box.innerHTML = "";
+
+  const list = cat === "All" ? dishes : dishes.filter(d=>d.category === cat);
+
+  list.forEach(d=>{
+    const discounted = d.offer > 0
+      ? Math.round(d.price * (1 - d.offer/100))
+      : d.price;
+
+    const div = document.createElement("div");
+    div.className = "menu-item";
+    div.innerHTML = `
+      <div class="menu-left">
+        <img src="${d.image}" class="thumb">
+        <div>
+          <div style="font-weight:600">${escapeHtml(d.name)}</div>
+          <div class="small">${escapeHtml(d.category || "")}</div>
+          <div style="margin-top:6px">
+            ${
+              d.offer > 0
+              ? `<span class="price-old">₹${formatMoney(d.price)}</span>
+                 <span class="price-new">₹${formatMoney(discounted)}</span>
+                 <span class="offer-badge">${d.offer}% OFF</span>`
+              : `<span class="price-new">₹${formatMoney(d.price)}</span>`
+            }
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" onclick="addToCart(${d.id})">Add</button>
+    `;
+    box.appendChild(div);
+  });
+}
+
+/* ----------------------------------------
+   CART
+----------------------------------------- */
+function addToCart(id){
+  const dish = dishes.find(d => d.id == id);
+  if(!dish) return;
+
+  const existing = cart.find(c => c.id == id);
+  if(existing) existing.qty++;
+  else cart.push({id: dish.id, name: dish.name, price: dish.price, offer: dish.offer, qty:1});
+
+  couponDiscount = 0;
+  couponCode = null;
+
+  renderCart();
+  toast("Added to cart");
+}
+
+function changeQty(id, delta){
+  const item = cart.find(c => c.id == id);
+  if(!item) return;
+
+  item.qty += delta;
+  if(item.qty <= 0){
+    cart = cart.filter(c => c.id != id);
+  }
+
+  couponDiscount = 0;
+  couponCode = null;
+
+  renderCart();
+}
+
+function renderCart(){
+  const box = document.getElementById("cartItemsBox");
+  box.innerHTML = "";
+
+  if(!cart.length){
+    box.innerHTML = `<div class="small">Cart is empty</div>`;
+    document.getElementById("itemCount").textContent = "0 items";
+    renderSummary();
+    return;
+  }
+
+  let totalItems = 0;
+
+  cart.forEach(it=>{
+    totalItems += it.qty;
+
+    const row = document.createElement("div");
+    row.className = "cart-row";
+    row.innerHTML = `
+      <div style="flex:1">
+        <div style="font-weight:600">${escapeHtml(it.name)}</div>
+        <div class="small">₹${formatMoney(it.price)}</div>
+      </div>
+
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="changeQty(${it.id}, -1)">−</button>
+        <div style="width:20px;text-align:center">${it.qty}</div>
+        <button class="qty-btn" onclick="changeQty(${it.id}, 1)">+</button>
+      </div>
+    `;
+
+    box.appendChild(row);
+  });
+
+  document.getElementById("itemCount").textContent = `${totalItems} items`;
+  renderSummary();
+}
+
+/* ----------------------------------------
+   TOTALS  (MATCH BACKEND LOGIC)
+----------------------------------------- */
+function computeTotals(){
+  let base = 0;
+
+  // per-item offer for display and amount sent to backend
+  cart.forEach(it=>{
+    const eff = it.offer > 0
+      ? Math.round(it.price * (1 - it.offer/100))
+      : it.price;
+    base += eff * it.qty;
+  });
+
+  // restaurant-level offers – pick best percent
+  let restaurantOfferDiscount = 0;
+  let bestPercent = 0;
+  restaurantOffers.forEach(o=>{
+    const minAmt = Number(o.min_amount || 0);
+    const pct = Number(o.percent || 0);
+    if (base >= minAmt && pct > bestPercent) {
+      bestPercent = pct;
+    }
+  });
+  if (bestPercent > 0) {
+    restaurantOfferDiscount = Math.floor(base * bestPercent / 100);
+  }
+
+  const gst = Math.round(base * GST_RATE/100);
+  const deliveryFee = restaurantDeliveryFee;
+  const packingFee  = restaurantPackingFee;
+
+  const totalDiscount = (couponDiscount || 0) + restaurantOfferDiscount;
+  let final = base + gst + deliveryFee + packingFee - totalDiscount;
+  if (final < 0) final = 0;
+
+  return {
+    base,
+    gst,
+    final,
+    deliveryFee,
+    packingFee,
+    restaurantOfferDiscount,
+    couponDiscount,
+    totalDiscount
+  };
+}
+
+function renderSummary(){
+  const box = document.getElementById("priceBreakdown");
+
+  if(!cart.length){
+    box.innerHTML = "";
+    return;
+  }
+
+  const t = computeTotals();
+
+  box.innerHTML = `
+    <div class="small">Items total: ₹${formatMoney(t.base)}</div>
+    <div class="small">GST (${GST_RATE}%): ₹${formatMoney(t.gst)}</div>
+    <div class="small">Delivery fee: ₹${formatMoney(t.deliveryFee)}</div>
+    <div class="small">Packing fee: ₹${formatMoney(t.packingFee)}</div>
+    ${
+      t.restaurantOfferDiscount > 0
+        ? `<div class="small" style="color:#16a34a">Restaurant offer: −₹${formatMoney(t.restaurantOfferDiscount)}</div>`
+        : ""
+    }
+    ${
+      t.couponDiscount > 0
+        ? `<div class="small" style="color:#16a34a">Coupon discount: −₹${formatMoney(t.couponDiscount)}</div>`
+        : ""
+    }
+    <hr>
+    <div style="font-weight:700">Grand total: ₹${formatMoney(t.final)}</div>
+  `;
+}
+
+/* ----------------------------------------
+   ADDRESS + PAYMENT
+----------------------------------------- */
+function openAddressPopup(){
+  if(!cart.length) return toast("Cart empty");
+  document.getElementById("addressPopup").style.display = "flex";
+}
+
+function closeAddressPopup(){
+  document.getElementById("addressPopup").style.display = "none";
+}
+
+function collectAddress(){
+  const name = addrName.value.trim();
+  const phone = addrPhone.value.trim();
+  const line1 = addrLine1.value.trim();
+  const city = addrCity.value.trim();
+  const state = addrState.value.trim();
+  const pincode = addrPincode.value.trim();
+
+  if(!name || !phone || !line1 || !city || !state || !pincode){
+    toast("Fill all required fields");
+    return null;
+  }
+
+  return {
+    name, phone, line1,
+    line2: addrLine2.value.trim(),
+    landmark: addrLandmark.value.trim(),
+    city, state, pincode,
+    lat: gpsLat,
+    lng: gpsLng
+  };
+}
+
+function openPaymentPopup(){
+  const t = computeTotals();
+  payAmount.textContent = formatMoney(t.final);
+  paymentPopup.style.display = "flex";
+}
+
+function closePaymentPopup(){
+  paymentPopup.style.display = "none";
+}
+
+/* ----------------------------------------
+   CONFIRM PAYMENT
+----------------------------------------- */
+async function confirmPayment(){
+  if(!cart.length){
+    toast("Cart empty");
+    return;
+  }
+
+  if(!currentAddress){
+    toast("Address missing");
+    return;
+  }
+
+  const totals = computeTotals();
+  const payMode = document.querySelector('input[name="pay"]:checked').value;
+
+  if(payMode === "cod"){
+    placeFinalOrder("PENDING", null);
+    return;
+  }
+
+  // Online Payment → Show QR + Ask UPI Reference ID
+  const upiId = vendor?.upi_id || "demo@upi";
+  const amount = totals.final;
+
+  const upiUrl = `upi://pay?pa=${upiId}&pn=${restaurant.name}&am=${amount}&cu=INR&tn=ZomaClone`;
+
+  const isMobile = /Android|iPhone/.test(navigator.userAgent);
+  if(isMobile){
+    window.location.href = upiUrl;
+  }else{
+    document.getElementById("qrImage").src =
+      `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(upiUrl)}`;
+    document.getElementById("qrPopup").style.display = "flex";
+  }
+
+  closePaymentPopup();
+  document.getElementById("upiRefPopup").style.display = "flex";
+}
+
+/* ----------------------------------------
+   PLACE FINAL ORDER
+----------------------------------------- */
+async function placeFinalOrder(paymentStatus, referenceId){
+  try{
+    const totals = computeTotals();
+
+    const payload = {
+      restaurant_id: restaurant.id,
+      vendor_id: restaurant.vendor_id,
+      items: cart.map(i=>{
+        const eff = i.offer > 0
+          ? Math.round(i.price * (1 - i.offer/100))
+          : i.price;
+        return {
+          id: i.id,
+          name: i.name,
+          qty: i.qty,
+          price: eff,      // send effective price so backend subtotal matches
+          offer: i.offer
+        };
+      }),
+      total: totals.final,
+      coupon_discount: totals.couponDiscount,
+      payment_method: paymentStatus === "PENDING" ? "COD" : "ONLINE",
+      payment_status: paymentStatus,
+      upi_reference_id: referenceId,
+      address: currentAddress
+    };
+
+    const res = await fetch(`${API}/api/order/place`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if(!data.success){
+      toast("Order failed: " + (data.message || "Unknown error"));
+      return;
+    }
+
+    toast("Order placed successfully!");
+
+    cart = [];
+    renderCart();
+
+    document.getElementById("upiRefPopup").style.display = "none";
+    document.getElementById("qrPopup").style.display = "none";
+
+    const phone = currentAddress.phone;
+    window.location.href = `track_order.html?phone=${encodeURIComponent(phone)}`;
+
+  }catch(err){
+    console.error("Order error:", err);
+    toast("Order failed");
+  }
+}
+
+
+/* ----------------------------------------
+   INIT
+----------------------------------------- */
+document.addEventListener("DOMContentLoaded", ()=>{
+
+  loadRestaurant();
+
+  checkoutBtn.addEventListener("click", openAddressPopup);
+  addrCancelBtn.addEventListener("click", closeAddressPopup);
+
+  addrContinueBtn.addEventListener("click", ()=>{
+    const addr = collectAddress();
+    if(!addr) return;
+    currentAddress = addr;
+    closeAddressPopup();
+    openPaymentPopup();
+  });
+
+  payCancelBtn.addEventListener("click", closePaymentPopup);
+  payConfirmBtn.addEventListener("click", confirmPayment);
+
+  upiRefSubmitBtn.addEventListener("click", ()=>{
+    const ref = document.getElementById("upiRefInput").value.trim();
+    if(!ref) return toast("Enter reference ID");
+    placeFinalOrder("PAID", ref);
+  });
+
+  upiRefCancelBtn.addEventListener("click", ()=>{
+    document.getElementById("upiRefPopup").style.display = "none";
+  });
+
+  qrContinueBtn.addEventListener("click", ()=>{
+    document.getElementById("qrPopup").style.display = "none";
+    document.getElementById("upiRefPopup").style.display = "flex";
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!-- ===================== nightlife_booking.html ===================== -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Book Table</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,Arial,sans-serif}
+body{background:#f5f5f5}
+header{background:#e23744;color:#fff;padding:16px;font-size:20px;font-weight:700}
+.container{max-width:900px;margin:20px auto;padding:0 16px}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 6px 16px rgba(0,0,0,.08)}
+h2{margin-bottom:8px}
+label{font-size:14px;margin-top:8px;display:block}
+select,input{width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;margin-top:4px}
+.row{display:flex;gap:12px;margin-top:10px}
+.row>div{flex:1}
+.table-box{border:1px solid #ddd;border-radius:8px;padding:10px;margin-top:10px}
+.btn{background:#e23744;color:#fff;border:none;border-radius:6px;padding:12px;width:100%;margin-top:14px;font-size:15px;cursor:pointer}
+.btn.alt{background:#444}
+.msg{margin-top:12px;font-weight:600}
+</style>
+</head>
+
+<body>
+
+<header id="clubHeader">Book Table</header>
+
+<div class="container">
+
+<div class="card">
+<h2>Booking Details</h2>
+
+<label>Date</label>
+<input type="date" id="dateInput">
+
+<label>Slot</label>
+<select id="slotSelect"></select>
+
+<label>Table Type</label>
+<select id="typeSelect"></select>
+
+<label>Number of Tables</label>
+<input type="number" id="count" value="1" min="1">
+
+<label>Payment Mode</label>
+<select id="payment">
+  <option value="online">Online</option>
+  <option value="club">Pay at Club</option>
+</select>
+
+<label>Customer Name</label>
+<input id="name">
+
+<label>Phone</label>
+<input id="phone">
+
+<button class="btn" id="bookBtn">Confirm Booking</button>
+
+<div id="msg" class="msg"></div>
+</div>
+
+</div>
+
+<script>
+const API="http://127.0.0.1:5002";
+const clubId=new URLSearchParams(location.search).get("club_id");
+let vendorId=null;
+
+async function init(){
+ const r=await fetch(`${API}/club/${clubId}`);
+ const j=await r.json();
+ clubHeader.innerText=j.name;
+ vendorId=j.vendor_id;
+
+ const s=await fetch(`${API}/slots?vendor_id=${vendorId}`);
+ const sj=await s.json();
+ slotSelect.innerHTML="";
+ sj.slots.forEach(x=>{
+   slotSelect.innerHTML+=`<option value="${x.id}">${x.name} (${x.start}-${x.end})</option>`;
+ });
+
+ const t=await fetch(`${API}/types?vendor_id=${vendorId}`);
+ const tj=await t.json();
+ typeSelect.innerHTML="";
+ tj.types.forEach(x=>{
+   typeSelect.innerHTML+=`<option value="${x.id}">${x.name} ₹${x.price}</option>`;
+ });
+}
+
+bookBtn.onclick=async()=>{
+ const body={
+   vendor_id:vendorId,
+   slot_id:slotSelect.value,
+   type_id:typeSelect.value,
+   date:dateInput.value,
+   count:count.value,
+   customer:name.value,
+   phone:phone.value,
+   payment:payment.value
+ };
+ const r=await fetch(`${API}/book`,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify(body)
+ });
+ const j=await r.json();
+ if(j.success){
+   msg.innerText="🎉 Booking Confirmed!";
+   setTimeout(()=>location.href="nightlife_list.html",1500);
+ }else msg.innerText="Failed";
+};
+
+init();
+</script>
+
+</body>
+</html>

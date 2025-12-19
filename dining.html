@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dining – Discover Restaurants</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#e53935;
+    --pink:#ff7b7b;
+    --bg:#fff3f3;
+    --muted:#6b6b6b;
+    --dark:#222;
+    --radius:20px;
+    --shadow:0 18px 40px rgba(0,0,0,0.08);
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    font-family:Poppins,system-ui,Arial;
+    background:linear-gradient(180deg,var(--bg),#ffffff);
+  }
+
+  /* ---------- HERO BANNER ----------- */
+  .hero{
+    height:280px;
+    background:url("https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&w=1600") center/cover no-repeat;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    color:#fff;
+    position:relative;
+  }
+
+  .hero::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.45);
+  }
+
+  .hero h1{
+    position:relative;
+    z-index:2;
+    font-size:36px;
+    letter-spacing:1px;
+    margin:0;
+    font-weight:700;
+  }
+
+  /* ---------- CONTENT WRAPPER ---------- */
+  .wrap{
+    max-width:1200px;
+    margin:0 auto;
+    padding:24px 18px;
+  }
+
+  h2{margin:0 0 16px;font-size:24px;color:var(--dark);}
+
+  /* ---------- RESTAURANT GRID ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+    gap:22px;
+    margin-top:18px;
+  }
+
+  /* ---------- RESTAURANT CARD ---------- */
+  .card{
+    background:#fff;
+    border-radius:var(--radius);
+    border:1px solid #eee;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    transition:transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 26px 60px rgba(0,0,0,0.14);
+  }
+
+  .banner-img{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+  }
+
+  .info{
+    padding:16px;
+  }
+
+  .name{font-size:20px;font-weight:600;color:var(--dark);}
+  .loc{color:var(--muted);font-size:14px;margin-top:4px;}
+
+  .status{
+    margin-top:10px;
+    padding:8px 12px;
+    border-radius:14px;
+    display:inline-block;
+    font-size:13px;
+    font-weight:600;
+  }
+  .good{background:#eaffea;color:#0d7a0d;}
+  .few{background:#fff0f0;color:var(--red);}
+  .none{background:#f0f0f0;color:#666;}
+
+  .btn{
+    width:100%;
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:12px;
+    border:0;
+    background:linear-gradient(90deg,var(--red),var(--pink));
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+    font-size:15px;
+    box-shadow:0 8px 18px rgba(229,57,70,0.18);
+    transition:0.25s;
+  }
+  .btn:hover{
+    transform:translateY(-3px);
+    box-shadow:0 12px 30px rgba(229,57,70,0.28);
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Discover Restaurants Near You</h1>
+</div>
+
+<div class="wrap">
+  <h2>Available Restaurants</h2>
+  <div id="restList" class="grid"></div>
+</div>
+
+<script>
+const API_BASE = "http://127.0.0.1:5001"; // your backend
+
+async function loadRestaurants() {
+  const container = document.getElementById("restList");
+  container.innerHTML = "<p style='color:#555;'>Loading...</p>";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/rest/vendors`);
+    const json = await res.json();
+
+    if (!json.success || !json.vendors.length) {
+      container.innerHTML = "<p style='color:#777;'>No restaurants available now.</p>";
+      return;
+    }
+
+    container.innerHTML = ""; // clear loading text
+
+    json.vendors.forEach(v => {
+
+      // fallback image
+      const img = v.banner_url || "https://source.unsplash.com/1200x800/?restaurant";
+
+      // availability text + color
+      let statusClass = "good", statusText = "Seats available";
+      if (v.availability.free === 0) {
+        statusClass = "none"; statusText = "Fully booked";
+      } else if (v.availability.free <= 2) {
+        statusClass = "few"; statusText = "Few tables left";
+      }
+
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        <img src="${img}" class="banner-img">
+        <div class="info">
+          <div class="name">${v.restaurant_name || "Restaurant"}</div>
+          <div class="loc">${v.city || "Unknown city"}</div>
+          <div class="status ${statusClass}">
+            ${statusText} — ${v.availability.free} free
+          </div>
+          <button class="btn" onclick="book(${v.vendor_id})">Reserve</button>
+        </div>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = "<p style='color:#e53935;'>Failed to load restaurants.</p>";
+  }
+}
+
+function book(vendorId) {
+  window.location.href = `online_table.html?vendor=${vendorId}`;
+}
+
+// Load at start
+loadRestaurants();
+</script>
+
+
+</body>
+</html>

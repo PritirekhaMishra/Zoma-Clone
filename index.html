@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+<link rel="icon" type="image/png" sizes="512x512" href="./Images/logo_512.png">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+<link rel="icon" type="image/png" sizes="192x192" href="./Images/logo_192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./Images/logo_32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./Images/logo_16.png">
+
+<link rel="stylesheet" href="./styles.css">
+
+<title>ZomaClone</title>
+</head>
+
+<body>
+
+<section class="hero__section">
+<header>
+<nav class="navbar">
+    <a href="#">Get the App</a>
+    <div class="navbar__menu_container">
+        <a href="login.html" class="link login-link">Login</a>
+        <a href="signup.html" class="link signup-btn">Sign Up</a>
+        <a href="javascript:void(0)" class="user_icon" style="display:none;">
+          <i class="fa-solid fa-user"></i>
+        </a>
+    </div>
+</nav>
+</header>
+
+<div class="hero__section_container">
+    <h1 class="hero__section_heading">Discover the best food & drinks</h1>
+     <b> </b>
+    <div class="hero__section_container_input">
+        <i class="fa-solid fa-location-dot" id="location_icon"></i>
+
+        <div class="city-picker" onclick="openCityModal()">
+            <span id="selectedCity">Pune</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+
+        <i class="fa-solid fa-magnifying-glass" id="search_icon"></i>
+        <input class="hero__section_input_search"
+            type="text"
+            placeholder="Search for a restaurant, cuisine or a dish">
+    </div>
+</div>
+</section>
+
+<!-- cards -->
+<section class="container_cards">
+<a href="order.html" class="we_offer__cards">
+    <img src="./Images/item1.png" alt="Order Online">
+    <div class="we_offer__cards_content">
+        <h2>Order Online</h2>
+        <p>Stay home and order to your doorstep</p>
+    </div>
+</a>
+
+<a href="dining.html" class="we_offer__cards">
+    <img src="./Images/item2.png" alt="Dining">
+    <div class="we_offer__cards_content">
+        <h2>Table Booking</h2>
+        <p>Visit amazing restaurants and cafes</p>
+    </div>
+</a>
+
+<a href="nightlife.html" class="we_offer__cards">
+    <img src="./Images/item3.png" alt="Nightlife">
+    <div class="we_offer__cards_content">
+        <h2>Nightlife and clubs</h2>
+        <p>Spend leisure time enjoying the nightlife</p>
+    </div>
+</a>
+</section>
+
+<!-- TODO: Collections, Get App, Footer — your existing content here -->
+
+<!-- CITY MODAL -->
+<div class="city-modal" id="cityModal">
+<div class="city-modal-box">
+    <h2>Select Your City</h2>
+
+    <input type="text" id="citySearch" placeholder="Search City..." class="city-search">
+
+    <h3>Popular Cities</h3>
+    <div class="city-grid" id="popularCities"></div>
+
+    <h3 style="margin-top:20px;">All Cities</h3>
+    <div class="city-list" id="allCities"></div>
+
+    <button class="close-city-btn" onclick="closeCityModal()">Close</button>
+</div>
+</div>
+
+<!-- CITY SCRIPT -->
+<script>
+const cities = [
+"Pune","Mumbai","Bengaluru","Delhi","Hyderabad","Chennai",
+"Kolkata","Ahmedabad","Surat","Indore","Bhubaneswar","Goa",
+"Jaipur","Lucknow","Nagpur","Chandigarh","Patna","Noida"
+];
+
+const popularCities = ["Pune","Mumbai","Delhi","Bengaluru","Hyderabad","Chennai"];
+
+function openCityModal() {
+  document.getElementById("cityModal").style.display = "flex";
+  loadCities();
+}
+
+function closeCityModal() {
+  document.getElementById("cityModal").style.display = "none";
+}
+
+function loadCities() {
+  document.getElementById("popularCities").innerHTML =
+    popularCities.map(c => `<div onclick="selectCity('${c}')">${c}</div>`).join('');
+
+  document.getElementById("allCities").innerHTML =
+    cities.map(c => `<div onclick="selectCity('${c}')">${c}</div>`).join('');
+}
+
+function selectCity(city) {
+  document.getElementById("selectedCity").innerText = city;
+  closeCityModal();
+}
+
+document.getElementById("citySearch").addEventListener("input", () => {
+  const val = document.getElementById("citySearch").value.toLowerCase();
+  const filtered = cities.filter(c => c.toLowerCase().includes(val));
+
+  document.getElementById("allCities").innerHTML =
+    filtered.map(c => `<div onclick="selectCity('${c}')">${c}</div>`).join('');
+});
+</script>
+
+<!-- LOGIN STATE (FULL BACKEND) -->
+<script>
+const API_URL = "http://127.0.0.1:5000";
+let CURRENT_USER = null;
+
+async function fetchCurrentUser() {
+  try {
+    const res = await fetch(API_URL + "/api/auth/me", {
+      method: "GET",
+      credentials: "include"  // send session cookie
+    });
+    const data = await res.json();
+    if (data.ok && data.user) {
+      CURRENT_USER = data.user;
+      return data.user;
+    }
+  } catch (e) {
+    console.error("auth/me error", e);
+  }
+  CURRENT_USER = null;
+  return null;
+}
+
+function setupNavbar(user) {
+  const loginLink = document.querySelector(".login-link");
+  const signupBtn = document.querySelector(".signup-btn");
+  const userIcon  = document.querySelector(".user_icon");
+
+  if (!loginLink || !signupBtn || !userIcon) return;
+
+  if (user) {
+    loginLink.style.display = "none";
+    signupBtn.style.display = "none";
+    userIcon.style.display  = "flex";
+
+    let dropdown = document.getElementById("userDropdownMenu");
+    if (!dropdown) {
+      dropdown = document.createElement("div");
+      dropdown.id = "userDropdownMenu";
+      dropdown.style = `
+        position:absolute; top:60px; right:40px;
+        background:#fff; color:#333;
+        padding:10px 14px; border-radius:8px;
+        box-shadow:0 8px 20px rgba(0,0,0,0.15);
+        font-size:14px; display:none; z-index:3000;
+      `;
+      dropdown.innerHTML = `
+        <div style="margin-bottom:6px;">Hi, <strong>${user.name}</strong></div>
+        <button id="logoutBtn"
+          style="border:none;background:#ef4f5f;color:#fff;
+          padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px;">
+          Logout
+        </button>
+      `;
+      document.body.appendChild(dropdown);
+
+      userIcon.addEventListener("click", () => {
+        dropdown.style.display = dropdown.style.display === "none" ? "block":"none";
+      });
+
+      document.getElementById("logoutBtn").addEventListener("click", async () => {
+        try {
+          await fetch(API_URL + "/api/auth/logout", {
+            method: "POST",
+            credentials: "include"
+          });
+        } catch (e) {
+          console.error("logout error", e);
+        }
+        alert("Logged out successfully.");
+        window.location.reload();
+      });
+    }
+
+  } else {
+    loginLink.style.display = "inline-flex";
+    signupBtn.style.display = "inline-flex";
+    userIcon.style.display  = "none";
+  }
+}
+
+function protectFeatureCards() {
+  const cards = document.querySelectorAll(".we_offer__cards");
+
+  cards.forEach(card => {
+    card.addEventListener("click", async (e) => {
+      if (!CURRENT_USER) {
+        // Optional: re-check from backend before blocking
+        await fetchCurrentUser();
+      }
+      if (!CURRENT_USER) {
+        e.preventDefault();
+        alert("Please log in or sign up to continue.");
+        window.location.href = "login.html";
+      }
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const user = await fetchCurrentUser();
+  setupNavbar(user);
+  protectFeatureCards();
+});
+</script>
+
+</body>
+</html>

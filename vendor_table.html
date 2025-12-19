@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ZomaClone Vendor Dashboard — Email Only</title>
+
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+
+<style>
+/* GLOBAL */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Poppins,Arial,Helvetica,sans-serif;background:#f5f5f5;display:flex;min-height:100vh;color:#222}
+
+/* SIDEBAR */
+.sidebar{
+    width:250px;background:linear-gradient(180deg,#e53935,#ff4d4d);
+    min-height:100vh;padding:24px 12px;color:#fff;position:fixed;left:0;top:0;
+}
+.logo{text-align:center;font-size:26px;font-weight:800;margin-bottom:20px}
+.menu-item{padding:12px 16px;border-radius:8px;cursor:pointer;font-weight:600;margin-bottom:10px}
+.menu-item:hover{background:rgba(255,255,255,.08)}
+.menu-item.active{background:#fff;color:#e53935}
+
+/* MAIN */
+.main{margin-left:260px;padding:22px;width:100%}
+.card{
+    background:#fff;padding:16px;border-radius:12px;margin-bottom:18px;
+    box-shadow:0 8px 24px rgba(0,0,0,.06);border:1px solid #eee
+}
+h1{margin-bottom:12px;font-size:22px}
+h2{margin-bottom:10px;font-size:18px}
+label{font-size:13px;color:#666;margin-top:8px;display:block}
+input,select,textarea,button{
+    font-family:inherit;
+}
+input,select,textarea{
+    width:100%;padding:10px;margin-top:6px;border-radius:8px;
+    border:1px solid #ccc;outline:none;background:#fff;
+}
+input[readonly]{background:#f7f7f7}
+
+/* layout helpers */
+.row{display:flex;gap:10px;margin-top:8px;align-items:center}
+.row > div{flex:1}
+
+/* Set button small */
+.row button.set-small {
+    flex: 0 0 auto;
+    width:120px;
+    padding:8px 12px;
+    font-size:14px;
+}
+
+/* slot styles */
+.slot-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 14px;
+  align-items: center;
+}
+.slot-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+}
+.time-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.time-wrapper input,
+.time-wrapper select {
+  width: 70px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+.slot-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 999px;
+  background: #e53935;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.slot-btn:hover {
+  background: #ff4c4c;
+}
+
+/* Buttons */
+.btn{
+    padding:10px 16px;border:none;border-radius:999px;
+    background:linear-gradient(135deg,#e53935,#ff4d4d);color:#fff;
+    font-weight:700;cursor:pointer;
+}
+.btn.secondary{
+    background:#fff;color:#e53935;border:1px solid #e53935
+}
+
+/* sections hidden by default */
+.section{display:none}
+
+/* table grid */
+.table-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.table-cell{width:44px;height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;border:1px solid rgba(0,0,0,0.06)}
+.cell-free{background:#E8FFF2;color:#065b3e}
+.cell-reserved{background:#FFE6E6;color:#8b2b2b}
+.cell-unavail{background:#f0f0f0;color:#888;border-style:dashed}
+
+/* modal */
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999}
+.modal{background:#fff;padding:16px;border-radius:12px;max-width:720px;width:95%;box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid #eee}
+
+/* popup */
+.popup{position:fixed;top:20px;right:20px;background:#22c55e;color:#fff;padding:10px 14px;border-radius:8px;font-weight:700;z-index:10000;transition:.3s}
+.popup.error{background:#e11d48}
+
+/* misc */
+.small{font-size:13px;color:#666;margin-top:6px}
+
+/* responsive */
+@media (max-width:900px){
+  .sidebar{position:relative;width:100%;display:flex;overflow:auto}
+  .main{margin-left:0;padding:12px}
+  .row{flex-direction:column}
+  .row button.set-small{width:100%}
+}
+</style>
+</head>
+<body>
+<aside class="sidebar" aria-label="Sidebar">
+    <div class="logo">ZomaClone</div>
+    <div class="menu-item active" data-section="dashboard" role="button" tabindex="0">Dashboard</div>
+    <div class="menu-item" data-section="types" role="button" tabindex="0">Table Types</div>
+    <div class="menu-item" data-section="slots" role="button" tabindex="0">Slots</div>
+    <div class="menu-item" data-section="bookings" role="button" tabindex="0">Bookings</div>
+    <div class="menu-item" data-section="settings" role="button" tabindex="0">Settings</div>
+    <div class="menu-item" data-section="location" role="button" tabindex="0">Location</div>
+    <div class="menu-item" data-section="userSim" role="button" tabindex="0">User Simulator</div>
+</aside>
+
+<main class="main" role="main">
+<h1>Vendor Dashboard</h1>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="section" aria-labelledby="dashboardHeading">
+    <div class="card">
+        <h2 id="dashboardHeading">Vendor Setup</h2>
+
+        <label for="restaurantName">Restaurant Name</label>
+        <input id="restaurantName" placeholder="My Restaurant" aria-label="Restaurant name">
+
+        <div class="row" style="margin-top:10px">
+            <div style="flex:1">
+                <label for="vendorEmail">Vendor Email</label>
+                <input id="vendorEmail" placeholder="vendor@example.com" aria-label="Vendor email">
+            </div>
+            <button class="btn set-small" id="setVendorBtn" title="Set vendor (save)">Set</button>
+        </div>
+
+        <!-- UPI ID -->
+        <label for="vendorUpi" style="margin-top:10px;">Vendor UPI ID</label>
+        <div class="row" style="margin-top:6px">
+            <div style="flex:1">
+                <input id="vendorUpi" placeholder="yourupi@bank" aria-label="Vendor UPI ID">
+            </div>
+            <button class="btn set-small" id="saveUpiBtn" title="Save UPI ID">Save UPI</button>
+        </div>
+
+        <p id="dashVendor" style="margin-top:10px;color:#666"></p>
+        <p id="dashRestaurant" style="margin-top:4px;color:#444;font-weight:600"></p>
+
+        <!-- Banner -->
+        <h3 style="margin-top:18px;font-size:16px;font-weight:600">Vendor Banner</h3>
+        <input type="file" id="bannerInput" accept="image/*" style="margin-top:6px" aria-label="Upload banner">
+
+        <div id="bannerPreviewWrap" style="
+            display:none;margin-top:12px;
+            border:1px solid #ddd;border-radius:10px;overflow:hidden;
+        ">
+            <img id="bannerPreview" style="width:100%;height:auto;display:block" alt="Banner preview">
+            <button id="removeBanner" class="btn secondary"
+                style="width:100%;border-radius:0;border:none;border-top:1px solid #ddd">
+                Remove Banner
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Quick Stats</h2>
+        <p id="dashStats">Set vendor first.</p>
+    </div>
+</section>
+
+<!-- TABLE TYPES -->
+<section id="types" class="section" aria-labelledby="typesHeading">
+    <div class="card">
+        <h2 id="typesHeading">Table Types</h2>
+
+        <label>Table Type</label>
+        <select id="typeSelect" aria-label="Table type">
+            <option value="" disabled selected>Select type</option>
+            <option value="2-seater">2-Seater</option>
+            <option value="4-seater">4-Seater</option>
+            <option value="6-seater">6-Seater</option>
+            <option value="8-seater">8-Seater</option>
+            <option value="Couple Table">Couple Table</option>
+            <option value="Family Table">Family Table</option>
+            <option value="VIP Table">VIP Table</option>
+            <option value="Outdoor Table">Outdoor Table</option>
+            <option value="Custom">Custom Seats</option>
+        </select>
+
+        <label>Seats per table</label>
+        <input id="typeSeats" type="number" disabled aria-label="Seats per table">
+
+        <div class="row">
+            <div>
+                <label>Total Tables</label>
+                <input id="typeTotal" type="number" value="1" min="1">
+            </div>
+            <div>
+                <label>Free Tables (initial)</label>
+                <input id="typeFree" type="number" value="1" min="0">
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+            <div>
+                <label>Price (₹)</label>
+                <input id="typePrice" type="number" placeholder="0">
+            </div>
+            <div>
+                <label>Cancel before (hrs)</label>
+                <input id="typeCancel" type="number" placeholder="2" value="2">
+            </div>
+        </div>
+
+        <!-- Time fields -->
+        <div class="row" style="margin-top:10px">
+            <div>
+                <label>Start Hour (1-12)</label>
+                <input type="number" id="startHour" min="1" max="12" placeholder="10">
+            </div>
+            <div>
+                <label>Start Minute (0-59)</label>
+                <input type="number" id="startMinute" min="0" max="59" placeholder="00">
+            </div>
+            <div>
+                <label>AM/PM</label>
+                <select id="startPeriod" aria-label="Start period">
+                    <option>AM</option>
+                    <option>PM</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+            <div>
+                <label>End Hour (1-12)</label>
+                <input type="number" id="endHour" min="1" max="12" placeholder="11">
+            </div>
+            <div>
+                <label>End Minute (0-59)</label>
+                <input type="number" id="endMinute" min="0" max="59" placeholder="00">
+            </div>
+            <div>
+                <label>AM/PM</label>
+                <select id="endPeriod" aria-label="End period">
+                    <option>AM</option>
+                    <option>PM</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button id="addTypeBtn" class="btn">Add / Update Type</button>
+            <button id="clearTypeBtn" class="btn secondary">Clear Types</button>
+        </div>
+    </div>
+
+    <div id="typeList" class="card">
+        <div class="small">No types yet</div>
+    </div>
+</section>
+
+<!-- SLOTS -->
+<section id="slots" class="section">
+  <div class="card">
+    <h2>Slots</h2>
+
+    <input id="slotName" class="slot-input" type="text" placeholder="Slot name (e.g., Lunch, Dinner)">
+
+    <div class="slot-row">
+      <div class="time-wrapper">
+        <input id="startHourSlot" type="number" min="1" max="12" placeholder="HH">
+        <input id="startMinSlot" type="number" min="0" max="59" placeholder="MM">
+        <select id="startPeriodSlot"><option>AM</option><option>PM</option></select>
+      </div>
+
+      <div class="time-wrapper">
+        <input id="endHourSlot" type="number" min="1" max="12" placeholder="HH">
+        <input id="endMinSlot" type="number" min="0" max="59" placeholder="MM">
+        <select id="endPeriodSlot"><option>AM</option><option>PM</option></select>
+      </div>
+
+      <button id="addSlotBtn" class="slot-btn">Add Slot</button>
+    </div>
+
+    <div id="slotList" class="slot-list small" style="margin-top:12px">No slots</div>
+  </div>
+</section>
+
+<!-- BOOKINGS -->
+<section id="bookings" class="section" aria-labelledby="bookingsHeading">
+  <div class="card">
+    <h2 id="bookingsHeading">Bookings</h2>
+    <div id="bookingsList" class="card">
+      <div class="small">No bookings</div>
+    </div>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section id="settings" class="section" aria-labelledby="settingsHeading">
+  <div class="card">
+    <h2 id="settingsHeading">Settings</h2>
+    <label>Max advance days</label>
+    <input id="maxAdvance" type="number" value="365" min="1">
+    <label>Cancel allowed before (hours)</label>
+    <input id="cancelBeforeHrs" type="number" value="2" min="0">
+    <div style="margin-top:10px">
+      <button id="saveSettings" class="btn">Save Settings</button>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section id="location" class="section" aria-labelledby="locationHeading">
+  <div class="card">
+    <h2 id="locationHeading">Location</h2>
+    <label>Address line 1</label>
+    <input id="addr1" placeholder="Street / building">
+    <label>Address line 2</label>
+    <input id="addr2" placeholder="Landmark (optional)">
+    <div class="row">
+      <input id="city" placeholder="City">
+      <input id="state" placeholder="State">
+      <input id="pincode" placeholder="Pincode">
+    </div>
+    <div style="margin-top:10px">
+      <button id="saveLocationBtn" class="btn">Save Location</button>
+    </div>
+    <p id="locInfo" class="small" style="margin-top:8px"></p>
+  </div>
+</section>
+
+<!-- USER SIMULATOR -->
+<section id="userSim" class="section" aria-labelledby="userSimHeading">
+  <div class="card">
+    <h2 id="userSimHeading">User Booking Simulator</h2>
+    <div style="margin-bottom:8px">
+      <label>Use vendor (simulate)</label>
+      <input id="userVendor" placeholder="vendor@example.com">
+      <button id="loadVendorData" class="btn secondary" style="margin-top:6px">Load</button>
+    </div>
+
+    <div id="userForm" style="display:none">
+      <label>Table Type</label>
+      <select id="typeSelectUser"></select>
+
+      <label>Slot</label>
+      <select id="slotSelect"></select>
+
+      <div class="row" style="margin-top:6px">
+        <input id="date" type="date">
+        <input id="name" placeholder="Customer name">
+      </div>
+      <div class="row" style="margin-top:6px">
+        <input id="phone" placeholder="Phone">
+        <input id="numTables" type="number" value="1" min="1">
+      </div>
+
+      <div class="row" style="margin-top:6px">
+        <input id="price" readonly placeholder="Price">
+        <button id="bookNow" class="btn">Book Now</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="modalRoot" style="display:none;z-index:9999" aria-hidden="true"></div>
+
+<script>
+/* ===================================================
+   API CONFIG
+   =================================================== */
+const API_BASE = "http://127.0.0.1:5000";
+
+let vendorId = null;
+let vendorObj = null;
+
+let types = [];
+let slots = [];
+let bookings = [];
+let settings = { maxAdvanceDays: 365, cancelBeforeHrs: 2 };
+let locationObj = {};
+let bannerUrl = "";
+
+/* Small helpers */
+const q = (sel, root = document) => root.querySelector(sel);
+const qa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const escapeHtml = (s) => {
+  if (s === 0) return "0";
+  if (!s) return "";
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+};
+
+/* Toast / Popup */
+function pop(msg, err=false){
+  const el=document.createElement('div');
+  el.className='popup'+(err?' error':'');
+  el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.style.opacity='0',1500);
+  setTimeout(()=>el.remove(),2000);
+}
+
+/* Time helpers */
+function convertTo24(h,m,p){
+  h=Number(h); m=Number(m);
+  if(isNaN(h)) h=0; if(isNaN(m)) m=0;
+  if(p==='AM' && h===12) h=0;
+  if(p==='PM' && h!==12) h+=12;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+function format12From24(t){
+  if(!t) return '';
+  const parts=t.split(':').map(Number);
+  if(parts.length<2) return t;
+  const h=parts[0], m=parts[1];
+  const p=h>=12?'PM':'AM';
+  let h12=h%12; if(h12===0) h12=12;
+  return `${h12}:${String(m).padStart(2,'0')} ${p}`;
+}
+
+/* ===================================================
+   API WRAPPERS (vendor_id based)
+   =================================================== */
+async function apiGet(path){
+  if(!vendorId) throw new Error("Vendor not set");
+  const res = await fetch(`${API_BASE}${path}?vendor_id=${vendorId}`);
+  return res.json();
+}
+
+async function apiPost(path, body){
+  if(!vendorId) throw new Error("Vendor not set");
+  const res = await fetch(`${API_BASE}${path}?vendor_id=${vendorId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body || {})
+  });
+  return res.json();
+}
+
+async function apiDelete(path){
+  if(!vendorId) throw new Error("Vendor not set");
+  const res = await fetch(`${API_BASE}${path}?vendor_id=${vendorId}`, {
+    method: "DELETE"
+  });
+  return res.json();
+}
+
+/* ===================================================
+   SET VENDOR BY EMAIL (NO OTP)
+   =================================================== */
+if(q('#setVendorBtn')){
+  q('#setVendorBtn').addEventListener('click', async () => {
+    const email = (q('#vendorEmail') && q('#vendorEmail').value.trim()) || "";
+    const rname = (q('#restaurantName') && q('#restaurantName').value.trim()) || "";
+
+    if(!email) return pop("Enter vendor email", true);
+
+    try{
+      const res = await fetch(API_BASE + "/api/rest/vendor/by_email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, restaurant_name: rname })
+      });
+      const data = await res.json();
+      if(!data.success){
+        return pop(data.message || "Failed to set vendor", true);
+      }
+
+      vendorObj = data.vendor;
+      vendorId = vendorObj.id;
+      settings = data.settings || settings;
+
+      if(q('#dashVendor')) q('#dashVendor').textContent = "Vendor: " + vendorObj.email;
+      if(q('#dashRestaurant')){
+        if(rname){
+          q('#dashRestaurant').textContent = "Restaurant: " + rname;
+        } else if(vendorObj.restaurant_name){
+          q('#dashRestaurant').textContent = "Restaurant: " + vendorObj.restaurant_name;
+        }
+      }
+
+      if(q('#vendorUpi')){
+        q('#vendorUpi').value = vendorObj.upi_id || "";
+      }
+
+      await loadAllFromBackend();
+      pop("Vendor loaded");
+    }catch(err){
+      console.error(err);
+      pop("Error setting vendor", true);
+    }
+  });
+}
+
+/* ===================================================
+   INITIAL LOAD AFTER SETTING VENDOR
+   =================================================== */
+async function loadAllFromBackend(){
+  if(!vendorId) return;
+  try{
+    const [me, tRes, sRes, bRes] = await Promise.all([
+      apiGet("/api/rest/vendor/me"),
+      apiGet("/api/rest/types"),
+      apiGet("/api/rest/slots"),
+      apiGet("/api/rest/bookings"),
+    ]);
+
+    if(me.success){
+      settings = me.settings || settings;
+      locationObj = me.location || {};
+      bannerUrl = me.banner || "";
+      if(me.vendor){
+        vendorObj = me.vendor;
+        if(q('#dashVendor')) q('#dashVendor').textContent = "Vendor: " + vendorObj.email;
+        if(q('#dashRestaurant') && me.vendor.restaurant_name){
+          q('#dashRestaurant').textContent = "Restaurant: " + me.vendor.restaurant_name;
+        }
+        if(q('#vendorUpi')){
+          q('#vendorUpi').value = me.vendor.upi_id || "";
+        }
+      }
+      renderLocation();
+      renderBanner();
+      renderStats(me.stats || {});
+      if(q('#maxAdvance')) q('#maxAdvance').value = settings.maxAdvanceDays;
+      if(q('#cancelBeforeHrs')) q('#cancelBeforeHrs').value = settings.cancelBeforeHrs;
+    }
+
+    if(tRes.success){
+      types = tRes.types || [];
+      renderTypes();
+    }
+    if(sRes.success){
+      slots = sRes.slots || [];
+      renderSlots();
+    }
+    if(bRes.success){
+      bookings = (bRes.bookings || []);
+      renderBookings();
+    }
+    populateUserForm();
+
+  }catch(err){
+    console.error(err);
+    pop("Error loading vendor data", true);
+  }
+}
+
+/* ===================================================
+   SIDEBAR NAV
+   =================================================== */
+qa('.menu-item').forEach(mi=>{
+  mi.addEventListener('click', ()=>{
+    qa('.menu-item').forEach(x=>x.classList.remove('active'));
+    mi.classList.add('active');
+    const sec=mi.dataset.section;
+    qa('.section').forEach(s=>s.style.display='none');
+    const tgt = q('#'+sec);
+    if(tgt) tgt.style.display='block';
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+q('#dashboard').style.display='block';
+
+/* ===================================================
+   BANNER HANDLING
+   =================================================== */
+function renderBanner(){
+  const wrap=q('#bannerPreviewWrap');
+  const img=q('#bannerPreview');
+  if(!wrap || !img) return;
+
+  if(bannerUrl){
+    wrap.style.display='block';
+    img.src = API_BASE + bannerUrl;
+  } else {
+    wrap.style.display='none';
+    img.src='';
+  }
+}
+
+if(q('#bannerInput')){
+  q('#bannerInput').addEventListener('change', async (e)=>{
+    if(!vendorId) return pop("Set vendor first", true);
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+
+    const fd = new FormData();
+    fd.append("banner", file);
+
+    try{
+      const res = await fetch(`${API_BASE}/api/rest/banner?vendor_id=${vendorId}`, {
+        method: "POST",
+        body: fd
+      });
+      const data = await res.json();
+      if(!data.success) return pop(data.message || "Banner upload failed", true);
+      bannerUrl = data.bannerUrl;
+      renderBanner();
+      pop("Banner saved");
+    }catch(err){
+      console.error(err);
+      pop("Error uploading banner", true);
+    }finally{
+      e.target.value = "";
+    }
+  });
+}
+
+if(q('#removeBanner')){
+  q('#removeBanner').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+    try{
+      const res = await fetch(`${API_BASE}/api/rest/banner?vendor_id=${vendorId}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      if(!data.success) return pop(data.message || "Error removing banner", true);
+      bannerUrl = "";
+      renderBanner();
+      pop("Banner removed");
+    }catch(err){
+      console.error(err);
+      pop("Error removing banner", true);
+    }
+  });
+}
+
+/* ===================================================
+   SAVE VENDOR UPI
+   =================================================== */
+if(q('#saveUpiBtn')){
+  q('#saveUpiBtn').addEventListener('click', async ()=>{
+    if(!vendorId){
+      pop("Set vendor first (or open page with ?vendor_id=...)", true);
+      return;
+    }
+    const upi = (q('#vendorUpi').value || "").trim();
+    try{
+      const res = await fetch(`${API_BASE}/api/rest/vendor/${vendorId}/upi`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ upi_id: upi })
+      });
+      const data = await res.json();
+      if(!data.success) return pop(data.message || "Error saving UPI", true);
+      pop("UPI ID saved");
+    }catch(err){
+      console.error(err);
+      pop("Error saving UPI", true);
+    }
+  });
+}
+
+/* ===================================================
+   TABLE TYPES
+   =================================================== */
+const seatMapping={"2-seater":2,"4-seater":4,"6-seater":6,"8-seater":8,"Couple Table":2,"Family Table":6,"VIP Table":4,"Outdoor Table":4};
+
+if(q('#typeSelect')){
+  q('#typeSelect').addEventListener('change', ()=>{
+    const v=q('#typeSelect').value;
+    if(v==='Custom'){
+      q('#typeSeats').disabled=false;
+      q('#typeSeats').value='';
+    } else {
+      q('#typeSeats').disabled=true;
+      q('#typeSeats').value=seatMapping[v]||'';
+    }
+  });
+}
+
+if(q('#addTypeBtn')){
+  q('#addTypeBtn').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+
+    const name=q('#typeSelect').value;
+    if(!name) return pop("Select table type", true);
+
+    const seats=(name==='Custom')
+      ? Number(q('#typeSeats').value)
+      : seatMapping[name] || Number(q('#typeSeats').value);
+
+    const total=Number(q('#typeTotal').value||0);
+    const freeInput=Number(q('#typeFree').value||0);
+    const price=Number(q('#typePrice').value||0);
+    const cancel=Number(q('#typeCancel').value||2);
+
+    if(!seats || seats<=0) return pop('Invalid seat count',true);
+    if(total<=0) return pop('Total must be > 0',true);
+    if(freeInput>total) return pop('Free must be <= total',true);
+
+    const sH=q('#startHour').value;
+    const sM=q('#startMinute').value;
+    const sP=q('#startPeriod').value;
+    const eH=q('#endHour').value;
+    const eM=q('#endMinute').value;
+    const eP=q('#endPeriod').value;
+
+    const start24=convertTo24(sH,sM,sP);
+    const end24=convertTo24(eH,eM,eP);
+
+    let existing = types.find(t => t.name.toLowerCase() === name.toLowerCase()) || null;
+    const payload = {
+      id: existing ? existing.id : undefined,
+      name, seats,
+      total, price,
+      cancel,
+      timeStart: start24,
+      timeEnd: end24,
+      freeTables: freeInput
+    };
+
+    try{
+      const data = await apiPost("/api/rest/types", payload);
+      if(!data.success) return pop(data.message || "Error saving type", true);
+      pop(existing ? "Type updated" : "Type added");
+      const tRes = await apiGet("/api/rest/types");
+      if(tRes.success){
+        types = tRes.types || [];
+        renderTypes();
+        populateUserForm();
+      }
+    }catch(err){
+      console.error(err);
+      pop("Error saving type", true);
+    }
+  });
+}
+
+if(q('#clearTypeBtn')){
+  q('#clearTypeBtn').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+    if(!confirm("Clear all table types?")) return;
+    try{
+      for(const t of types){
+        await apiDelete("/api/rest/types/" + t.id);
+      }
+      const tRes = await apiGet("/api/rest/types");
+      types = tRes.types || [];
+      renderTypes();
+      populateUserForm();
+      pop("All types removed");
+    }catch(err){
+      console.error(err);
+      pop("Error clearing types", true);
+    }
+  });
+}
+
+function renderTypes(){
+  const box=q('#typeList');
+  if(!box) return;
+  box.innerHTML='';
+
+  if(!types.length){
+    box.innerHTML='<div class="small">No types yet</div>';
+    populateUserForm();
+    return;
+  }
+
+  types.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='card';
+    div.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <strong>${escapeHtml(t.name)}</strong>
+          <div class="small">${t.seats} seats</div>
+          <div class="small">Total: ${t.total} • Free: ${t.freeCount} • Reserved: ${t.reservedCount} • Unavail: ${t.unavailCount}</div>
+          <div class="small">Price: ₹${t.price} • Cancel: ${t.cancel} hrs</div>
+          <div class="small">Time: ${escapeHtml(t.displayTime)}</div>
+        </div>
+
+        <div style="display:flex;gap:6px;flex-direction:column">
+          <button class="btn secondary" data-act="edit" data-id="${t.id}">Edit</button>
+          <button class="btn secondary" data-act="tables" data-id="${t.id}">Tables</button>
+          <button class="btn" data-act="del" data-id="${t.id}">Delete</button>
+        </div>
+      </div>
+    `;
+    box.appendChild(div);
+  });
+
+  qa('#typeList button').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      const id = Number(e.target.dataset.id);
+      const act = e.target.dataset.act;
+      const t = types.find(x=>x.id===id);
+      if(!t) return;
+
+      if(act==='edit'){
+        q('#typeSelect').value = t.name;
+        q('#typeSeats').disabled=false;
+        q('#typeSeats').value=t.seats;
+        q('#typeTotal').value=t.total;
+        q('#typeFree').value=t.freeCount;
+        q('#typePrice').value=t.price;
+        q('#typeCancel').value=t.cancel;
+
+        const [sh,sm] = (t.timeStart || "10:00").split(':').map(Number);
+        const [eh,em] = (t.timeEnd || "23:00").split(':').map(Number);
+
+        let sPeriod = sh >= 12 ? 'PM' : 'AM';
+        let ePeriod = eh >= 12 ? 'PM' : 'AM';
+        let s12 = sh % 12; if(s12===0) s12=12;
+        let e12 = eh % 12; if(e12===0) e12=12;
+
+        q('#startHour').value=s12;
+        q('#startMinute').value=sm;
+        q('#startPeriod').value=sPeriod;
+        q('#endHour').value=e12;
+        q('#endMinute').value=em;
+        q('#endPeriod').value=ePeriod;
+
+        window.scrollTo({top:0, behavior:'smooth'});
+      }
+
+      if(act==='del'){
+        if(!confirm("Delete this type?")) return;
+        try{
+          const res = await apiDelete("/api/rest/types/"+id);
+          if(!res.success) return pop(res.message || "Error deleting", true);
+          const tRes = await apiGet("/api/rest/types");
+          types = tRes.types || [];
+          renderTypes();
+          populateUserForm();
+          pop("Deleted");
+        }catch(err){
+          console.error(err);
+          pop("Error deleting type", true);
+        }
+      }
+
+      if(act==='tables'){
+        openTablesModal(id);
+      }
+    });
+  });
+
+  populateUserForm();
+}
+
+/* TABLES MODAL */
+async function openTablesModal(typeId){
+  if(!vendorId) return pop("Set vendor first", true);
+  const t = types.find(x=>x.id===typeId);
+  if(!t) return;
+
+  const root=q('#modalRoot');
+  if(!root) return;
+  root.style.display='block';
+  root.innerHTML='';
+
+  const mb=document.createElement('div');
+  mb.className='modal-back';
+
+  const md=document.createElement('div');
+  md.className='modal';
+  md.innerHTML=`
+    <h3>Tables — ${escapeHtml(t.name)}</h3>
+    <div class="small">Click free/unavailable to toggle. Reserved cannot change.</div>
+    <div id="modalTableGrid" class="table-grid" style="margin-top:10px"></div>
+
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button id="closeModal" class="btn secondary">Close</button>
+      <button id="markAllFree" class="btn secondary">Mark All Free</button>
+    </div>
+  `;
+
+  mb.appendChild(md);
+  root.appendChild(mb);
+
+  const grid = md.querySelector('#modalTableGrid');
+
+  async function loadTablesForType(){
+    const data = await apiGet("/api/rest/types/"+typeId+"/tables");
+    if(!data.success) throw new Error("Failed to load tables");
+    const tables = data.tables || [];
+    grid.innerHTML = "";
+    tables.forEach(tb=>{
+      const d=document.createElement('div');
+      d.className='table-cell';
+      d.textContent = tb.num;
+      if(tb.status==='free') d.classList.add('cell-free');
+      if(tb.status==='reserved') d.classList.add('cell-reserved');
+      if(tb.status==='unavailable') d.classList.add('cell-unavail');
+
+      d.addEventListener('click', async ()=>{
+        if(tb.status==='reserved') return pop("Reserved table", true);
+        try{
+          const res = await apiPost("/api/rest/tables/"+tb.id+"/toggle", {});
+          if(!res.success) return pop(res.message || "Error toggling", true);
+          await loadTablesForType();
+          const tRes = await apiGet("/api/rest/types");
+          types = tRes.types || [];
+          renderTypes();
+        }catch(err){
+          console.error(err);
+          pop("Error toggling table", true);
+        }
+      });
+
+      grid.appendChild(d);
+    });
+  }
+
+  try{
+    await loadTablesForType();
+  }catch(err){
+    console.error(err);
+    pop("Error loading tables", true);
+  }
+
+  md.querySelector('#closeModal').addEventListener('click', ()=>{
+    root.style.display='none';
+    root.innerHTML='';
+  });
+
+  md.querySelector('#markAllFree').addEventListener('click', async ()=>{
+    try{
+      const res = await apiPost("/api/rest/tables/mark_all_free", { typeId });
+      if(!res.success) return pop(res.message || "Error", true);
+      await loadTablesForType();
+      const tRes = await apiGet("/api/rest/types");
+      types = tRes.types || [];
+      renderTypes();
+    }catch(err){
+      console.error(err);
+      pop("Error marking all free", true);
+    }
+  });
+}
+
+/* ===================================================
+   SLOTS
+   =================================================== */
+function renderSlots(){
+  const box=q('#slotList');
+  if(!box) return;
+  box.innerHTML='';
+
+  if(!slots.length){
+    box.innerHTML='<div class="small">No slots</div>';
+    populateUserForm();
+    return;
+  }
+
+  slots.forEach(s=>{
+    const div=document.createElement('div');
+    div.className='card';
+    div.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <strong>${escapeHtml(s.name)}</strong>
+          <div class="small">${format12From24(s.start)} — ${format12From24(s.end)}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn secondary" data-act="edit" data-id="${s.id}">Edit</button>
+          <button class="btn" data-act="del" data-id="${s.id}">Delete</button>
+        </div>
+      </div>
+    `;
+    box.appendChild(div);
+  });
+
+  qa('#slotList button').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      const id = Number(e.target.dataset.id);
+      const act = e.target.dataset.act;
+      if(act==='del'){
+        if(!confirm("Delete slot?")) return;
+        try{
+          const res = await apiDelete("/api/rest/slots/"+id);
+          if(!res.success) return pop(res.message || "Error deleting slot", true);
+          const sRes = await apiGet("/api/rest/slots");
+          slots = sRes.slots || [];
+          renderSlots();
+          populateUserForm();
+          pop("Slot deleted");
+        }catch(err){
+          console.error(err);
+          pop("Error deleting slot", true);
+        }
+      }
+      if(act==='edit'){
+        const s = slots.find(x=>x.id===id);
+        if(!s) return;
+        q('#slotName').value = s.name;
+
+        const [sh,sm] = (s.start || "10:00").split(':').map(Number);
+        const [eh,em] = (s.end || "23:00").split(':').map(Number);
+
+        let sPeriod = sh >= 12 ? 'PM' : 'AM';
+        let ePeriod = eh >= 12 ? 'PM' : 'AM';
+        let s12 = sh % 12; if(s12===0) s12=12;
+        let e12 = eh % 12; if(e12===0) e12=12;
+
+        q('#startHourSlot').value = s12;
+        q('#startMinSlot').value = sm;
+        q('#startPeriodSlot').value = sPeriod;
+        q('#endHourSlot').value = e12;
+        q('#endMinSlot').value = em;
+        q('#endPeriodSlot').value = ePeriod;
+
+        q('#addSlotBtn').dataset.editId = String(id);
+      }
+    });
+  });
+
+  populateUserForm();
+}
+
+if(q('#addSlotBtn')){
+  q('#addSlotBtn').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+
+    const name = (q('#slotName') && q('#slotName').value.trim()) || '';
+    const sh = q('#startHourSlot').value.trim();
+    const sm = q('#startMinSlot').value.trim();
+    const sp = q('#startPeriodSlot').value;
+    const eh = q('#endHourSlot').value.trim();
+    const em = q('#endMinSlot').value.trim();
+    const ep = q('#endPeriodSlot').value;
+
+    if(!name) return pop("Enter slot name", true);
+    if(!sh||!sm||!eh||!em) return pop("Enter start/end time", true);
+
+    const shN = Number(sh), smN=Number(sm), ehN=Number(eh), emN=Number(em);
+    if(isNaN(shN)||isNaN(smN)||isNaN(ehN)||isNaN(emN)) return pop("Invalid time numbers", true);
+
+    const start24 = convertTo24(shN, smN, sp);
+    const end24 = convertTo24(ehN, emN, ep);
+
+    const editId = q('#addSlotBtn').dataset.editId || null;
+    const payload = {
+      id: editId ? Number(editId) : undefined,
+      name,
+      start: start24,
+      end: end24
+    };
+
+    try{
+      const res = await apiPost("/api/rest/slots", payload);
+      if(!res.success) return pop(res.message || "Error saving slot", true);
+      const sRes = await apiGet("/api/rest/slots");
+      slots = sRes.slots || [];
+      renderSlots();
+      populateUserForm();
+      pop(editId ? "Slot updated" : "Slot added");
+      q('#slotName').value = "";
+      q('#startHourSlot').value = "";
+      q('#startMinSlot').value = "";
+      q('#endHourSlot').value = "";
+      q('#endMinSlot').value = "";
+      delete q('#addSlotBtn').dataset.editId;
+    }catch(err){
+      console.error(err);
+      pop("Error saving slot", true);
+    }
+  });
+}
+
+/* ===================================================
+   SETTINGS
+   =================================================== */
+if(q('#saveSettings')){
+  q('#saveSettings').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+    settings.maxAdvanceDays = Number(q('#maxAdvance').value||365);
+    settings.cancelBeforeHrs = Number(q('#cancelBeforeHrs').value||2);
+    try{
+      const res = await apiPost("/api/rest/settings", settings);
+      if(!res.success) return pop(res.message || "Error saving settings", true);
+      pop("Settings saved");
+    }catch(err){
+      console.error(err);
+      pop("Error saving settings", true);
+    }
+  });
+}
+
+/* ===================================================
+   BOOKINGS
+   =================================================== */
+function renderBookings(){
+  const list=q('#bookingsList');
+  if(!list) return;
+  list.innerHTML='';
+
+  if(!bookings.length){
+    list.innerHTML='<div class="small">No bookings</div>';
+    return;
+  }
+
+  bookings
+    .slice()
+    .sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))
+    .forEach(b=>{
+      const div=document.createElement('div');
+      div.className='card';
+      div.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <strong>${escapeHtml(b.customer)}</strong>
+            <div class="small">${b.phone || ''} • ${b.typeName || ''}</div>
+            <div class="small">${b.date || ''} • ${escapeHtml(b.slotName || '')} • Tables: ${(b.tables||[]).join(', ')}</div>
+            <div class="small">₹${b.price || 0} • ${b.status || ''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+            <button class="btn secondary" data-act="view" data-id="${b.id}">View</button>
+            <button class="btn" data-act="toggle" data-id="${b.id}">
+              ${b.status==='cancelled'?'Restore':'Cancel'}
+            </button>
+          </div>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+
+  qa('#bookingsList button').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      const id = Number(e.target.dataset.id);
+      const act = e.target.dataset.act;
+      const b = bookings.find(x=>x.id===id);
+      if(!b) return;
+
+      if(act==='view'){
+        alert(JSON.stringify(b, null, 2));
+      }
+      if(act==='toggle'){
+        try{
+          const res = await apiPost("/api/rest/bookings/"+id+"/toggle", {});
+          if(!res.success) return pop(res.message || "Error toggling booking", true);
+          const bRes = await apiGet("/api/rest/bookings");
+          bookings = bRes.bookings || [];
+          renderBookings();
+          renderStats();
+          pop("Booking updated");
+        }catch(err){
+          console.error(err);
+          pop("Error updating booking", true);
+        }
+      }
+    });
+  });
+}
+
+/* ===================================================
+   STATS
+   =================================================== */
+function renderStats(stats){
+  if(!q('#dashStats')) return;
+  const totalTypes = types.length;
+  const totalTables = types.reduce((sum, t)=> sum + (t.total || 0), 0);
+  const upcoming = (stats && stats.upcomingBookings) || (bookings.filter(b=>b.status==='upcoming').length);
+  q('#dashStats').innerHTML =
+    `Table Types: <b>${totalTypes}</b><br>`+
+    `Total Tables: <b>${totalTables}</b><br>`+
+    `Upcoming Bookings: <b>${upcoming}</b>`;
+}
+
+/* ===================================================
+   USER SIMULATOR
+   =================================================== */
+if(q('#loadVendorData')){
+  q('#loadVendorData').addEventListener('click', ()=>{
+    const v = q('#userVendor').value.trim();
+    if(!v) return pop("Enter vendor email", true);
+    q('#vendorEmail').value = v;
+    window.scrollTo({top:0, behavior:'smooth'});
+    pop("Email filled above, click Set.");
+  });
+}
+
+function populateUserForm(){
+  const selT=q('#typeSelectUser');
+  if(!selT) return;
+
+  selT.innerHTML='';
+  types.forEach(t=>{
+    const o=document.createElement('option');
+    o.value=t.id;
+    o.text=`${t.name} — ₹${t.price}`;
+    selT.appendChild(o);
+  });
+
+  const selS=q('#slotSelect');
+  if(selS){
+    selS.innerHTML='';
+    slots.forEach(s=>{
+      const o=document.createElement('option');
+      o.value=s.id;
+      o.text=`${s.name} (${s.start}-${s.end})`;
+      selS.appendChild(o);
+    });
+  }
+
+  if(q('#userForm')){
+    q('#userForm').style.display = types.length ? 'block' : 'none';
+  }
+  if(q('#date')){
+    q('#date').value = new Date().toISOString().slice(0,10);
+  }
+
+  updatePriceDisplay();
+}
+
+function updatePriceDisplay(){
+  const sel = q('#typeSelectUser');
+  if(!sel) return;
+  const id = Number(sel.value || 0);
+  const t = types.find(x=>x.id===id);
+  if(q('#price')) q('#price').value = t ? t.price : '';
+}
+if(q('#typeSelectUser')){
+  q('#typeSelectUser').addEventListener('change', updatePriceDisplay);
+}
+
+/* BOOK NOW */
+if(q('#bookNow')){
+  q('#bookNow').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+
+    const typeId = Number(q('#typeSelectUser').value || 0);
+    const slotId = Number(q('#slotSelect').value || 0);
+    const dateVal = q('#date').value;
+    const customer = (q('#name').value.trim() || "Guest");
+    const phone = q('#phone').value.trim();
+    const count = Number(q('#numTables').value || 1);
+
+    if(!typeId || !slotId || !dateVal) return pop("Fill all fields", true);
+
+    try{
+      const data = await apiPost("/api/rest/bookings", {
+        typeId, slotId,
+        date: dateVal,
+        customer, phone,
+        count
+      });
+      if(!data.success) return pop(data.message || "Error creating booking", true);
+      const bRes = await apiGet("/api/rest/bookings");
+      bookings = bRes.bookings || [];
+      renderBookings();
+      renderStats();
+      pop("Booking created");
+    }catch(err){
+      console.error(err);
+      pop("Error creating booking", true);
+    }
+  });
+}
+
+/* ===================================================
+   LOCATION
+   =================================================== */
+if(q('#saveLocationBtn')){
+  q('#saveLocationBtn').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+    locationObj = {
+      addr1: q('#addr1').value.trim(),
+      addr2: q('#addr2').value.trim(),
+      city: q('#city').value.trim(),
+      state: q('#state').value.trim(),
+      pincode: q('#pincode').value.trim(),
+    };
+    try{
+      const res = await apiPost("/api/rest/location", locationObj);
+      if(!res.success) return pop(res.message || "Error saving location", true);
+      renderLocation();
+      pop("Location saved");
+    }catch(err){
+      console.error(err);
+      pop("Error saving location", true);
+    }
+  });
+}
+
+function renderLocation(){
+  if(!locationObj) return;
+  q('#addr1').value = locationObj.addr1 || '';
+  q('#addr2').value = locationObj.addr2 || '';
+  q('#city').value = locationObj.city || '';
+  q('#state').value = locationObj.state || '';
+  q('#pincode').value = locationObj.pincode || '';
+
+  const li = q('#locInfo');
+  if(li && locationObj.addr1){
+    li.textContent =
+      `${locationObj.addr1}, ${locationObj.city || ''}, ${locationObj.state || ''} - ${locationObj.pincode || ''}`;
+  }
+}
+
+/* ===================================================
+   AUTO-LOAD vendorId FROM URL (?vendor_id=1)
+   =================================================== */
+(function initVendorFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const vid = params.get("vendor_id");
+  if(vid){
+    const parsed = Number(vid);
+    if(!isNaN(parsed) && parsed > 0){
+      vendorId = parsed;
+      console.log("VendorId loaded from URL:", vendorId);
+      pop(`VendorId loaded from URL: ${vendorId}`);
+      loadAllFromBackend();
+    }
+  }
+})();
+
+/* ===================================================
+   INIT
+   =================================================== */
+// nothing else; everything kicks in after vendor is set / URL vendor_id
+</script>
+</body>
+</html>
