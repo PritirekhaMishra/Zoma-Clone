@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZomaClone | User Settings</title>
+<title>ZomaClone | Add Delivery Address</title>
 
 <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <style>
@@ -36,15 +35,25 @@ body{
   font-size:20px;
   font-weight:700;
   color:var(--red);
+  margin-bottom:6px;
+}
+.section-sub{
+  font-size:13px;
+  color:var(--muted);
   margin-bottom:14px;
 }
 .input{
   width:100%;
-  padding:12px;
+  padding:11px;
   border:1px solid #e1e1e1;
   border-radius:10px;
-  margin-bottom:12px;
-  font-size:15px;
+  margin-bottom:10px;
+  font-size:14px;
+}
+.label{
+  font-size:13px;
+  margin-bottom:3px;
+  color:#333;
 }
 .btn{
   padding:12px 18px;
@@ -58,16 +67,19 @@ body{
   background:var(--red);
   color:white;
 }
-.btn-outline{
-  background:white;
+.btn-light{
+  background:#fff;
   border:1px solid #ddd;
 }
-.flex{
+.row{
   display:flex;
-  gap:14px;
+  gap:10px;
+}
+.row > div{
+  flex:1;
 }
 #map{
-  height:240px;
+  height:230px;
   border-radius:12px;
   margin-top:12px;
   border:1px solid #ddd;
@@ -81,50 +93,81 @@ body{
   color:white;
   border-radius:10px;
   display:none;
+  font-size:13px;
+}
+@media(max-width:700px){
+  body{padding:10px;}
+  .row{flex-direction:column;}
 }
 </style>
 </head>
-
 <body>
-
-<script>
-// ---------------- LOGIN CHECK ----------------
-if (localStorage.getItem("isLoggedIn") !== "true") {
-    window.location.href = "login.html";
-}
-
-// Load current user
-let user = JSON.parse(localStorage.getItem("currentUser") || "null");
-
-if (!user) {
-    window.location.href = "login.html";
-}
-</script>
 
 <div class="container">
 
-  <div class="section-title">Edit Profile</div>
-
-  <input id="name" class="input" placeholder="Full Name">
-  <input id="email" class="input" placeholder="Email">
-  <input id="phone" class="input" placeholder="Phone Number">
-
-  <button id="saveProfileBtn" class="btn btn-red">Save Profile</button>
-
-  <hr style="margin:26px 0;border:none;border-top:1px solid #eee">
-
-  <div class="section-title">Your Address</div>
-
-  <button id="detectBtn" class="btn btn-red">📍 Detect My Location</button>
-
-  <div id="locationText" style="margin-top:10px;color:var(--muted)">No location detected</div>
-
-  <div class="flex" style="margin-top:12px">
-    <input id="plot" class="input" placeholder="Plot / House No.">
-    <input id="landmark" class="input" placeholder="Nearby Landmark">
+  <div class="section-title">Add Delivery Address</div>
+  <div class="section-sub">
+    We’ll use this to show restaurants that deliver to you.
   </div>
 
-  <button id="saveAddressBtn" class="btn btn-red" style="margin-top:8px">Save Address & Continue</button>
+  <!-- Detect location -->
+  <button id="detectBtn" class="btn btn-red">📍 Detect my current location</button>
+  <span style="font-size:12px;color:var(--muted);margin-left:6px;">
+    (Allow location permission)
+  </span>
+
+  <div id="locationText" style="margin-top:10px;color:var(--muted)">
+    No location detected yet.
+  </div>
+
+  <!-- Address form -->
+  <div style="margin-top:18px;font-size:14px;font-weight:600;color:#333;">
+    Confirm or edit your address details
+  </div>
+
+  <div class="row" style="margin-top:10px">
+    <div>
+      <div class="label">Area / Locality</div>
+      <input id="area" class="input" placeholder="e.g. Jagamara">
+    </div>
+    <div>
+      <div class="label">City</div>
+      <input id="city" class="input" placeholder="e.g. Bhubaneswar">
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <div class="label">State</div>
+      <input id="state" class="input" placeholder="e.g. Odisha">
+    </div>
+    <div>
+      <div class="label">Pincode</div>
+      <input id="pincode" class="input" placeholder="e.g. 751030">
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <div class="label">Country</div>
+      <input id="country" class="input" placeholder="e.g. India">
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:4px">
+    <div>
+      <div class="label">House / Plot / Flat No.</div>
+      <input id="plot" class="input" placeholder="e.g. Plot 123, 2nd Floor">
+    </div>
+    <div>
+      <div class="label">Landmark / Nearby</div>
+      <input id="landmark" class="input" placeholder="e.g. Near Jagamara Square">
+    </div>
+  </div>
+
+  <button id="saveAddressBtn" class="btn btn-red" style="margin-top:10px">
+    Save Address & Continue
+  </button>
 
   <div id="map"></div>
 
@@ -135,39 +178,34 @@ if (!user) {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// ---------------- Toast ----------------
+/* ---------- Toast ---------- */
 function showToast(msg){
   const t=document.getElementById("toast");
   t.textContent=msg;
   t.style.display="block";
-  setTimeout(()=>t.style.display="none",1500);
+  setTimeout(()=>t.style.display="none",1600);
 }
 
-// ---------------- Autofill Profile ----------------
-window.onload = () => {
-    document.getElementById("name").value = user.name || "";
-    document.getElementById("email").value = user.email || "";
-    document.getElementById("phone").value = user.phonenumber || user.phone || "";
-};
-
-// ---------------- Save Profile ----------------
-document.getElementById("saveProfileBtn").onclick = () => {
-  user.name = document.getElementById("name").value.trim();
-  user.email = document.getElementById("email").value.trim();
-  user.phone = document.getElementById("phone").value.trim();
-
-  if(!user.name || !user.email || !user.phone){
-    showToast("All fields required");
-    return;
+/* ---------- Get current user from localStorage ---------- */
+function getCurrentUser(){
+  // support both keys if you use different ones in other pages
+  const keys = ["currentUser","zoma_user"];
+  for(const k of keys){
+    const raw = localStorage.getItem(k);
+    if(!raw) continue;
+    try{ return [k, JSON.parse(raw)]; }catch(e){ return [k,null]; }
   }
+  return [null,null];
+}
 
-  localStorage.setItem("currentUser", JSON.stringify(user));
-  showToast("Profile Updated ✔");
+let [userKey, user] = getCurrentUser();
 
-  setTimeout(()=> window.location.href="order.html",800);
-};
+if(!user){
+  alert("Please login / signup first.");
+  window.location.href = "login.html";
+}
 
-// ---------------- Map Setup ----------------
+/* ---------- Map Setup ---------- */
 let map = L.map("map").setView([20.2961, 85.8245], 6);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
@@ -176,71 +214,124 @@ let marker = null;
 function setMarker(lat, lon, label){
   if(!marker){
     marker = L.marker([lat,lon]).addTo(map).bindPopup(label).openPopup();
-  } else {
+  }else{
     marker.setLatLng([lat,lon]).bindPopup(label).openPopup();
   }
   map.setView([lat,lon], 15);
 }
 
-// ---------------- Reverse Geocode ----------------
+/* ---------- Reverse Geocode ---------- */
 async function reverseGeo(lat,lon){
   try{
     const r = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`
     );
     const j = await r.json();
-    return j.display_name;
+
+    const addr = j.address || {};
+    // Try to pick best possible locality field
+    const area   = addr.suburb || addr.neighbourhood || addr.village || addr.town || "";
+    const city   = addr.city || addr.town || addr.village || "";
+    const state  = addr.state || "";
+    const pin    = addr.postcode || "";
+    const country= addr.country || "";
+    const display= j.display_name || `${lat}, ${lon}`;
+
+    return { display, area, city, state, pin, country };
   }catch(e){
-    return lat + "," + lon;
+    console.error("Reverse geo error",e);
+    return { display: lat+","+lon, area:"",city:"",state:"",pin:"",country:"" };
   }
 }
 
-// ---------------- Detect My Location ----------------
+/* ---------- Detect My Location ---------- */
 document.getElementById("detectBtn").onclick = () => {
   if(!navigator.geolocation){
-    showToast("Location not supported");
+    showToast("Location not supported in this browser");
     return;
   }
 
   navigator.geolocation.getCurrentPosition(async pos => {
-    let lat = pos.coords.latitude;
-    let lon = pos.coords.longitude;
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
 
-    let locName = await reverseGeo(lat, lon);
+    const info = await reverseGeo(lat,lon);
 
-    document.getElementById("locationText").textContent = locName;
+    document.getElementById("locationText").textContent = info.display;
 
+    // fill form fields
+    document.getElementById("area").value    = info.area;
+    document.getElementById("city").value    = info.city;
+    document.getElementById("state").value   = info.state;
+    document.getElementById("pincode").value = info.pin;
+    document.getElementById("country").value = info.country;
+
+    // store raw location for later
     localStorage.setItem("zoma_detected_location", JSON.stringify({
-      lat, lon, name: locName
+      lat, lon,
+      area: info.area,
+      city: info.city,
+      state: info.state,
+      pincode: info.pin,
+      country: info.country,
+      display: info.display
     }));
 
-    setMarker(lat, lon, locName);
+    setMarker(lat,lon, info.display);
+  }, err => {
+    console.error(err);
+    showToast("Unable to access location");
   });
 };
 
-// ---------------- Save Address ----------------
+/* ---------- Save Address ---------- */
 document.getElementById("saveAddressBtn").onclick = () => {
-  let saved = JSON.parse(localStorage.getItem("zoma_detected_location") || "null");
+  const area     = document.getElementById("area").value.trim();
+  const city     = document.getElementById("city").value.trim();
+  const state    = document.getElementById("state").value.trim();
+  const pincode  = document.getElementById("pincode").value.trim();
+  const country  = document.getElementById("country").value.trim();
+  const plot     = document.getElementById("plot").value.trim();
+  const landmark = document.getElementById("landmark").value.trim();
 
-  if(!saved){
-    showToast("Detect your location first");
+  if(!area || !city || !state || !pincode || !country){
+    showToast("Fill all main address fields");
     return;
   }
 
-  let plot = document.getElementById("plot").value.trim();
-  let landmark = document.getElementById("landmark").value.trim();
+  const locRaw = JSON.parse(localStorage.getItem("zoma_detected_location") || "null");
 
-  let finalAddress =
-    (plot ? plot+", " : "") +
-    (landmark ? landmark+", " : "") +
-    saved.name;
+  const fullAddress =
+    (plot ? plot + ", " : "") +
+    (landmark ? landmark + ", " : "") +
+    area + ", " + city + " - " + pincode + ", " + state + ", " + country;
 
-  user.address = finalAddress;
+  user.address = {
+    full: fullAddress,
+    plot,
+    landmark,
+    area,
+    city,
+    state,
+    pincode,
+    country,
+    lat: locRaw?.lat || null,
+    lon: locRaw?.lon || null
+  };
+
+  if(userKey){
+    localStorage.setItem(userKey, JSON.stringify(user));
+  }
+  // also keep a common key if you use elsewhere
+  localStorage.setItem("zoma_user", JSON.stringify(user));
   localStorage.setItem("currentUser", JSON.stringify(user));
 
-  showToast("Address Saved ✔");
+  showToast("Address saved ✅");
 
-  setTimeout(() => window.location.href = "order.html", 800);
+  setTimeout(() => {
+    // go to ordering page
+    window.location.href = "order.html";
+  }, 900);
 };
 </script>
 

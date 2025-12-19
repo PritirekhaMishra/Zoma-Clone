@@ -6,11 +6,10 @@
   <title>Login - ZomaClone</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
- <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
-
+  <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
   <link rel="stylesheet" href="./styles.css" />
 </head>
-
+ 
 <body>
   <header class="navbar" style="position: static;">
     <a href="#">Get the App</a>
@@ -28,14 +27,26 @@
 
       <div class="login-right">
         <h2>Welcome back</h2>
-        <p class="muted">Log in to continue to ZomaClone</p>
+        <p class="muted">Login with OTP to continue to ZomaClone</p>
 
         <form id="loginForm" class="login-form">
-          <label>Email or phone</label>
-          <input id="email" type="text" placeholder="you@example.com or phone" required />
+          <label>Email or Phone</label>
+          <input id="identifier" type="text" placeholder="you@example.com or phone" required />
 
-          <label>Password</label>
-          <input id="password" type="password" placeholder="Enter your password" required />
+          <label>Send OTP via</label>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <label style="font-size:0.9rem;">
+              <input type="radio" name="loginVia" value="email" checked /> Email
+            </label>
+            <label style="font-size:0.9rem;">
+              <input type="radio" name="loginVia" value="phone" /> Phone
+            </label>
+          </div>
+
+          <button type="button" class="btn" onclick="sendLoginOTP()">Send OTP</button>
+
+          <label>Enter OTP</label>
+          <input id="loginOtp" type="text" maxlength="4" placeholder="4-digit OTP" required />
 
           <button type="submit" class="btn login-btn">Log in</button>
         </form>
@@ -43,8 +54,12 @@
         <div class="divider"><span>or</span></div>
 
         <div class="socials">
-          <button class="btn social google"><i class="fa-brands fa-google"></i> Continue with Google</button>
-          <button class="btn social apple"><i class="fa-brands fa-apple"></i> Continue with Apple</button>
+          <button class="btn social google" type="button">
+            <i class="fa-brands fa-google"></i> Continue with Google
+          </button>
+          <button class="btn social apple" type="button">
+            <i class="fa-brands fa-apple"></i> Continue with Apple
+          </button>
         </div>
 
         <p class="center muted">Don't have an account? <a href="signup.html">Sign up</a></p>
@@ -53,69 +68,117 @@
   </main>
 
 <script>
-/* SIMPLE LOGIN — NO GLOBAL FILE, NO COMPLEXITY */
+const API_URL = "http://127.0.0.1:5000";
 
-/* When clicking login */
-document.getElementById("loginForm").addEventListener("submit", function(e) {
+
+// Get selected login method
+function getLoginVia() {
+  const radios = document.querySelectorAll('input[name="loginVia"]');
+  for (const r of radios) if (r.checked) return r.value;
+  return "email";
+}
+
+// STEP 1: Send OTP
+function sendLoginOTP() {
+  const identifier = document.getElementById("identifier").value.trim();
+  const via = getLoginVia();
+
+  if (!identifier) {
+    alert("Please enter email or phone.");
+    return;
+  }
+
+  const payload = {
+    role: "user",
+    purpose: "login"
+  };
+
+  if (via === "email") payload.email = identifier;
+  else payload.phone = identifier;
+
+  fetch(API_URL + "/api/otp/send", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success) {
+      alert(d.message || "Could not send OTP.");
+      return;
+    }
+    alert("OTP sent successfully!");
+  })
+  .catch(() => alert("Error sending OTP. Check server."));
+}
+
+
+// STEP 2 + 3: Verify OTP → Login → Create session cookie
+document.getElementById("loginForm").addEventListener("submit", function(e){
   e.preventDefault();
 
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
+  const identifier = document.getElementById("identifier").value.trim();
+  const code = document.getElementById("loginOtp").value.trim();
+  const via = getLoginVia();
 
-  if (!email || !password) {
-    alert("Please fill all fields");
+  if (!identifier || !code) {
+    alert("Please fill all fields.");
     return;
   }
 
-  // Get saved users
-  const users = JSON.parse(localStorage.getItem("users") || "[]");
+  const payload = {
+    role: "user",
+    purpose: "login",
+    code: code
+  };
 
-  // Find matching user by email or phone
-  const user = users.find(u =>
-    (u.email === email || u.phonenumber === email) &&
-    u.password === password
-  );
+  if (via === "email") payload.email = identifier;
+  else payload.phone = identifier;
 
-  if (!user) {
-    alert("Invalid login details");
-    return;
-  }
+  // First verify OTP
+  fetch(API_URL + "/api/otp/verify", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(async d => {
+    if (!d.success) {
+      alert(d.message || "Incorrect OTP");
+      return;
+    }
 
-  // Save current user
-  localStorage.setItem("currentUser", JSON.stringify(user));
-  localStorage.setItem("isLoggedIn", "true");
+    // OTP correct — now perform REAL login (sets HttpOnly cookie)
+    const loginPayload = {
+        email: via === "email" ? identifier : null,
+        phone: via === "phone" ? identifier : null
+    };
 
-  alert("Login successful!");
+    const res = await fetch(API_URL + "/api/auth/login", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        credentials: "include",
+        body: JSON.stringify(loginPayload)
+    });
 
-  // redirect after login
-  window.location.href = "user.html";
+    const data = await res.json();
+
+    if (!data.ok) {
+        alert(data.message || "Login failed.");
+        return;
+    }
+
+    alert("Login successful!");
+    window.location.href = "user_select.html";
+  })
+  .catch(err => {
+    console.error("login error", err);
+    alert("Login error.");
+  });
 });
 
-/* GOOGLE DEMO LOGIN */
-document.querySelector(".google").addEventListener("click", function() {
-  const email = prompt("Enter your Google email:");
-  if (!email) return;
-
-  const user = { name: "Google User", email: email };
-  localStorage.setItem("currentUser", JSON.stringify(user));
-  localStorage.setItem("isLoggedIn", "true");
-
-  alert("Logged in with Google!");
-  window.location.href = "user.html";
-});
-
-/* APPLE DEMO LOGIN */
-document.querySelector(".apple").addEventListener("click", function() {
-  const email = prompt("Enter your Apple email:");
-  if (!email) return;
-
-  const user = { name: "Apple User", email: email };
-  localStorage.setItem("currentUser", JSON.stringify(user));
-  localStorage.setItem("isLoggedIn", "true");
-
-  alert("Logged in with Apple!");
-  window.location.href = "user.html";
-});
+document.querySelector(".google").addEventListener("click", () => alert("Not implemented"));
+document.querySelector(".apple").addEventListener("click", () => alert("Not implemented"));
 </script>
 
 </body>

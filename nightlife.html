@@ -1,228 +1,167 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Nightlife - ZomaClone</title>
-    <link rel="icon" href="./Images/ZomaCloneFavicon.svg" />
-    <!-- fonts & icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <header class="navbar" style="position: static;">
-      <a href="#">Get the App</a>
-      <div class="navbar__menu_container">
-        <a href="index.html" class="link">Home</a>
-        <a href="login.html" class="link login-link">Login</a>
-  <a href="vendor.html" class="link signup-btn">Register your restaurant</a>
-      </div>
-    </header>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nightlife — ZomaClone</title>
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
 
-    <section class="dining-hero">
-      <div class="dining-wrapper">
-        <div class="dining-search">
-          <input id="nightSearch" type="search" placeholder="Search bars, drinks or cocktails" />
-          <button id="nightSearchBtn" class="btn">Search</button>
-          <button id="nightCartToggle" class="cart-toggle" title="Orders">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span class="label">Cart</span>
-            <span id="nightCartCount" class="cart-badge">0</span>
-          </button>
-        </div>
-      </div>
-    </section>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <main class="dining-wrapper" style="padding:18px 0;">
-      <div class="dining-container">
-        <aside class="dining-sidebar">
-          <div class="panel">
-            <h4>Options</h4>
-            <div class="filters" id="nightFilters">
-              <div class="chip active" data-type="All">All</div>
-              <div class="chip" data-type="Alcoholic">Alcoholic</div>
-              <div class="chip" data-type="Non-Alcoholic">Non-Alcoholic</div>
-            </div>
-          </div>
+<style>
+:root {
+  --accent:#e23744;
+  --bg:#050816;
+  --text:#fff;
+  --card:#0f172a;
+  --hover:#1e293b;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{background:var(--bg);color:var(--text);}
 
-          <div class="panel">
-            <h4>Price</h4>
-            <div style="display:flex; gap:8px; margin-top:8px;"><button class="chip">$</button><button class="chip">$$</button><button class="chip">$$$</button></div>
-          </div>
+/* Top Bar */
+.top-bar{
+  width:100%;
+  padding:16px 40px;
+  background:#0b0f1e;
+  border-bottom:1px solid #1e293b;
+  display:flex;
+  align-items:center;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.brand-logo{
+  width:36px;height:36px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:18px;
+  background:linear-gradient(135deg,#ff1769,#ff884b);
+  color:#fff;
+}
+.brand-text strong{
+  font-size:16px;
+}
 
-          <div class="panel">
-            <h4>Delivery</h4>
-            <label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="fastDeliveryNight" /> Fast delivery</label>
-            <label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="onlyOnline" /> Online orders only</label>
-          </div>
-        </aside>
+/* Banner */
+.banner{
+  width:100%;
+  min-height:220px;
+  padding:40px;
+  background-image:
+    linear-gradient(135deg,rgba(15,23,42,0.9),rgba(15,23,42,0.3)),
+    url('Images/club.webp');
+  background-size:cover;
+  background-position:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+}
+.banner-title{
+  font-size:34px;
+  font-weight:700;
+}
+.banner-sub{
+  font-size:14px;
+  opacity:0.8;
+  margin-top:6px;
+}
 
-        <section class="dining-list">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-            <h2 style="margin:0;">Nightlife & Bars</h2>
-            <div class="muted">Order drinks or reserve a table for the night</div>
-          </div>
+/* Cards Section */
+.container{
+  max-width:1100px;
+  margin:50px auto;
+  padding:0 24px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(300px,1fr));
+  gap:32px;
+}
 
-          <div id="nightVenues" class="restaurant-grid" style="margin-top:12px;"></div>
-        </section>
-      </div>
-    </main>
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:18px;
+  cursor:pointer;
+  transition:0.25s;
+  border:1px solid #1f2937;
+  text-align:center;
+}
+.card:hover{
+  background:var(--hover);
+  transform:translateY(-8px);
+  border-color:#fb7185;
+}
+.card img{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+  border-radius:15px;
+}
+.card h3{
+  margin-top:14px;
+  font-size:20px;
+  font-weight:600;
+}
+.card p{
+  margin-top:6px;
+  opacity:0.8;
+  font-size:14px;
+}
 
-    <!-- Menu modal (re-used for ordering online) -->
-    <div id="nightMenuModal" class="modal-backdrop" aria-hidden="true">
-      <div class="modal">
-        <div class="modal-header"><strong id="nightMenuTitle">Menu</strong><button class="modal-close" id="nightMenuClose">✕</button></div>
-        <div class="modal-body" id="nightMenuBody"></div>
-        <div class="form-actions"><button id="nightMenuClose2" class="btn ghost small">Close</button></div>
-      </div>
+/* Footer */
+footer{
+  margin-top:40px;
+  text-align:center;
+  padding:20px;
+  color:#aaa;
+  border-top:1px solid #1e293b;
+  font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<header class="top-bar">
+  <div class="brand">
+    <div class="brand-logo">Z</div>
+    <div class="brand-text">
+      <strong>Nightlife • ZomaClone</strong>
     </div>
+  </div>
+</header>
 
-    <!-- Cart modal / panel -->
-    <div id="nightCartBackdrop" class="cart-backdrop">
-      <div class="cart-modal">
-        <div class="header"><strong>Your orders</strong><button class="btn ghost small" id="nightCloseCart">Close</button></div>
-        <div class="body" id="nightCartBody"></div>
-        <div class="cart-summary"><div class="muted" id="nightCartTotals"></div><div><button id="nightClearCart" class="btn ghost small">Clear</button></div></div>
-      </div>
-    </div>
+<section class="banner">
+  <div class="banner-title">Nightlife & Club Services</div>
+  <div class="banner-sub">Choose what you want to explore</div>
+</section>
 
-    <script>
-      // sample nightlife venues and drink menus
-      const venues = [
-        { id: 1, name: 'Neon Bar', type: 'Alcoholic', rating: 4.5, eta: '20-30', cost: '$$', img: './Images/collection1.jpg', online: true, menu: [ {id:1001,name:'Mojito',type:'Alcoholic',price:7,stock:10},{id:1002,name:'Margarita',type:'Alcoholic',price:9,stock:6},{id:1003,name:'Lime Soda',type:'Non-Alcoholic',price:3,stock:20} ] },
-        { id: 2, name: 'Sundowners Rooftop', type: 'Alcoholic', rating: 4.7, eta: '30-40', cost: '$$$', img: './Images/collection2.jpg', online: false, menu: [ {id:2001,name:'Old Fashioned',type:'Alcoholic',price:10,stock:4},{id:2002,name:'G&T',type:'Alcoholic',price:8,stock:5},{id:2003,name:'Virgin Mojito',type:'Non-Alcoholic',price:4,stock:12} ] },
-        { id: 3, name: 'Cafe Breeze', type: 'Non-Alcoholic', rating: 4.3, eta: '15-20', cost: '$', img: './Images/collection3.jpg', online: true, menu: [ {id:3001,name:'Iced Coffee',type:'Non-Alcoholic',price:3,stock:15},{id:3002,name:'Lemonade',type:'Non-Alcoholic',price:2,stock:18} ] },
-        { id: 4, name: 'The Whiskey Den', type: 'Alcoholic', rating: 4.8, eta: '25-35', cost: '$$$', img: './Images/collection4.jpg', online: true, menu: [ {id:4001,name:'Single Malt',type:'Alcoholic',price:12,stock:3},{id:4002,name:'Whiskey Sour',type:'Alcoholic',price:9,stock:6} ] }
-      ];
+<main class="container">
 
-      const venuesContainer = document.getElementById('nightVenues');
-      const nightCartCount = document.getElementById('nightCartCount');
-      const nightCartKey = 'nightlife_cart';
-      let nightCart = JSON.parse(localStorage.getItem(nightCartKey) || '[]');
-      function updateNightCartBadge(){ nightCartCount.textContent = nightCart.reduce((s,i)=>s+i.qty,0) || 0; }
-      updateNightCartBadge();
+  <!-- Order Online -->
+  <div class="card" onclick="goTo('nightlife_order.html')">
+    <img src="Images/food.png" alt="Order Online">
+    <h3>Order Online</h3>
+    <p>Explore menus from nightlife clubs and order instantly.</p>
+  </div>
 
-      function renderVenues(list){
-        venuesContainer.innerHTML = '';
-        if(!list.length){ venuesContainer.innerHTML = '<div class="card">No venues found</div>'; return; }
-        list.forEach(v=>{
-          const node = document.createElement('div'); node.className = 'restaurant-card card';
-          node.innerHTML = `
-            <img src="${v.img}" alt="${v.name}" />
-            <div class="body">
-              <h5>${v.name}</h5>
-              <div class="sub">${v.type} • ${v.cost}</div>
-              <div class="meta-row"><div class="badge">⭐ ${v.rating}</div><div class="muted">${v.eta} min</div></div>
-              <div style="margin-top:8px; display:flex; gap:8px; align-items:center;"><div class="muted">Online orders: <strong>${v.online? 'Yes':'No'}</strong></div></div>
-              <div class="restaurant-actions" style="margin-top:8px;">
-                <a class="btn small" href="venue.html?id=${v.id}">Details</a>
-                <button class="btn small view-night-menu" data-id="${v.id}">View Menu</button>
-                <button class="btn outline small order-online" data-id="${v.id}" ${v.online? '':'disabled'}>Order Online</button>
-              </div>
-            </div>
-          `;
-          venuesContainer.appendChild(node);
-        });
-      }
+  <!-- Book Table -->
+  <div class="card" onclick="goTo('nightlife_table.html')">
+    <img src="Images/table.png" alt="Book Table">
+    <h3>Book a Table</h3>
+    <p>Reserve tables at top clubs and enjoy nightlife in style.</p>
+  </div>
 
-      // initial render
-      renderVenues(venues);
+</main>
 
-      // filters & search
-      const filters = Array.from(document.querySelectorAll('#nightFilters .chip'));
-      const nightSearch = document.getElementById('nightSearch');
-      document.getElementById('nightSearchBtn').addEventListener('click', applyNightFilters);
-      nightSearch.addEventListener('keydown', (e)=>{ if(e.key==='Enter') applyNightFilters(); });
+<footer>&copy; 2025 ZomaClone — Nightlife Portal</footer>
 
-      filters.forEach(f=>f.addEventListener('click',(e)=>{ filters.forEach(x=>x.classList.remove('active')); e.currentTarget.classList.add('active'); applyNightFilters(); }));
+<script>
+function goTo(page){
+  window.location.href = page;
+}
+</script>
 
-      function applyNightFilters(){
-        const active = document.querySelector('#nightFilters .chip.active');
-        const type = active ? active.getAttribute('data-type') : 'All';
-        const q = nightSearch.value.trim().toLowerCase();
-        let res = venues.slice();
-        if(type && type!=='All') res = res.filter(v=>v.type.toLowerCase()===type.toLowerCase());
-        if(q) res = res.filter(v=>v.name.toLowerCase().includes(q) || v.menu.some(m=>m.name.toLowerCase().includes(q)));
-        renderVenues(res);
-      }
-
-      // Menu modal behavior
-      const nightMenuModal = document.getElementById('nightMenuModal');
-      const nightMenuBody = document.getElementById('nightMenuBody');
-      const nightMenuTitle = document.getElementById('nightMenuTitle');
-      document.getElementById('nightMenuClose').addEventListener('click', ()=>{ nightMenuModal.classList.remove('show'); });
-      document.getElementById('nightMenuClose2').addEventListener('click', ()=>{ nightMenuModal.classList.remove('show'); });
-
-      document.addEventListener('click',(e)=>{
-        if(e.target && e.target.matches('.view-night-menu')){
-          const id = parseInt(e.target.getAttribute('data-id'),10);
-          openNightMenu(id);
-        }
-        if(e.target && e.target.matches('.order-online')){
-          const id = parseInt(e.target.getAttribute('data-id'),10);
-          openNightMenu(id, true); // open directly to order
-        }
-      });
-
-      function openNightMenu(id, autoOrder=false){
-        const v = venues.find(x=>x.id===id); if(!v) return;
-        nightMenuTitle.textContent = `${v.name} — Menu`;
-        nightMenuBody.innerHTML = '';
-        v.menu.forEach(item=>{
-          const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.padding='8px 0';
-          row.innerHTML = `<div><strong>${item.name}</strong><div class="muted">${item.type} • $${item.price} ${item.stock<=0? '<span style="color:red; font-weight:600;">(out of stock)</span>':''}</div></div><div>${item.stock>0? `<button class="btn small add-night-item" data-vid="${v.id}" data-id="${item.id}">Add</button>` : '<span class="muted">Unavailable</span>'}</div>`;
-          nightMenuBody.appendChild(row);
-        });
-        nightMenuModal.classList.add('show');
-        if(autoOrder){ /* focus or highlight add buttons, user can add to cart */ }
-      }
-
-      // add to cart
-      document.addEventListener('click',(e)=>{
-        if(e.target && e.target.matches('.add-night-item')){
-          const vid = parseInt(e.target.getAttribute('data-vid'),10);
-          const id = parseInt(e.target.getAttribute('data-id'),10);
-          const v = venues.find(x=>x.id===vid); if(!v) return;
-          const item = v.menu.find(m=>m.id===id); if(!item || item.stock<=0){ alert('Item unavailable'); return; }
-          const existing = nightCart.find(x=>x.id===id);
-          if(existing){ existing.qty += 1; }
-          else { nightCart.push({ id: item.id, name: item.name, price: item.price, qty: 1, img: v.img, venue: v.name }); }
-          // decrement stock for demo (persisting stock not implemented globally)
-          item.stock -= 1;
-          localStorage.setItem(nightCartKey, JSON.stringify(nightCart));
-          updateNightCartBadge();
-          // re-render menu to show updated stock
-          openNightMenu(vid);
-        }
-      });
-
-      // cart modal
-      const nightCartBackdrop = document.getElementById('nightCartBackdrop');
-      function renderNightCart(){
-        const body = document.getElementById('nightCartBody');
-        const totals = document.getElementById('nightCartTotals');
-        body.innerHTML = '';
-        if(!nightCart.length){ body.innerHTML = '<div class="muted">Cart is empty</div>'; totals.textContent=''; return; }
-        let total = 0;
-        nightCart.forEach(c=>{ total += c.price * c.qty; const node = document.createElement('div'); node.className='cart-item'; node.innerHTML = `<img src="${c.img}" alt="${c.name}" /><div style="flex:1"><strong>${c.name}</strong><div class="muted">${c.venue}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;"><div class="qty-control"><button class="btn ghost small night-dec" data-id="${c.id}">-</button><span style="min-width:24px; text-align:center;">${c.qty}</span><button class="btn ghost small night-inc" data-id="${c.id}">+</button></div><div style="margin-top:6px;">$${c.price * c.qty}</div></div>`; body.appendChild(node); });
-        totals.textContent = `Total: $${total}`;
-      }
-
-      document.getElementById('nightCartToggle').addEventListener('click', ()=>{ renderNightCart(); nightCartBackdrop.classList.add('show'); });
-      document.getElementById('nightCloseCart').addEventListener('click', ()=>{ nightCartBackdrop.classList.remove('show'); });
-      nightCartBackdrop.addEventListener('click',(e)=>{ if(e.target===nightCartBackdrop) nightCartBackdrop.classList.remove('show'); });
-      document.getElementById('nightClearCart').addEventListener('click', ()=>{ if(!confirm('Clear cart?')) return; nightCart=[]; localStorage.setItem(nightCartKey, JSON.stringify(nightCart)); updateNightCartBadge(); renderNightCart(); });
-
-      document.addEventListener('click',(e)=>{
-        if(e.target && e.target.matches('.night-inc')){ const id=parseInt(e.target.getAttribute('data-id'),10); const it=nightCart.find(x=>x.id===id); if(it){ it.qty+=1; localStorage.setItem(nightCartKey, JSON.stringify(nightCart)); updateNightCartBadge(); renderNightCart(); } }
-        if(e.target && e.target.matches('.night-dec')){ const id=parseInt(e.target.getAttribute('data-id'),10); const it=nightCart.find(x=>x.id===id); if(it){ it.qty-=1; if(it.qty<=0) nightCart=nightCart.filter(x=>x.id!==id); localStorage.setItem(nightCartKey, JSON.stringify(nightCart)); updateNightCartBadge(); renderNightCart(); } }
-      });
-
-      // persist and initialize cart
-      nightCart = JSON.parse(localStorage.getItem(nightCartKey) || '[]'); updateNightCartBadge();
-    </script>
-  </body>
+</body>
 </html>

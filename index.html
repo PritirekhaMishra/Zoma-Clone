@@ -1,354 +1,254 @@
 <!DOCTYPE html>
 <html>
-	<head>
-	
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta http-equiv="X-UA-Compatible" content="ie=edge">
-		<link rel="icon" type="image/png" sizes="512x512" href="./Images/logo_512.png">
-		
-		
-		<link
-		rel = "stylesheet"
-		href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
-		integrity = "sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
-		crossorigin = "anonymous"
-		referrerpolicy = "no-referrer"
-		/>
-		
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link rel="icon" type="image/png" sizes="512x512" href="./Images/logo_512.png">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+<link rel="icon" type="image/png" sizes="512x512" href="./Images/logo_512.png">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
 <link rel="icon" type="image/png" sizes="192x192" href="./Images/logo_192.png">
 <link rel="icon" type="image/png" sizes="32x32" href="./Images/logo_32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="./Images/logo_16.png">
 
-		
-		<link rel = "stylesheet" href = "./styles.css" />
-		
-		<title>ZomaClone</title>
-	</head>
-	<body>
-		
-		<section class = "hero__section">
-			<header>
-				<nav class = "navbar">
-					<a href = "#">Get the App</a>
-					<div class = "navbar__menu_container">
-						
-						<a href = "login.html" class = "link login-link" >Login</a>
-						<a href="signup.html" class="link signup-btn">Sign Up</a>
-						<a href = "#" class = "user_icon"><i class="fa-solid fa-user"></i></a>
-					</div>
-				</nav>
-			</header>
-			<div class = "hero__section_container">
-				<img src = "./Images/heroSectionLogo.svg" alt = "ZomaClone Logo" class = "hero__section_logo" />
-				<h1 class = "hero__section_heading">Discover the best food & drinks in Pune</h1>
-				<div class = "hero__section_container_input">
-					<i class="fa-sharp fa-solid fa-location-dot" id = "location_icon"></i>
-					<div class="city-picker" onclick="openCityModal()">
-                    <span id="selectedCity">Pune</span>
-                     <i class="fa-solid fa-chevron-down"></i>
-                    </div>
+<link rel="stylesheet" href="./styles.css">
 
-					<i class="fa-solid fa-magnifying-glass" id = "search_icon"></i>
-					<input class = "hero__section_input_search" type = "text" placeholder = "Search for a restaurant, cuisine or a dish" />
-				</div>
-			</div>
-		</section>
-		
-		<section class = "container_cards">
-		
-			 <a href="order.html" class = "we_offer__cards" aria-label="Order Online">
-				<img src = "./Images/item1.png" alt = "Order Online"/>
-				<div class = "we_offer__cards_content">
-					<h2>Order Online</h2>
-					<p>Stay home and order to your doorstep</p>
-				</div>
-			 </a>
-			 
-			 <a href="dining.html" class = "we_offer__cards" aria-label="Dining">
-				<img src = "./Images/item2.png" alt = "Dining"/>
-				<div class = "we_offer__cards_content">
-					<h2>Table Booking</h2>
-					<p>Visit amazing restaurants and cafes</p>
-				</div>
-			 </a>
-			 
-			 <a href="nightlife.html" class = "we_offer__cards" aria-label="Nightlife and clubs">
-				<img src = "./Images/item3.png" alt = "Nightlife and clubs"/>
-				<div class = "we_offer__cards_content">
-					<h2>Nightlife and clubs</h2>
-					<p>Spend leisure time enjoying the nightlife</p>
-				</div>
-			 </a>
-			 
-		</section>
-		
-		<section class = "container_collections">
-			<h1>Collections</h1>
-			<div class = "sub_heading__container">
-				<span>Explore curated lists of top restaurants, cafes, pubs in Pune based on trends</span>
-				<span id = "span">All collections in Pune</span>
-			</div>
-			<div class = "collections__cards_container">
-					
-				<div class = "cards card1">
-					<div class = "overlay"></div>
-					<div class = "collections__content">
-						<h4>Live Cricket Screening</h4>
-						<span>56 places</span>
-					</div>
-				</div>
-				
-				<div class = "cards card2">
-					<div class = "overlay"></div>
-					<div class = "collections__content">
-						<h4>Koregaon Park specials</h4>
-						<span>12 places</span>
-					</div>
-				</div>
-				
-				<div class = "cards card3">
-					<div class = "overlay"></div>
-					<div class = "collections__content">
-						<h4>Newly opened Restaurants</h4>
-						<span>36 places</span>
-					</div>
-				</div>
-				
-				<div class = "cards card4">
-					<div class = "overlay"></div>
-					<div class = "collections__content">
-						<h4>Trending Pubs Near me</h4>
-						<span>16 places</span>
-					</div>
-				</div>
-				
-			</div>
-		</section>
-		
-		<section class = "container__get_the_App">
-			<div class = "semi_container">
-				<div class = "semi_container__left">
-					<img src = "./Images/mobileBanner.png" alt = "mobile image" />
-				</div>
-				<div class = "semi_container__right">
-					<h1>Get the ZomaClone App</h1>
-					<p>We will send you a link, open it and download the app now</p>
-					<div class = "radio_button__container">
-						<div>
-							<input type = "radio" id = "email" name = "downloadApp" />
-							<label for = "email" style = "font-size:14px;">Email</label>
-						</div>
-							<div>
-							<input type = "radio" id = "phone" name = "downloadApp" />
-							<label for = "phone" style = "font-size:14px;">Phone</label>
-						</div>
-					</div>
-					<div class = "input__container">
-						<input type = "text" placeholder = "Email" />
-						<button>Share App Link</button>
-					</div>
-					<div class = "download_app__container">
-						<h5>Download App From</h5>
-						<div>
-							<img src = "./Images/appleStore.png" alt = "Apple store" />
-							<img src = "./Images/playStore.png" alt = "Play store" />
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
-		<!-- this is for Explore places section -->
-		<section class = "explore_places__container">
-			<div class = "sub_container">
-				<div>
-					<h1>Explore Options Near Me</h1>
-					<span>Explore the restaurants and cuisines across various cities under our service</span>
-				</div>
-				<div class = "drop_down__container">
-					<div>
-						<select class = "drop_down_menu">
-							<option>Popular cuisines Near Me</option>
-							<option>Open Window Cafe Bistro</option>
-							<option>Gauri's Kitchen</option>
-							<option>Food Moments</option>
-							<option>Senses - Marriott Suites Pune</option>
-						</select>
-					</div>
-					<div>
-						<select class = "drop_down_menu">
-							<option>Popular Restaurant Near Me</option>
-							<option>Trishna Resto And Bar</option>
-							<option>Pimlico</option>
-							<option>Green Thing</option>
-							<option>Kava Kitchen</option>
-						</select>
-					</div>
-					<div>
-						<select class = "drop_down_menu">
-							<option>Cities We Deliver To</option>
-							<option>Pune</option>
-							<option>Mumbai</option>
-							<option>Banglore</option>
-							<option>Delhi</option>
-						</select>
-					</div>
-				</div>
-			</div>
-		</section>
-		<!-- This is for footer section -->
-		<footer class = "footer__container">
-			<div class = "footer_section1">
-				<img src = "./Images/logo.svg" alt = "ZomaClone logo" />
-				<div class = "section1__button_container">
-					<button>
-						<img src = "./Images/IndianFlag.png" alt = "Indian Flag" style = "width: 16px; height: 16px" />
-						<select style = "border: none; background: #e8e8e8; cursor: pointer">
-							<option>India</option>
-							<option>United States</option>
-							<option>Australia</option>
-							<option>New Zealand</option>
-							<option>Spain</option>
-							<option>England</option>
-						</select>
-					</button>
-					<button>
-						<i class = "fa fa-globe"></i>
-						<select style = "border: none; background: #e8e8e8; cursor: pointer">
-							<option>English</option>
-							<option>Español</option>
-							<option>Čeština</option>
-							<option>Slovenčina</option>
-							<option>Polish</option>
-							<option>Italian</option>
-						</select>
-					</button>
-				</div>
-			</div>
-			<div class = "navigation_container">
-				<div class = "link_container">
-					<h5>About ZomaClone</h5>
-					<div class = "link_container_anchors">
-						<a href = "#">Who We Are</a>
-						<a href = "#">Blog</a>
-						<a href = "#">Work With Us</a>
-						<a href = "#">Investor Relations</a>
-						<a href = "#">Report Fraud</a>
-						<a href = "#">Contact Us</a>
-					</div>
-				</div>
-				
-				<div class = "link_container">
-					<h5>Zomaverse</h5>
-					<div class = "link_container_anchors">
-						<a href = "#">ZomaClone</a>
-						<a href = "#">Blinkit</a>
-						<a href = "#">Feeding India</a>
-						<a href = "#">Hyperpure</a>
-						<a href = "#">Zomaland</a>
-					</div>
-				</div>
-				
-				<div class = "link_container">
-					<h5>For Restaurants</h5>
-					<div class = "link_container_anchors">
-						<a href = "#">Partner With Us</a>
-						<a href = "#">Apps For You</a>
-					</div>
-					<h5 id = "enterprises">For Enterprises</h5>
-					<div class = "link_container_anchors">
-						<a href = "#">ZomaClone For Work</a>
-					</div>
-				</div>
-				
-				<div class = "link_container">
-					<h5>Learn More</h5>
-					<div class = "link_container_anchors">
-						<a href = "#">Privacy</a>
-						<a href = "#">Security</a>
-						<a href = "#">Terms</a>
-						<a href = "#">Sitemap</a>
-					</div>
-				</div>
-				
-				<div class = "link_container">
-					<h5>Social Links</h5>
-					<div class = "social_media_icon_buttons">
-						<button><i class="fa-brands fa-linkedin-in"></i>	</button>
-						<button><i class = "fa-brands fa-instagram"></i></button>
-						<button><i class = "fa-brands fa-twitter"></i></button>
-						<button><i class = "fa-brands fa-facebook"></i></button>
-						<button><i class = "fa-brands fa-youtube"></i></button>
-						<div class = "social_media_logos">
-							<img src = "./Images/appleStore.png" alt = "Apple store" />
-							<img src = "./Images/playStore.png" alt = "Play store" id = "img2"/>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class = "disclaimer">
-			By continuing past this page, you agree to our Terms of Service, Cookie Policy,
-			Privacy Policy and Content Policies. All trademarks are properties of their respective owners.
-			2025 © ZomaClone™ Ltd. All rights reserved.
-			</div>
-		</footer>
-		<div class="city-modal" id="cityModal">
-    <div class="city-modal-box">
-        <h2>Select Your City</h2>
+<title>ZomaClone</title>
+</head>
 
-        <input type="text" id="citySearch" placeholder="Search City..." class="city-search">
+<body>
 
-        <h3>Popular Cities</h3>
-        <div class="city-grid" id="popularCities"></div>
+<section class="hero__section">
+<header>
+<nav class="navbar">
+    <a href="#">Get the App</a>
+    <div class="navbar__menu_container">
+        <a href="login.html" class="link login-link">Login</a>
+        <a href="signup.html" class="link signup-btn">Sign Up</a>
+        <a href="javascript:void(0)" class="user_icon" style="display:none;">
+          <i class="fa-solid fa-user"></i>
+        </a>
+    </div>
+</nav>
+</header>
 
-        <h3 style="margin-top: 20px;">All Cities</h3>
-        <div class="city-list" id="allCities"></div>
+<div class="hero__section_container">
+    <h1 class="hero__section_heading">Discover the best food & drinks</h1>
+     <b> </b>
+    <div class="hero__section_container_input">
+        <i class="fa-solid fa-location-dot" id="location_icon"></i>
 
-        <button class="close-city-btn" onclick="closeCityModal()">Close</button>
+        <div class="city-picker" onclick="openCityModal()">
+            <span id="selectedCity">Pune</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+
+        <i class="fa-solid fa-magnifying-glass" id="search_icon"></i>
+        <input class="hero__section_input_search"
+            type="text"
+            placeholder="Search for a restaurant, cuisine or a dish">
     </div>
 </div>
-    <script>
+</section>
+
+<!-- cards -->
+<section class="container_cards">
+<a href="order.html" class="we_offer__cards">
+    <img src="./Images/item1.png" alt="Order Online">
+    <div class="we_offer__cards_content">
+        <h2>Order Online</h2>
+        <p>Stay home and order to your doorstep</p>
+    </div>
+</a>
+
+<a href="dining.html" class="we_offer__cards">
+    <img src="./Images/item2.png" alt="Dining">
+    <div class="we_offer__cards_content">
+        <h2>Table Booking</h2>
+        <p>Visit amazing restaurants and cafes</p>
+    </div>
+</a>
+
+<a href="nightlife.html" class="we_offer__cards">
+    <img src="./Images/item3.png" alt="Nightlife">
+    <div class="we_offer__cards_content">
+        <h2>Nightlife and clubs</h2>
+        <p>Spend leisure time enjoying the nightlife</p>
+    </div>
+</a>
+</section>
+
+<!-- TODO: Collections, Get App, Footer — your existing content here -->
+
+<!-- CITY MODAL -->
+<div class="city-modal" id="cityModal">
+<div class="city-modal-box">
+    <h2>Select Your City</h2>
+
+    <input type="text" id="citySearch" placeholder="Search City..." class="city-search">
+
+    <h3>Popular Cities</h3>
+    <div class="city-grid" id="popularCities"></div>
+
+    <h3 style="margin-top:20px;">All Cities</h3>
+    <div class="city-list" id="allCities"></div>
+
+    <button class="close-city-btn" onclick="closeCityModal()">Close</button>
+</div>
+</div>
+
+<!-- CITY SCRIPT -->
+<script>
 const cities = [
-    "Pune","Mumbai","Bengaluru","Delhi","Hyderabad","Chennai",
-    "Kolkata","Ahmedabad","Surat","Indore","Bhubaneswar","Goa",
-    "Jaipur","Lucknow","Nagpur","Chandigarh","Patna","Noida"
+"Pune","Mumbai","Bengaluru","Delhi","Hyderabad","Chennai",
+"Kolkata","Ahmedabad","Surat","Indore","Bhubaneswar","Goa",
+"Jaipur","Lucknow","Nagpur","Chandigarh","Patna","Noida"
 ];
 
 const popularCities = ["Pune","Mumbai","Delhi","Bengaluru","Hyderabad","Chennai"];
 
 function openCityModal() {
-    document.getElementById("cityModal").style.display = "flex";
-    loadCities();
+  document.getElementById("cityModal").style.display = "flex";
+  loadCities();
 }
 
 function closeCityModal() {
-    document.getElementById("cityModal").style.display = "none";
+  document.getElementById("cityModal").style.display = "none";
 }
 
 function loadCities() {
-    document.getElementById("popularCities").innerHTML =
-        popularCities.map(c => `<div onclick="selectCity('${c}')">${c}</div>`).join('');
+  document.getElementById("popularCities").innerHTML =
+    popularCities.map(c => `<div onclick="selectCity('${c}')">${c}</div>`).join('');
 
-    document.getElementById("allCities").innerHTML =
-        cities.map(c => `<div onclick="selectCity('${c}')">${c}</div>`).join('');
+  document.getElementById("allCities").innerHTML =
+    cities.map(c => `<div onclick="selectCity('${c}')">${c}</div>`).join('');
 }
 
 function selectCity(city) {
-    document.getElementById("selectedCity").innerText = city;
-    closeCityModal();
+  document.getElementById("selectedCity").innerText = city;
+  closeCityModal();
 }
 
 document.getElementById("citySearch").addEventListener("input", () => {
-    const val = document.getElementById("citySearch").value.toLowerCase();
-    const filtered = cities.filter(c => c.toLowerCase().includes(val));
+  const val = document.getElementById("citySearch").value.toLowerCase();
+  const filtered = cities.filter(c => c.toLowerCase().includes(val));
 
-    document.getElementById("allCities").innerHTML =
-        filtered.map(c => `<div onclick="selectCity('${c}')">${c}</div>`).join('');
+  document.getElementById("allCities").innerHTML =
+    filtered.map(c => `<div onclick="selectCity('${c}')">${c}</div>`).join('');
 });
 </script>
 
-	</body>
+<!-- LOGIN STATE (FULL BACKEND) -->
+<script>
+const API_URL = "http://127.0.0.1:5000";
+let CURRENT_USER = null;
+
+async function fetchCurrentUser() {
+  try {
+    const res = await fetch(API_URL + "/api/auth/me", {
+      method: "GET",
+      credentials: "include"  // send session cookie
+    });
+    const data = await res.json();
+    if (data.ok && data.user) {
+      CURRENT_USER = data.user;
+      return data.user;
+    }
+  } catch (e) {
+    console.error("auth/me error", e);
+  }
+  CURRENT_USER = null;
+  return null;
+}
+
+function setupNavbar(user) {
+  const loginLink = document.querySelector(".login-link");
+  const signupBtn = document.querySelector(".signup-btn");
+  const userIcon  = document.querySelector(".user_icon");
+
+  if (!loginLink || !signupBtn || !userIcon) return;
+
+  if (user) {
+    loginLink.style.display = "none";
+    signupBtn.style.display = "none";
+    userIcon.style.display  = "flex";
+
+    let dropdown = document.getElementById("userDropdownMenu");
+    if (!dropdown) {
+      dropdown = document.createElement("div");
+      dropdown.id = "userDropdownMenu";
+      dropdown.style = `
+        position:absolute; top:60px; right:40px;
+        background:#fff; color:#333;
+        padding:10px 14px; border-radius:8px;
+        box-shadow:0 8px 20px rgba(0,0,0,0.15);
+        font-size:14px; display:none; z-index:3000;
+      `;
+      dropdown.innerHTML = `
+        <div style="margin-bottom:6px;">Hi, <strong>${user.name}</strong></div>
+        <button id="logoutBtn"
+          style="border:none;background:#ef4f5f;color:#fff;
+          padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px;">
+          Logout
+        </button>
+      `;
+      document.body.appendChild(dropdown);
+
+      userIcon.addEventListener("click", () => {
+        dropdown.style.display = dropdown.style.display === "none" ? "block":"none";
+      });
+
+      document.getElementById("logoutBtn").addEventListener("click", async () => {
+        try {
+          await fetch(API_URL + "/api/auth/logout", {
+            method: "POST",
+            credentials: "include"
+          });
+        } catch (e) {
+          console.error("logout error", e);
+        }
+        alert("Logged out successfully.");
+        window.location.reload();
+      });
+    }
+
+  } else {
+    loginLink.style.display = "inline-flex";
+    signupBtn.style.display = "inline-flex";
+    userIcon.style.display  = "none";
+  }
+}
+
+function protectFeatureCards() {
+  const cards = document.querySelectorAll(".we_offer__cards");
+
+  cards.forEach(card => {
+    card.addEventListener("click", async (e) => {
+      if (!CURRENT_USER) {
+        // Optional: re-check from backend before blocking
+        await fetchCurrentUser();
+      }
+      if (!CURRENT_USER) {
+        e.preventDefault();
+        alert("Please log in or sign up to continue.");
+        window.location.href = "login.html";
+      }
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const user = await fetchCurrentUser();
+  setupNavbar(user);
+  protectFeatureCards();
+});
+</script>
+
+</body>
 </html>

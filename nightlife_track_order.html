@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ZomaClone — Track Orders</title>
+
+  <style>
+    :root{
+      --accent:#e23b44;
+      --muted:#6b7280;
+      --card:#ffffff;
+      --bg:#f6f7fb;
+      --success:#16a34a;
+      --danger:#ef4444;
+      --info:#0ea5e9;
+      --shadow: 0 8px 28px rgba(16,24,40,.06);
+      --radius:12px;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background:var(--bg);
+      color:#0f172a;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .container{
+      max-width:980px;
+      margin:28px auto;
+      padding:20px;
+    }
+
+    header{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:18px;
+    }
+    .brand{
+      display:flex;gap:12px;align-items:center;
+    }
+    .logo{
+      width:52px;height:52px;border-radius:10px;
+      background:linear-gradient(135deg,#ff6b6b,#f97316);
+      display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:20px;
+      box-shadow:var(--shadow);
+    }
+    h1{font-size:20px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    .controls{display:flex;gap:10px;align-items:center;}
+    .input{
+      padding:8px 10px;border-radius:10px;border:1px solid #e6e9ef;background:white;
+      font-size:14px;width:220px;
+    }
+    .btn{
+      padding:9px 12px;border-radius:10px;border:none;background:var(--accent);color:white;font-weight:600;
+      cursor:pointer;font-size:14px;
+    }
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid #ffb0b3}
+    .small{padding:7px 10px;font-size:13px}
+
+    .note{font-size:13px;color:var(--muted);margin-bottom:12px}
+
+    .orders-grid{display:grid;gap:14px}
+    .order-card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow:var(--shadow);
+      display:flex;flex-direction:column;gap:10px;
+    }
+
+    .order-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .shop{font-weight:700}
+    .meta{color:var(--muted);font-size:13px}
+
+    .status{
+      padding:6px 10px;border-radius:999px;color:white;font-weight:700;font-size:13px;text-transform:capitalize;
+    }
+    .status.pending{background:#f59e0b}
+    .status.confirmed{background:var(--info)}
+    .status.preparing{background:#6b21a8}
+    .status.out_for_delivery{background:#7c3aed}
+    .status.delivered{background:var(--success)}
+    .status.cancelled{background:var(--danger)}
+
+    .order-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .items{color:#111827}
+    .items small{color:var(--muted);display:block;margin-top:6px}
+
+    table.order-items{width:100%;border-collapse:collapse;margin-top:6px}
+    table.order-items td{padding:6px 8px;border-bottom:1px dashed #eee;font-size:14px}
+    table.order-items td.qty{width:80px;text-align:right;color:var(--muted);font-weight:600}
+    .total{font-weight:800;font-size:16px;color:#0f172a}
+
+    .muted{color:var(--muted);font-size:13px}
+
+    .empty{
+      text-align:center;padding:40px;border-radius:12px;background:white;box-shadow:var(--shadow);
+      color:var(--muted);
+    }
+
+    .footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+    @media(max-width:720px){
+      .controls{flex-direction:column;align-items:stretch}
+      .input{width:100%}
+      header{flex-direction:column;align-items:flex-start;gap:10px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">Z</div>
+        <div>
+          <h1>Track your Nightlife Orders</h1>
+          <p class="lead">Enter a phone number below (or use `?phone=` query) to see orders placed via the nightlife system.</p>
+        </div>
+      </div>
+
+      <div class="controls" aria-hidden="false">
+        <input id="phoneInput" class="input" placeholder="Phone (e.g. 9876543210)" inputmode="numeric" />
+        <button id="btnLoad" class="btn small">Load Orders</button>
+        <button id="btnRefresh" class="btn ghost small">Refresh</button>
+        <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px">
+          <input id="autoRefresh" type="checkbox" /> Auto
+        </label>
+      </div>
+    </header>
+
+    <p class="note">This page calls your backend endpoint <code>/api/orders/user/&lt;phone&gt;</code>. Make sure your backend (nightlife backend) is running on <strong>http://127.0.0.1:5001</strong>.</p>
+
+    <main>
+      <div id="ordersContainer" class="orders-grid"></div>
+      <div id="emptyState" class="empty" style="display:none">No orders found for this phone.</div>
+    </main>
+
+    <div class="footer">Tip: Share this page with your phone query to allow others to track (e.g. <code>nightlife_track_order.html?phone=9876543210</code>).</div>
+  </div>
+
+<script>
+(function(){
+  const API_BASE = "http://127.0.0.1:5001"; // <-- match your nightlife_backend.py host:port
+  const qs = new URLSearchParams(window.location.search);
+  const phoneFromQs = (qs.get("phone") || "").trim();
+
+  const phoneInput = document.getElementById("phoneInput");
+  const btnLoad = document.getElementById("btnLoad");
+  const btnRefresh = document.getElementById("btnRefresh");
+  const ordersContainer = document.getElementById("ordersContainer");
+  const emptyState = document.getElementById("emptyState");
+  const autoCheckbox = document.getElementById("autoRefresh");
+
+  let lastPhone = "";
+  let autoInterval = null;
+
+  // helpers
+  function toast(msg){
+    console.log("TOAST:", msg); // simple debug; insert fancier toast if needed
+  }
+
+  function formatDate(iso){
+    if(!iso) return "N/A";
+    // ensure Date treats value as UTC if it comes as ISO
+    const d = new Date(iso);
+    if(isNaN(d.getTime())){
+      // fallback: try appending UTC
+      const dd = new Date(iso + " UTC");
+      if(isNaN(dd.getTime())) return iso;
+      return dd.toLocaleString("en-IN", {year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:true});
+    }
+    return d.toLocaleString("en-IN", {year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:true});
+  }
+
+  function statusClass(status){
+    if(!status) return "pending";
+    return String(status).trim().toLowerCase().replace(/\s+/g, "_");
+  }
+
+  // render order card
+  function renderOrder(o){
+    const scls = statusClass(o.status);
+    const items = Array.isArray(o.items) ? o.items : [];
+    const itemsHtml = items.map(it => `
+      <tr>
+        <td>${escapeHtml(it.name || "Item")}</td>
+        <td class="qty">× ${Number(it.qty||0)}</td>
+      </tr>
+    `).join("");
+
+    return `
+      <div class="order-card" data-order-id="${o.id}">
+        <div class="order-head">
+          <div>
+            <div class="shop">${escapeHtml(o.restaurant_name || ("Vendor " + (o.vendor_id || "")))}
+              <span style="font-weight:500;color:var(--muted);font-size:13px;margin-left:8px">#${o.id}</span>
+            </div>
+            <div class="meta">${escapeHtml(o.club_id ? ("Club ID: " + o.club_id) : "")} • ${formatDate(o.created_at)}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="status ${scls}">${escapeHtml(o.status || "pending")}</div>
+            <div style="margin-top:8px" class="muted">${escapeHtml(o.payment_method || "")} ${o.payment_reference ? ("• " + escapeHtml(o.payment_reference)) : ""}</div>
+          </div>
+        </div>
+
+        <div class="order-row">
+          <div style="flex:1">
+            <div class="items">
+              <table class="order-items" role="table">
+                ${itemsHtml || '<tr><td class="muted">No items recorded</td><td class="qty"></td></tr>'}
+                <tr><td style="border:none"></td><td style="border:none"></td></tr>
+              </table>
+              <small class="muted">Ordered by: ${escapeHtml(o.user_name || o.user_phone || "Guest")}</small>
+            </div>
+          </div>
+
+          <div style="min-width:120px;text-align:right">
+            <div class="total">₹${Number(o.total||0).toFixed(2)}</div>
+            <div style="margin-top:8px" class="muted">${o.items ? (o.items.length + " line(s)") : ""}</div>
+            <div style="margin-top:10px">
+              <button class="btn ghost small" onclick="copyLink(${o.id})">Copy tracking link</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function escapeHtml(s){
+    if(s === null || s === undefined) return "";
+    return String(s).replace(/[&<>"']/g, function(m){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]);
+    });
+  }
+
+  window.copyLink = function(orderId){
+    const phone = lastPhone || "";
+    const url = `${location.origin}${location.pathname}?phone=${encodeURIComponent(phone)}#order=${orderId}`;
+    navigator.clipboard?.writeText(url).then(()=>{ toast("Link copied"); }, ()=>{ toast("Could not copy"); });
+  };
+
+  // fetch orders for a phone
+  async function loadOrdersFor(phone, opts = {showLoader:true}){
+    if(!phone) {
+      ordersContainer.innerHTML = "";
+      emptyState.style.display = "block";
+      emptyState.textContent = "Phone number missing. Provide ?phone= or enter above.";
+      return;
+    }
+
+    lastPhone = phone;
+    phoneInput.value = phone;
+
+    if(opts.showLoader){
+      ordersContainer.innerHTML = `<div class="empty">Loading orders…</div>`;
+      emptyState.style.display = "none";
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/api/orders/user/${encodeURIComponent(phone)}`, {cache:"no-store"});
+      if(!res.ok){
+        const txt = await res.text();
+        console.error("orders fetch failed", res.status, txt);
+        ordersContainer.innerHTML = `<div class="empty">Error fetching orders (status ${res.status}). Check backend.</div>`;
+        return;
+      }
+      const data = await res.json();
+      if(!data || !Array.isArray(data.orders) || data.orders.length === 0){
+        ordersContainer.innerHTML = "";
+        emptyState.style.display = "block";
+        emptyState.textContent = "No orders found for this phone.";
+        return;
+      }
+
+      // render all orders
+      ordersContainer.innerHTML = data.orders.map(renderOrder).join("");
+      emptyState.style.display = "none";
+    }catch(err){
+      console.error(err);
+      ordersContainer.innerHTML = `<div class="empty">Error loading orders. Is the backend running on ${API_BASE} ?</div>`;
+    }
+  }
+
+  // UI wiring
+  btnLoad.addEventListener("click", ()=> {
+    const p = phoneInput.value.trim();
+    if(!p){ phoneInput.focus(); return; }
+    // set querystring for shareability
+    const u = new URL(location.href);
+    u.searchParams.set("phone", p);
+    history.replaceState({}, "", u.toString());
+    loadOrdersFor(p, {showLoader:true});
+  });
+
+  btnRefresh.addEventListener("click", ()=> {
+    const p = phoneInput.value.trim() || lastPhone;
+    if(!p) { phoneInput.focus(); return; }
+    loadOrdersFor(p, {showLoader:false});
+  });
+
+  autoCheckbox.addEventListener("change", ()=> {
+    if(autoCheckbox.checked){
+      const p = phoneInput.value.trim() || lastPhone;
+      if(!p){ autoCheckbox.checked = false; toast("Set a phone first"); phoneInput.focus(); return; }
+      // start interval
+      autoInterval = setInterval(()=> loadOrdersFor(p, {showLoader:false}), 30000); // every 30s
+      toast("Auto-refresh enabled (30s)");
+    } else {
+      clearInterval(autoInterval);
+      autoInterval = null;
+      toast("Auto-refresh disabled");
+    }
+  });
+
+  // try load phone from URL initially
+  if(phoneFromQs){
+    phoneInput.value = phoneFromQs;
+    loadOrdersFor(phoneFromQs);
+  }
+
+  // expose a manual function to allow other pages to call
+  window.reloadOrders = () => {
+    const p = phoneInput.value.trim() || lastPhone;
+    if(p) loadOrdersFor(p, {showLoader:false});
+  };
+
+})();
+</script>
+</body>
+</html>

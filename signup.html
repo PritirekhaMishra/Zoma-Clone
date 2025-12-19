@@ -1,133 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sign Up - Zomato Clone</title>
-    <link rel="icon" href="./Images/ZomaCloneFavicon.svg" />
-    <link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" crossorigin="anonymous" />
-    <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sign Up - ZomaClone</title>
 
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
+<link rel="stylesheet" href="./styles.css" />
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+</head>
 
-  <body>
-    <header class="navbar" style="position: static;">
-      <a href="#">Get the App</a>
-      <div class="navbar__menu_container">
-        <a href="index.html" class="link">Home</a>
-        <a href="login.html" class="link">Log in</a>
-      </div>
-    </header>
+<body>
 
-    <main class="login-page">
-      <div class="login-card">
-        <div class="login-left">
-          <img src="./Images/collection1.jpg" alt="food collage" />
+<header class="navbar" style="position: static;">
+  <a href="#">Get the App</a>
+  <div class="navbar__menu_container">
+    <a href="index.html" class="link">Home</a>
+    <a href="login.html" class="link">Log in</a>
+  </div>
+</header>
+
+<main class="login-page">
+  <div class="login-card">
+
+    <div class="login-left">
+      <img src="./Images/collection1.jpg" alt="food collage" />
+    </div>
+
+    <div class="login-right">
+      <h2>Create your account</h2>
+      <p class="muted">Sign up with OTP — no password needed.</p>
+
+      <form id="signupForm" class="login-form">
+        <label>Full name</label>
+        <input id="name" type="text" placeholder="Your full name" required />
+
+        <label>Email</label>
+        <input id="email" type="email" placeholder="you@example.com" required />
+
+        <label>Phone Number</label>
+        <input id="phone" type="text" maxlength="10" placeholder="10-digit number" required />
+
+        <label>Send OTP via</label>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <label style="font-size:0.9rem;">
+            <input type="radio" name="otpVia" value="email" checked />
+            Email
+          </label>
+          <label style="font-size:0.9rem;">
+            <input type="radio" name="otpVia" value="phone" />
+            Phone
+          </label>
         </div>
 
-        <div class="login-right">
-          <h2>Create your account</h2>
-          <p class="muted">Join ZomaClone to discover great places, order food, and more.</p>
+        <button type="button" class="btn" onclick="sendSignupOTP()">Send OTP</button>
 
-          <form id="signupForm" class="login-form" novalidate>
-            
-            <label>Full name</label>
-            <input id="name" type="text" placeholder="Your full name" required />
+        <label>Enter OTP</label>
+        <input id="otp" type="text" maxlength="4" placeholder="4-digit OTP" required />
 
-            <label>Email</label>
-            <input id="email" type="text" placeholder="you@example.com" required />
+        <button type="submit" class="btn login-btn">Create account</button>
+      </form>
 
-            <label>Password</label>
-            <input id="password" type="password" placeholder="Create a password" required />
+      <p class="center muted">
+        Already have an account? <a href="login.html">Log in</a>
+      </p>
+    </div>
+  </div>
+</main>
 
-            <label>Enter Contact Number</label>
-            <input id="phonenumber" type="text" maxlength="10" placeholder="10-digit number" required />
+<script>
+const API_URL = "http://127.0.0.1:5000";
 
-            <label>Confirm password</label>
-            <input id="confirm" type="password" placeholder="Confirm password" required />
 
-            <div class="login-row">
-              <label class="checkbox">
-                <input type="checkbox" id="newsletter" /> Subscribe to offers
-              </label>
-            </div>
+/*==========================================
+   Get Selected OTP Method (email / phone)
+===========================================*/
+function getSelectedOtpVia() {
+  const nodes = document.querySelectorAll('input[name="otpVia"]');
+  for (const n of nodes) if (n.checked) return n.value;
+  return "email";
+}
 
-            <button type="submit" class="btn login-btn">Create account</button>
-          </form>
+/*==========================================
+   STEP 1: Send OTP (Signup)
+===========================================*/
+function sendSignupOTP() {
+  const name  = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const via   = getSelectedOtpVia();
 
-          <div class="divider"><span>or</span></div>
+  if (!name || !email || !phone) {
+    alert("Please fill name, email and phone.");
+    return;
+  }
 
-          <div class="socials">
-            <button class="btn social google">
-              <i class="fa-brands fa-google"></i> Continue with Google
-            </button>
+  if (!/^\d{10}$/.test(phone)) {
+    alert("Invalid phone number.");
+    return;
+  }
 
-            <button class="btn social apple">
-              <i class="fa-brands fa-apple"></i> Continue with Apple
-            </button>
-          </div>
+  if (!email.includes("@")) {
+    alert("Invalid email.");
+    return;
+  }
 
-          <p class="center muted">
-            Already have an account? <a href="login.html">Log in</a>
-          </p>
-        </div>
-      </div>
-    </main>
+  const payload = {
+    role: "user",
+    purpose: "signup"
+  };
 
-    <script>
-      document.getElementById('signupForm').addEventListener('submit', function (e) {
-        e.preventDefault();
+  if (via === "email") payload.email = email;
+  else payload.phone = phone;
 
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        const confirm = document.getElementById('confirm').value;
-        const phonenumber = document.getElementById('phonenumber').value.trim();
+  fetch(`${API_URL}/api/otp/send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (!data.success) {
+      alert(data.message || "OTP sending failed.");
+      return;
+    }
+    alert("OTP sent successfully!");
+  })
+  .catch(err => {
+    console.error("OTP Error:", err);
+    alert("Server error while sending OTP.");
+  });
+}
 
-        // --- VALIDATION ---
-        if (!name || !email || !password || !confirm || !phonenumber) {
-          alert("Please fill all fields");
-          return;
-        }
+/*==========================================
+   STEP 2 + 3 + 4:
+   - Verify OTP
+   - Register User
+   - Auto Login (Backend Session)
+===========================================*/
+document.getElementById("signupForm").addEventListener("submit", function(e) {
+  e.preventDefault();
 
-        if (password !== confirm) {
-          alert("Passwords do not match");
-          return;
-        }
+  const name  = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const code  = document.getElementById("otp").value.trim();
+  const via   = getSelectedOtpVia();
 
-        // Phone number must be 10 digits
-        if (!/^\d{10}$/.test(phonenumber)) {
-          alert("Please enter a valid 10-digit phone number");
-          return;
-        }
+  if (!code) {
+    alert("Enter OTP first.");
+    return;
+  }
 
-        // Check if email already exists
-        const users = JSON.parse(localStorage.getItem("users") || "[]");
-        if (users.some(u => u.email === email)) {
-          alert("An account with this email already exists");
-          return;
-        }
+  const verifyPayload = {
+    role: "user",
+    purpose: "signup",
+    code: code
+  };
 
-        const newUser = {
-          name,
-          email,
-          password,
-          phonenumber,
-          location: null
-        };
+  if (via === "email") verifyPayload.email = email;
+  else verifyPayload.phone = phone;
 
-        users.push(newUser);
-        localStorage.setItem("users", JSON.stringify(users));
+  /* Step 2: Verify OTP */
+  fetch(`${API_URL}/api/otp/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(verifyPayload)
+  })
+  .then(res => res.json())
+  .then(async data => {
+    if (!data.success) {
+      alert(data.message || "OTP verification failed.");
+      return;
+    }
 
-        localStorage.setItem("currentUser", JSON.stringify({ email }));
-        localStorage.setItem("isLoggedIn", "true");
+    /* Step 3: Register user */
+    const registerRes = await fetch(`${API_URL}/api/users/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, phone })
+    });
 
-        alert("Account created successfully");
+    const registerData = await registerRes.json();
 
-        window.location.href = "user.html";
-      });
-    </script>
-  </body>
+    if (!registerData.success) {
+      alert(registerData.message || "Signup failed.");
+      return;
+    }
+
+    /* Step 4: Auto-login (create session cookie) */
+    const loginBody = {
+  email: email,
+  phone: phone
+  };
+
+
+    const loginRes = await fetch(`${API_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      credentials: "include",
+      body: JSON.stringify(loginBody)
+    });
+
+    const loginData = await loginRes.json();
+
+    if (!loginData.ok) {
+      alert(loginData.message || "Could not log you in.");
+      return;
+    }
+
+    alert("Account created & logged in successfully!");
+    window.location.href = "user_select.html";
+  })
+  .catch(err => {
+    console.error("Signup Error:", err);
+    alert("Error during signup. Check server.");
+  });
+});
+</script>
+
+</body>
 </html>

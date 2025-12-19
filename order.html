@@ -7,7 +7,6 @@
 
 <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
 
-
 <style>
 body{
   margin:0;
@@ -28,7 +27,7 @@ body{
   font-size:22px;
 }
 .container{
-  max-width:900px;
+  max-width:1100px;
   margin:30px auto;
   padding:0 20px;
 }
@@ -38,15 +37,22 @@ body{
   margin-bottom:18px;
   color:#e23744;
 }
+
+/* --- GRID LAYOUT (3 per row) --- */
+#restaurantList{
+  display:flex;
+  flex-wrap:wrap;
+  gap:20px;
+  justify-content:center;
+}
+
 .restaurant-card{
   background:#fff;
   padding:14px;
   border-radius:12px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:14px;
+  width:30%;
+  min-width:280px;
   cursor:pointer;
   transition:.2s;
 }
@@ -54,14 +60,13 @@ body{
   transform:translateY(-3px);
 }
 .restaurant-card img{
-  width:90px;
-  height:90px;
+  width:100%;
+  height:150px;
   border-radius:10px;
   object-fit:cover;
 }
 .restaurant-info{
-  margin-left:15px;
-  flex:1;
+  margin-top:10px;
 }
 .restaurant-name{
   font-size:18px;
@@ -77,65 +82,97 @@ body{
 
 <body>
 
-<!-- NAVBAR -->
 <header class="navbar">
   <div class="logo">ZomaClone</div>
-  <a href="user.html" style="text-decoration:none;color:#1674ff;font-weight:600;">My Profile</a>
+  <a href="user_select.html" style="text-decoration:none;color:#1674ff;font-weight:600;">Dashboard</a>
 </header>
 
 <div class="container">
   <div class="heading">Order Food Online</div>
-
   <div id="restaurantList"></div>
 </div>
 
 <script>
-/* -------------------- CHECK USER LOGIN -------------------- */
-let user = JSON.parse(localStorage.getItem("currentUser") || "null");
-if (!user) {
-  alert("Please login first!");
-  window.location.href = "login.html";
-}
+const API_BASE = "http://127.0.0.1:5000";
 
-/* -------------------- LOAD ONLY REAL VENDORS -------------------- */
-function loadRestaurants() {
-
-  // ✔ Only real vendor data from vendorList
-  const vendors = JSON.parse(localStorage.getItem("vendorList") || "[]");
-
-  const box = document.getElementById("restaurantList");
-
-  if (!vendors.length) {
-    box.innerHTML = "<p>No restaurants available yet.</p>";
-    return;
+/* STEP 1 — Check Login */
+async function checkUserLogin() {
+  try {
+    const res = await fetch(API_BASE + "/api/auth/me", {
+      method: "GET",
+      credentials: "include"
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      alert("Please login first");
+      window.location.href = "login.html";
+    }
+  } catch (err) {
+    window.location.href = "login.html";
   }
+}
 
-  box.innerHTML = "";
+/* STEP 2 — Load Restaurants */
+async function loadRestaurants() {
+  const box = document.getElementById("restaurantList");
+  box.innerHTML = "<p>Loading restaurants...</p>";
 
-  vendors.forEach(v => {
-    const img = v.bannerImage || "./Images/default_restaurant.jpg";
-    const name = v.restaurantName || "Unnamed Restaurant";
-    const city = v.address?.city || "Unknown";
-    const rating = v.rating || "4.5";
+  try {
+    const res = await fetch(API_BASE + "/food/restaurants");
+    const data = await res.json();
 
-    box.innerHTML += `
-      <div class="restaurant-card" onclick="openRestaurant('${v.email}')">
-        <img src="${img}">
-        <div class="restaurant-info">
-          <div class="restaurant-name">${name}</div>
-          <div class="restaurant-meta">⭐ ${rating} · ${city}</div>
+    if (!data || data.length === 0) {
+      box.innerHTML = "<p>No restaurants available.</p>";
+      return;
+    }
+
+    box.innerHTML = "";
+
+    data.forEach(r => {
+
+      let imgUrl = "Images/default_restaurant.jpg";
+
+if (r.banner_image) {
+
+  // CASE 1: already a full base64 data URL
+  if (r.banner_image.startsWith("data:image")) {
+    imgUrl = r.banner_image;
+
+  // CASE 2: raw base64 string (no "data:image/..." prefix)
+  } else if (/^[A-Za-z0-9+/=]+$/.test(r.banner_image.substring(0, 50))) {
+    imgUrl = `data:image/jpeg;base64,${r.banner_image}`;
+
+  // CASE 3: normal backend URL path
+  } else {
+    imgUrl = API_BASE + r.banner_image;
+  }
+}
+
+
+      box.innerHTML += `
+        <div class="restaurant-card" onclick="openRestaurant(${r.id})">
+          <img src="${imgUrl}">
+          <div class="restaurant-info">
+            <div class="restaurant-name">${r.name}</div>
+            <div class="restaurant-meta">${r.address}</div>
+          </div>
         </div>
-      </div>
-    `;
-  });
+      `;
+    });
+
+  } catch (err) {
+    console.log(err);
+    box.innerHTML = "<p>Error loading restaurants.</p>";
+  }
 }
 
-/* -------------------- OPEN RESTAURANT -------------------- */
-function openRestaurant(email) {
-  localStorage.setItem("selected_restaurant", email);
-  window.location.href = "restaurant.html";
+/* STEP 3 — Navigate to Menu Page */
+function openRestaurant(id) {
+  window.location.href = `restaurant.html?restaurant_id=${id}`;
 }
 
+/* INIT */
+checkUserLogin();
 loadRestaurants();
 </script>
 

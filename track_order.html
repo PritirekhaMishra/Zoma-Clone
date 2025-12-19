@@ -4,235 +4,148 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>ZomaClone | Track Order</title>
-<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
 
 <style>
-body{
-  margin:0;
-  font-family:'Poppins',sans-serif;
-  background:#fafafa;
-  color:#222;
-}
-.navbar{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:15px 40px;background:#fff;
-  box-shadow:0 2px 8px rgba(0,0,0,0.05);
-}
-.logo{ color:#e23744;font-weight:700;font-size:22px;}
-.container{ max-width:900px;margin:28px auto;padding:0 20px; }
-.heading{ font-size:24px;font-weight:700;margin-bottom:20px;color:#e23744; }
-.order-card{ background:#fff;padding:18px;border-radius:14px;margin-bottom:14px; box-shadow:0 3px 10px rgba(0,0,0,0.08); }
-.order-header{ display:flex;justify-content:space-between;margin-bottom:10px; }
-.order-header h3{ margin:0;color:#e23744;font-size:18px; }
-.status{ padding:6px 12px;border-radius:8px;color:#fff;font-weight:600; }
-.pending{ background:#f59e0b }
-.preparing{ background:#3b82f6 }
-.outfordelivery{ background:#9333ea }
-.delivered{ background:#16a34a }
-.items{ color:#555;margin-top:8px }
-.timeline{ display:flex;justify-content:space-between;position:relative;margin-top:14px; }
-.timeline::before{ content:"";position:absolute;top:50%;left:5%;width:90%;height:4px;background:#eee;border-radius:4px;transform:translateY(-50%);}
-.step{ width:28px;height:28px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;z-index:2; }
-.step.active{ background:#e23744 }
-.meta{ font-size:12px;color:#666;text-align:center;margin-top:6px; }
-.controls{ display:flex;gap:10px;align-items:center;margin-bottom:12px; }
-.refresh-btn{ background:#1674ff;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600 }
-.note{ color:#444;font-size:13px;margin-bottom:8px }
-.toast{ position:fixed; right:18px; bottom:18px; background:#111;color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.12); z-index:9999; }
-.empty{ padding:12px;background:#fff;border-radius:8px;box-shadow:0 3px 8px rgba(0,0,0,.04); color:#666 }
+    body{margin:0;font-family:Poppins,sans-serif;background:#fafafa}
+    .container{max-width:900px;margin:20px auto;padding:20px}
+    .heading{text-align:center;font-size:26px;font-weight:700;color:#e23744;margin-bottom:20px}
+
+    .order-card{
+        background:#fff;
+        border-radius:12px;
+        padding:16px;
+        margin-bottom:16px;
+        box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .status{
+        padding:6px 12px;
+        border-radius:6px;
+        font-size:13px;
+        color:#fff;
+        font-weight:600;
+    }
+
+    .pending{background:#f59e0b}
+    .preparing{background:#3b82f6}
+    .out_for_delivery{background:#9333ea}
+    .delivered{background:#16a34a}
+    .cancelled{background:#ef4444}
+
+    .refresh-btn{
+        width:100%;
+        background:#1674ff;
+        padding:10px;
+        border:none;
+        border-radius:8px;
+        color:#fff;
+        font-size:15px;
+        cursor:pointer;
+        margin-top:10px;
+    }
+
+    .empty{text-align:center;padding:20px;color:#666}
 </style>
 </head>
+
 <body>
 
-<header class="navbar">
-  <div class="logo">ZomaClone</div>
-  <a href="order.html" style="font-weight:600;color:#1674ff;text-decoration:none;">⬅ Back</a>
-</header>
-
 <div class="container">
-  <div class="heading">Your Orders</div>
-
-  <div class="controls">
-    <button id="manualRefresh" class="refresh-btn">Refresh</button>
-    <div class="note">Updates appear automatically when the vendor updates the order. (If you don't see changes, click Refresh.)</div>
-  </div>
-
-  <div id="ordersBox"></div>
+    <div class="heading">Your Orders</div>
+    <div id="ordersBox"></div>
+    <button class="refresh-btn" onclick="loadOrders()">Refresh</button>
 </div>
 
 <script>
-/* ---------- Robust user detection ---------- */
-function findCurrentUser() {
-  const keys = ['zoma_user','currentUser','zoma_current_user','current_user','user'];
-  for (const k of keys) {
-    const raw = localStorage.getItem(k);
-    if (!raw) continue;
+const API = "http://127.0.0.1:5000";
+
+// Get phone from URL
+function getPhone() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("phone");
+}
+
+function formatOrderTime(utcString) {
+    if (!utcString) return "N/A";
+
+    // Force UTC → Local (IST automatically)
+    const date = new Date(utcString + " UTC");
+
+    return date.toLocaleString("en-IN", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+    });
+}
+
+
+// Load all orders
+async function loadOrders() {
+    const phone = getPhone();
+
+    if (!phone) {
+        document.getElementById("ordersBox").innerHTML =
+            `<div class="empty">Phone number missing.<br>Try: track_order.html?phone=9876543210</div>`;
+        return;
+    }
+
     try {
-      const parsed = JSON.parse(raw);
-      if (parsed && (parsed.email || parsed.name)) return parsed;
-    } catch (e) {
-      // If it's a plain email string
-      return { email: raw };
+        const res = await fetch(`${API}/api/orders/user/${phone}`);
+        const data = await res.json();
+
+        if (!data.success || !data.orders || !data.orders.length) {
+            document.getElementById("ordersBox").innerHTML =
+                `<div class="empty">No orders found.</div>`;
+            return;
+        }
+
+        let html = "";
+
+        data.orders.forEach(o => {
+
+            const items = Array.isArray(o.items)
+                ? o.items.map(i => `${i.name} × ${i.qty}`).join(", ")
+                : "Items unavailable";
+
+            const statusClass = o.status
+                ? o.status.replaceAll(" ", "_").toLowerCase()
+                : "pending";
+
+            html += `
+                <div class="order-card">
+                    <h3>${o.restaurant_name} 
+                        <span style="font-size:13px;color:#888">#${o.id}</span>
+                    </h3>
+
+                    <p><b>Total:</b> ₹${o.total}</p>
+                    <p><b>Items:</b> ${items}</p>
+
+                    <p><b>Status:</b> 
+                        <span class="status ${statusClass}">${o.status}</span>
+                    </p>
+
+                    <p><b>Payment:</b> ${o.payment_method}</p>
+                    <p><b>Ordered At:</b> ${formatOrderTime(o.created_at)}</p>
+
+                </div>
+            `;
+        });
+
+        document.getElementById("ordersBox").innerHTML = html;
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById("ordersBox").innerHTML =
+            `<div class="empty">Error loading orders.</div>`;
     }
-  }
-  // fallback: check keys like zoma_user_<email>
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith('zoma_user_')) {
-      try {
-        const u = JSON.parse(localStorage.getItem(key));
-        if (u && u.email) return u;
-      } catch (e) {}
-    }
-  }
-  return null;
 }
 
-/* ---------- Helper utilities ---------- */
-function el(q){ return document.querySelector(q); }
-function formatMoney(x){ return Number(x||0).toLocaleString('en-IN'); }
-function toast(msg, t=2500){
-  const d = document.createElement('div'); d.className='toast'; d.textContent = msg;
-  document.body.appendChild(d);
-  setTimeout(()=>d.remove(), t);
-}
-
-/* ---------- Order sync logic ----------
-  1) We read userOrders_<email> (the copy saved when order placed)
-  2) For each order we check vendorOrders_<restaurantEmail> (the vendor authoritative copy)
-  3) If vendor has a record with the same orderId, we use the vendor's status/time
-  4) We keep previous statuses in lastStatusMap to show notifications when status changes
-  5) We refresh UI on storage events and on a short interval
-*/
-
-const lastStatusMap = new Map(); // orderId -> lastSeenStatus
-let refreshInterval = null;
-
-function getUserOrdersFor(userEmail){
-  try {
-    return JSON.parse(localStorage.getItem('userOrders_' + userEmail) || '[]');
-  } catch(e) { return []; }
-}
-
-function getVendorOrdersFor(restaurantEmail){
-  try {
-    return JSON.parse(localStorage.getItem('vendorOrders_' + restaurantEmail) || '[]');
-  } catch(e) { return []; }
-}
-
-function getLatestStatusFromVendor(order){
-  if(!order || !order.restaurantName || !order.restaurantEmail || !order.orderId) return order.status || 'Pending';
-  const vendorKey = 'vendorOrders_' + order.restaurantEmail;
-  const vendorOrders = getVendorOrdersFor(order.restaurantEmail);
-  const matched = vendorOrders.find(vo => vo.orderId === order.orderId);
-  return matched ? matched.status : (order.status || 'Pending');
-}
-
-/* Build timeline HTML for a given status */
-function timelineFor(status){
-  const steps = ['Pending','Preparing','Out for Delivery','Delivered'];
-  const current = Math.max(0, steps.indexOf(status));
-  const htmlSteps = steps.map((s,i) => {
-    return `<div style="display:flex;flex-direction:column;align-items:center;flex:1">
-              <div class="step ${i<=current ? 'active' : ''}">${i+1}</div>
-              <div class="meta">${s}</div>
-            </div>`;
-  }).join('');
-  return `<div class="timeline">${htmlSteps}</div>`;
-}
-
-/* Render orders: read user orders and merge vendor statuses */
-function renderOrders(){
-  const user = findCurrentUser();
-  const box = document.getElementById('ordersBox');
-  box.innerHTML = '';
-
-  if(!user || !user.email){
-    box.innerHTML = '<div class="empty">Please login to see your orders.</div>';
-    return;
-  }
-
-  const orders = getUserOrdersFor(user.email);
-  if(!orders || !orders.length){
-    box.innerHTML = '<div class="empty">You have no orders yet.</div>';
-    return;
-  }
-
-  // show latest-first
-  const ordered = orders.slice().reverse();
-
-  ordered.forEach(o => {
-    // compute status from vendor copy if any
-    const latestStatus = getLatestStatusFromVendor(o);
-
-    // notify if status changed since last render
-    const prev = lastStatusMap.get(o.orderId);
-    if(prev && prev !== latestStatus){
-      toast(`Order ${o.orderId} status: ${latestStatus}`);
-    }
-    lastStatusMap.set(o.orderId, latestStatus);
-
-    // build card
-    const statusClass = latestStatus.toLowerCase().replace(/\s+/g,'');
-    const payment = escapeHtml(o.payment || o.paymentMethod || '—');
-    const date = escapeHtml(o.date || o.createdAt || '');
-    const items = escapeHtml(o.itemNames || (o.items ? o.items.map(it=>it.name+' x'+it.qty).join(', ') : '—'));
-    const total = o.finalTotal || o.totalPrice || o.baseTotal || o.total || 0;
-
-    const card = document.createElement('div');
-    card.className = 'order-card';
-    card.innerHTML = `
-      <div class="order-header">
-        <h3>${escapeHtml(o.restaurantName || o.restaurant || 'Restaurant')}</h3>
-        <div class="status ${statusClass}">${escapeHtml(latestStatus)}</div>
-      </div>
-
-      <div><strong>Payment:</strong> ${payment}</div>
-      <div><strong>Date:</strong> ${date}</div>
-      <div class="items"><strong>Items:</strong> ${items}</div>
-      <div><strong>Total Price:</strong> ₹${formatMoney(total)}</div>
-
-      ${timelineFor(latestStatus)}
-    `;
-    // attach order-id for possible future direct updates
-    card.dataset.orderId = o.orderId;
-    box.appendChild(card);
-  });
-}
-
-/* Polling + storage listener to refresh */
-function startAutoRefresh(){
-  if(refreshInterval) clearInterval(refreshInterval);
-  refreshInterval = setInterval(() => {
-    renderOrders();
-  }, 5000); // every 5s
-}
-
-/* storage event -> refresh (fires when other tab modifies localStorage) */
-window.addEventListener('storage', (e) => {
-  // We refresh for changes to vendorOrders_* and userOrders_*
-  if(!e.key) { renderOrders(); return; }
-  if(e.key.startsWith('vendorOrders_') || e.key.startsWith('userOrders_') || e.key === 'vendorList') {
-    renderOrders();
-  }
-});
-
-/* manual refresh control */
-document.getElementById('manualRefresh').addEventListener('click', () => {
-  renderOrders();
-  toast('Refreshed');
-});
-
-/* helper escape */
-function escapeHtml(s){ if(s===null||s===undefined) return ''; return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-/* visibility change -> refresh when tab becomes visible */
-document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') renderOrders(); });
-
-/* initial boot */
-renderOrders();
-startAutoRefresh();
-
+loadOrders();
 </script>
+
 </body>
 </html>

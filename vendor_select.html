@@ -1,11 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ZomaClone | Vendor Dashboard</title>
 <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
-
 
 <style>
 :root {
@@ -14,16 +13,14 @@
   --text:#111;
   --muted:#555;
 }
-* { box-sizing:border-box; margin:0; padding:0; }
-body {
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
   font-family:'Poppins',sans-serif;
   background:var(--bg);
   color:var(--text);
   overflow-x:hidden;
 }
-
-/* Navbar */
-.nav {
+.nav{
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -31,12 +28,8 @@ body {
   background:#fff;
   box-shadow:0 1px 0 rgba(0,0,0,0.05);
 }
-.logo {
-  font-weight:700;
-  font-size:22px;
-  color:var(--accent);
-}
-.btn {
+.logo{font-weight:700;font-size:22px;color:var(--accent);}
+.btn{
   background:var(--accent);
   color:#fff;
   border:none;
@@ -44,71 +37,63 @@ body {
   border-radius:8px;
   cursor:pointer;
   font-weight:600;
-  transition:all .3s ease;
+  transition:0.3s;
 }
-.btn:hover {
-  background:#c72f3a;
-}
+.btn:hover{background:#c72f3a;}
 
-/* Hero Section */
-.hero {
+.hero{
   text-align:center;
   padding:70px 20px 40px;
 }
-.hero h1 {
+.hero h1{
   font-size:30px;
   color:var(--accent);
   margin-bottom:8px;
 }
-.hero p {
+.hero p{
   color:var(--muted);
   font-size:15px;
 }
 
-/* Cards Grid */
-.container {
+.container{
   display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(340px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
   gap:30px;
   max-width:1150px;
   margin:40px auto 80px;
   padding:0 20px;
 }
-.card {
+.card{
   background:#fff;
   border-radius:22px;
   overflow:hidden;
   box-shadow:0 10px 25px rgba(0,0,0,0.08);
-  transition:transform .3s ease, box-shadow .3s ease;
+  transition:0.3s;
   cursor:pointer;
 }
-.card:hover {
+.card:hover{
   transform:translateY(-8px);
   box-shadow:0 14px 35px rgba(0,0,0,0.1);
 }
-.card img {
+.card img{
   width:100%;
   height:210px;
   object-fit:cover;
-  border-top-left-radius:22px;
-  border-top-right-radius:22px;
 }
-.card-content {
+.card-content{
   padding:20px 22px;
 }
-.card-content h3 {
+.card-content h3{
   font-size:20px;
   margin-bottom:8px;
   font-weight:600;
 }
-.card-content p {
+.card-content p{
   color:var(--muted);
   font-size:14px;
-  line-height:1.5;
 }
 
-/* Footer */
-footer {
+footer{
   text-align:center;
   background:#fff;
   color:#666;
@@ -118,64 +103,95 @@ footer {
 }
 </style>
 </head>
+
 <body>
 
-<!-- Navbar -->
 <header class="nav">
   <div class="logo">ZomaClone Vendor</div>
   <button class="btn" id="logoutBtn">Logout</button>
 </header>
 
-<!-- Hero Section -->
 <section class="hero">
   <h1>Choose What You Want to Manage</h1>
-  <p>Manage your restaurant’s food orders, tables, or events — all from one dashboard.</p>
+  <p>Manage online orders, table bookings & nightlife — all in one place.</p>
 </section>
 
-<!-- Service Cards -->
 <main class="container">
-  <!-- Order Online -->
+
   <div class="card" onclick="openPage('vendor_use.html')">
-    <img src="Images/food.png" alt="Order Online">
+    <img src="Images/food.png">
     <div class="card-content">
       <h3>Order Online</h3>
-      <p>Stay home and manage your food delivery orders with ease.</p>
+      <p>Manage food ordering, delivery, and items.</p>
     </div>
   </div>
 
-  <!-- Table Booking -->
   <div class="card" onclick="openPage('vendor_table.html')">
-    <img src="Images/table.png" alt="Table Booking">
+    <img src="Images/table.png">
     <div class="card-content">
       <h3>Table Booking</h3>
-      <p>Let customers reserve tables and manage your dining experience.</p>
+      <p>Let customers reserve seats & manage your club tables.</p>
     </div>
   </div>
 
-  <!-- Nightlife -->
-  <div class="card" onclick="openPage('vendor_night.html')">
-    <img src="Images/item3.png" alt="Nightlife and Clubs">
+  <div class="card" onclick="openPage('vendor_night_select.html')">
+    <img src="Images/item3.png">
     <div class="card-content">
-      <h3>Nightlife and Clubs</h3>
-      <p>Host events, track bookings, and showcase your nightlife activities.</p>
+      <h3>Nightlife & Clubs</h3>
+      <p>Manage nightlife events, items, coupons & orders.</p>
     </div>
   </div>
+
 </main>
 
 <footer>&copy; 2025 ZomaClone — Vendor Portal</footer>
 
 <script>
-// redirect to chosen page
-function openPage(page){
-  localStorage.setItem("zoma_selected_service", page);
-  window.location.href = page;
+const API = "http://127.0.0.1:5000";
+
+/* --- GET EMAIL FROM URL --- */
+const params = new URLSearchParams(window.location.search);
+const vendorEmail = params.get("email");
+
+if (!vendorEmail) {
+    alert("Vendor session expired. Please login again.");
+    window.location.href = "vendor.html";
 }
 
-// logout function
-document.getElementById("logoutBtn").addEventListener("click", ()=>{
-  localStorage.removeItem("zoma_current_user");
-  window.location.href="vendor.html";
+/* --- FETCH vendor_id USING EMAIL --- */
+let vendorId = null;
+
+fetch(API + "/api/vendor/getByEmail", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: vendorEmail })
+})
+.then(r => r.json())
+.then(data => {
+    if (!data.success || !data.vendor) {
+        alert("Vendor not found. Please login again.");
+        window.location.href = "vendor.html";
+        return;
+    }
+
+    vendorId = data.vendor.id;
+
+    /* Now pages can open with vendor_id */
+    window.openPage = function(page){
+        window.location.href = page + "?vendor_id=" + vendorId;
+    };
+})
+.catch(err => {
+    console.error(err);
+    alert("Server error.");
+    window.location.href = "vendor.html";
 });
+
+/* LOGOUT */
+document.getElementById("logoutBtn").onclick = () => {
+    window.location.href = "vendor.html";
+};
 </script>
+
 </body>
 </html>

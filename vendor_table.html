@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ZomaClone Vendor Dashboard — Fixed Set Button</title>
+<title>ZomaClone Vendor Dashboard — Email Only</title>
 
 <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
-
 
 <style>
 /* GLOBAL */
@@ -45,7 +44,7 @@ input[readonly]{background:#f7f7f7}
 .row{display:flex;gap:10px;margin-top:8px;align-items:center}
 .row > div{flex:1}
 
-/* ✅ FIX: make Set button small */
+/* Set button small */
 .row button.set-small {
     flex: 0 0 auto;
     width:120px;
@@ -53,14 +52,13 @@ input[readonly]{background:#f7f7f7}
     font-size:14px;
 }
 
-/* slot styles (kept same look) */
+/* slot styles */
 .slot-row {
   display: flex;
   gap: 14px;
   margin-top: 14px;
   align-items: center;
 }
-
 .slot-input {
   width: 100%;
   padding: 12px;
@@ -68,13 +66,11 @@ input[readonly]{background:#f7f7f7}
   border: 1px solid #ddd;
   font-size: 15px;
 }
-
 .time-wrapper {
   display: flex;
   gap: 8px;
   align-items: center;
 }
-
 .time-wrapper input,
 .time-wrapper select {
   width: 70px;
@@ -83,7 +79,6 @@ input[readonly]{background:#f7f7f7}
   border: 1px solid #ddd;
   font-size: 14px;
 }
-
 .slot-btn {
   padding: 10px 18px;
   border: none;
@@ -94,7 +89,6 @@ input[readonly]{background:#f7f7f7}
   cursor: pointer;
   transition: 0.2s;
 }
-
 .slot-btn:hover {
   background: #ff4c4c;
 }
@@ -109,7 +103,7 @@ input[readonly]{background:#f7f7f7}
     background:#fff;color:#e53935;border:1px solid #e53935
 }
 
-/* small sections hidden by default */
+/* sections hidden by default */
 .section{display:none}
 
 /* table grid */
@@ -168,6 +162,15 @@ input[readonly]{background:#f7f7f7}
                 <input id="vendorEmail" placeholder="vendor@example.com" aria-label="Vendor email">
             </div>
             <button class="btn set-small" id="setVendorBtn" title="Set vendor (save)">Set</button>
+        </div>
+
+        <!-- UPI ID -->
+        <label for="vendorUpi" style="margin-top:10px;">Vendor UPI ID</label>
+        <div class="row" style="margin-top:6px">
+            <div style="flex:1">
+                <input id="vendorUpi" placeholder="yourupi@bank" aria-label="Vendor UPI ID">
+            </div>
+            <button class="btn set-small" id="saveUpiBtn" title="Save UPI ID">Save UPI</button>
         </div>
 
         <p id="dashVendor" style="margin-top:10px;color:#666"></p>
@@ -395,26 +398,43 @@ input[readonly]{background:#f7f7f7}
 <div id="modalRoot" style="display:none;z-index:9999" aria-hidden="true"></div>
 
 <script>
-/* --------------------------
-   Utilities
-   -------------------------- */
-function q(sel, root = document){ return (root||document).querySelector(sel); }
-function qa(sel, root = document){ return Array.from((root||document).querySelectorAll(sel)); }
-function idGen(prefix='id'){ return prefix+'_'+Date.now()+'_'+Math.floor(Math.random()*9000); }
-function escapeHtml(s){ if(s === 0) return '0'; if(!s) return ''; return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function pop(msg, err=false){
-    const el=document.createElement('div');
-    el.className='popup'+(err?' error':'');
-    el.textContent=msg;
-    document.body.appendChild(el);
-    setTimeout(()=>el.style.opacity='0',1500);
-    setTimeout(()=>el.remove(),2000);
-}
-function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+/* ===================================================
+   API CONFIG
+   =================================================== */
+const API_BASE = "http://127.0.0.1:5000";
 
-/* --------------------------
-   Time helpers
-   -------------------------- */
+let vendorId = null;
+let vendorObj = null;
+
+let types = [];
+let slots = [];
+let bookings = [];
+let settings = { maxAdvanceDays: 365, cancelBeforeHrs: 2 };
+let locationObj = {};
+let bannerUrl = "";
+
+/* Small helpers */
+const q = (sel, root = document) => root.querySelector(sel);
+const qa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const escapeHtml = (s) => {
+  if (s === 0) return "0";
+  if (!s) return "";
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+};
+
+/* Toast / Popup */
+function pop(msg, err=false){
+  const el=document.createElement('div');
+  el.className='popup'+(err?' error':'');
+  el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.style.opacity='0',1500);
+  setTimeout(()=>el.remove(),2000);
+}
+
+/* Time helpers */
 function convertTo24(h,m,p){
   h=Number(h); m=Number(m);
   if(isNaN(h)) h=0; if(isNaN(m)) m=0;
@@ -432,138 +452,137 @@ function format12From24(t){
   return `${h12}:${String(m).padStart(2,'0')} ${p}`;
 }
 
-/* --------------------------
-   Storage keys / state
-   -------------------------- */
-let vendor = localStorage.getItem('tb_vendor') || '';
-if(q('#vendorEmail')) q('#vendorEmail').value = vendor;
+/* ===================================================
+   API WRAPPERS (vendor_id based)
+   =================================================== */
+async function apiGet(path){
+  if(!vendorId) throw new Error("Vendor not set");
+  const res = await fetch(`${API_BASE}${path}?vendor_id=${vendorId}`);
+  return res.json();
+}
 
-const k_types=v=>'tb_types_'+v;
-const k_slots=v=>'tb_slots_'+v;
-const k_restName = v => 'tb_restname_' + v;
-const k_bookings=v=>'tb_bookings_'+v;
-const k_settings=v=>'tb_settings_'+v;
-const k_location=v=>'tb_location_'+v;
-const k_banner=v=>'tb_banner_'+v;
+async function apiPost(path, body){
+  if(!vendorId) throw new Error("Vendor not set");
+  const res = await fetch(`${API_BASE}${path}?vendor_id=${vendorId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body || {})
+  });
+  return res.json();
+}
 
-let types=[], slots=[], bookings=[];
-let settings={maxAdvanceDays:365, cancelBeforeHrs:2};
-let locationObj={};
-let banner = "";
+async function apiDelete(path){
+  if(!vendorId) throw new Error("Vendor not set");
+  const res = await fetch(`${API_BASE}${path}?vendor_id=${vendorId}`, {
+    method: "DELETE"
+  });
+  return res.json();
+}
 
-/* Save helpers */
-function saveTypes(){ if(vendor) localStorage.setItem(k_types(vendor), JSON.stringify(types)); }
-function saveSlots(){ if(vendor) localStorage.setItem(k_slots(vendor), JSON.stringify(slots)); }
-function saveBookings(){ if(vendor) localStorage.setItem(k_bookings(vendor), JSON.stringify(bookings)); }
-function saveSettings(){ if(vendor) localStorage.setItem(k_settings(vendor), JSON.stringify(settings)); }
-function saveLocation(){ if(vendor) localStorage.setItem(k_location(vendor), JSON.stringify(locationObj||{})); }
-function saveBanner(){ if(vendor) localStorage.setItem(k_banner(vendor), banner||''); }
+/* ===================================================
+   SET VENDOR BY EMAIL (NO OTP)
+   =================================================== */
+if(q('#setVendorBtn')){
+  q('#setVendorBtn').addEventListener('click', async () => {
+    const email = (q('#vendorEmail') && q('#vendorEmail').value.trim()) || "";
+    const rname = (q('#restaurantName') && q('#restaurantName').value.trim()) || "";
 
-/* --------------------------
-   Banner Loading
-   -------------------------- */
-function renderBanner(){
-  const wrap=q('#bannerPreviewWrap');
-  const img=q('#bannerPreview');
-  if(!wrap || !img) return;
+    if(!email) return pop("Enter vendor email", true);
 
-  if(banner){
-    wrap.style.display='block';
-    img.src=banner;
-  } else {
-    wrap.style.display='none';
-    img.src='';
+    try{
+      const res = await fetch(API_BASE + "/api/rest/vendor/by_email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, restaurant_name: rname })
+      });
+      const data = await res.json();
+      if(!data.success){
+        return pop(data.message || "Failed to set vendor", true);
+      }
+
+      vendorObj = data.vendor;
+      vendorId = vendorObj.id;
+      settings = data.settings || settings;
+
+      if(q('#dashVendor')) q('#dashVendor').textContent = "Vendor: " + vendorObj.email;
+      if(q('#dashRestaurant')){
+        if(rname){
+          q('#dashRestaurant').textContent = "Restaurant: " + rname;
+        } else if(vendorObj.restaurant_name){
+          q('#dashRestaurant').textContent = "Restaurant: " + vendorObj.restaurant_name;
+        }
+      }
+
+      if(q('#vendorUpi')){
+        q('#vendorUpi').value = vendorObj.upi_id || "";
+      }
+
+      await loadAllFromBackend();
+      pop("Vendor loaded");
+    }catch(err){
+      console.error(err);
+      pop("Error setting vendor", true);
+    }
+  });
+}
+
+/* ===================================================
+   INITIAL LOAD AFTER SETTING VENDOR
+   =================================================== */
+async function loadAllFromBackend(){
+  if(!vendorId) return;
+  try{
+    const [me, tRes, sRes, bRes] = await Promise.all([
+      apiGet("/api/rest/vendor/me"),
+      apiGet("/api/rest/types"),
+      apiGet("/api/rest/slots"),
+      apiGet("/api/rest/bookings"),
+    ]);
+
+    if(me.success){
+      settings = me.settings || settings;
+      locationObj = me.location || {};
+      bannerUrl = me.banner || "";
+      if(me.vendor){
+        vendorObj = me.vendor;
+        if(q('#dashVendor')) q('#dashVendor').textContent = "Vendor: " + vendorObj.email;
+        if(q('#dashRestaurant') && me.vendor.restaurant_name){
+          q('#dashRestaurant').textContent = "Restaurant: " + me.vendor.restaurant_name;
+        }
+        if(q('#vendorUpi')){
+          q('#vendorUpi').value = me.vendor.upi_id || "";
+        }
+      }
+      renderLocation();
+      renderBanner();
+      renderStats(me.stats || {});
+      if(q('#maxAdvance')) q('#maxAdvance').value = settings.maxAdvanceDays;
+      if(q('#cancelBeforeHrs')) q('#cancelBeforeHrs').value = settings.cancelBeforeHrs;
+    }
+
+    if(tRes.success){
+      types = tRes.types || [];
+      renderTypes();
+    }
+    if(sRes.success){
+      slots = sRes.slots || [];
+      renderSlots();
+    }
+    if(bRes.success){
+      bookings = (bRes.bookings || []);
+      renderBookings();
+    }
+    populateUserForm();
+
+  }catch(err){
+    console.error(err);
+    pop("Error loading vendor data", true);
   }
 }
 
-/* Handle Banner Upload */
-if(q('#bannerInput')){
-  q('#bannerInput').addEventListener('change', (e)=>{
-    const file=(e.target && e.target.files && e.target.files[0]) || null;
-    if(!file) return;
-    const reader=new FileReader();
-    reader.onload=()=>{
-      banner=reader.result;
-      saveBanner();
-      renderBanner();
-      pop("Banner saved");
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-/* Remove Banner */
-if(q('#removeBanner')){
-  q('#removeBanner').addEventListener('click', ()=>{
-    banner="";
-    saveBanner();
-    renderBanner();
-    pop("Banner removed");
-  });
-}
-
-/* --------------------------
-   Load All Vendor Data
-   -------------------------- */
-function loadAll(){
-  vendor = q('#vendorEmail') ? (q('#vendorEmail').value.trim() || vendor) : vendor;
-  if(!vendor) return pop('Enter vendor email first', true);
-
-  localStorage.setItem('tb_vendor', vendor);
-
-  types = JSON.parse(localStorage.getItem(k_types(vendor)) || '[]');
-  slots = JSON.parse(localStorage.getItem(k_slots(vendor)) || '[]');
-  bookings = JSON.parse(localStorage.getItem(k_bookings(vendor)) || '[]');
-  settings = JSON.parse(localStorage.getItem(k_settings(vendor)) || JSON.stringify(settings));
-  locationObj = JSON.parse(localStorage.getItem(k_location(vendor)) || '{}');
-  banner = localStorage.getItem(k_banner(vendor)) || "";
-  let restName = localStorage.getItem(k_restName(vendor)) || "";
-  if (q('#restaurantName')) q('#restaurantName').value = restName;
-  if (q('#dashRestaurant')) q('#dashRestaurant').textContent = restName ? ("Restaurant: " + restName) : "";
-
-  renderTypes();
-  renderSlots();
-  renderBookings();
-  renderStats();
-  renderLocation();
-  populateUserForm();
-  renderBanner();
-
-  if(q('#dashVendor')) q('#dashVendor').textContent = 'Vendor: ' + vendor;
-}
-
-/* Set Vendor + Save restaurant name */
-if (q('#setVendorBtn')) {
-    q('#setVendorBtn').addEventListener('click', () => {
-        const email = (q('#vendorEmail') && q('#vendorEmail').value.trim()) || '';
-        const rname = (q('#restaurantName') && q('#restaurantName').value.trim()) || '';
-
-        if (!email) return pop("Enter vendor email", true);
-
-        vendor = email;
-        localStorage.setItem('tb_vendor', vendor);
-
-        if (rname) {
-            localStorage.setItem(k_restName(vendor), rname);
-        }
-
-        loadAll();
-
-        q('#dashRestaurant').textContent = rname ? "Restaurant: " + rname : "";
-        pop("Vendor saved");
-    });
-}
-
-/* Also save vendor on Enter key in vendorEmail */
-if(q('#vendorEmail')){
-  q('#vendorEmail').addEventListener('keydown', (e)=>{
-    if(e.key==='Enter'){ e.preventDefault(); q('#setVendorBtn').click(); }
-  });
-}
-
-/* --------------------------
-   Sidebar Navigation
-   -------------------------- */
+/* ===================================================
+   SIDEBAR NAV
+   =================================================== */
 qa('.menu-item').forEach(mi=>{
   mi.addEventListener('click', ()=>{
     qa('.menu-item').forEach(x=>x.classList.remove('active'));
@@ -577,9 +596,99 @@ qa('.menu-item').forEach(mi=>{
 });
 q('#dashboard').style.display='block';
 
-/* --------------------------
-   Seat Mapping
-   -------------------------- */
+/* ===================================================
+   BANNER HANDLING
+   =================================================== */
+function renderBanner(){
+  const wrap=q('#bannerPreviewWrap');
+  const img=q('#bannerPreview');
+  if(!wrap || !img) return;
+
+  if(bannerUrl){
+    wrap.style.display='block';
+    img.src = API_BASE + bannerUrl;
+  } else {
+    wrap.style.display='none';
+    img.src='';
+  }
+}
+
+if(q('#bannerInput')){
+  q('#bannerInput').addEventListener('change', async (e)=>{
+    if(!vendorId) return pop("Set vendor first", true);
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+
+    const fd = new FormData();
+    fd.append("banner", file);
+
+    try{
+      const res = await fetch(`${API_BASE}/api/rest/banner?vendor_id=${vendorId}`, {
+        method: "POST",
+        body: fd
+      });
+      const data = await res.json();
+      if(!data.success) return pop(data.message || "Banner upload failed", true);
+      bannerUrl = data.bannerUrl;
+      renderBanner();
+      pop("Banner saved");
+    }catch(err){
+      console.error(err);
+      pop("Error uploading banner", true);
+    }finally{
+      e.target.value = "";
+    }
+  });
+}
+
+if(q('#removeBanner')){
+  q('#removeBanner').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+    try{
+      const res = await fetch(`${API_BASE}/api/rest/banner?vendor_id=${vendorId}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      if(!data.success) return pop(data.message || "Error removing banner", true);
+      bannerUrl = "";
+      renderBanner();
+      pop("Banner removed");
+    }catch(err){
+      console.error(err);
+      pop("Error removing banner", true);
+    }
+  });
+}
+
+/* ===================================================
+   SAVE VENDOR UPI
+   =================================================== */
+if(q('#saveUpiBtn')){
+  q('#saveUpiBtn').addEventListener('click', async ()=>{
+    if(!vendorId){
+      pop("Set vendor first (or open page with ?vendor_id=...)", true);
+      return;
+    }
+    const upi = (q('#vendorUpi').value || "").trim();
+    try{
+      const res = await fetch(`${API_BASE}/api/rest/vendor/${vendorId}/upi`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ upi_id: upi })
+      });
+      const data = await res.json();
+      if(!data.success) return pop(data.message || "Error saving UPI", true);
+      pop("UPI ID saved");
+    }catch(err){
+      console.error(err);
+      pop("Error saving UPI", true);
+    }
+  });
+}
+
+/* ===================================================
+   TABLE TYPES
+   =================================================== */
 const seatMapping={"2-seater":2,"4-seater":4,"6-seater":6,"8-seater":8,"Couple Table":2,"Family Table":6,"VIP Table":4,"Outdoor Table":4};
 
 if(q('#typeSelect')){
@@ -595,35 +704,19 @@ if(q('#typeSelect')){
   });
 }
 
-/* --------------------------
-   Make Tables Array
-   -------------------------- */
-function makeTablesArray(total, existing=[]){
-  const arr=[];
-  for(let i=1;i<=total;i++){
-    const f=existing.find(x=>x.num===i);
-    arr.push(f || {num:i, status:'free', bookingId:null});
-  }
-  return arr;
-}
-
-/* --------------------------
-   ADD / EDIT TYPE
-   -------------------------- */
 if(q('#addTypeBtn')){
-  q('#addTypeBtn').addEventListener('click', ()=>{
-
-    if(!vendor) return pop('Set vendor first',true);
+  q('#addTypeBtn').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
 
     const name=q('#typeSelect').value;
-    if(!name) return pop('Select table type',true);
+    if(!name) return pop("Select table type", true);
 
     const seats=(name==='Custom')
-        ? Number(q('#typeSeats').value)
-        : seatMapping[name] || Number(q('#typeSeats').value);
+      ? Number(q('#typeSeats').value)
+      : seatMapping[name] || Number(q('#typeSeats').value);
 
-    const total=Number(q('#typeTotal').value);
-    const freeInput=Number(q('#typeFree').value);
+    const total=Number(q('#typeTotal').value||0);
+    const freeInput=Number(q('#typeFree').value||0);
     const price=Number(q('#typePrice').value||0);
     const cancel=Number(q('#typeCancel').value||2);
 
@@ -631,7 +724,6 @@ if(q('#addTypeBtn')){
     if(total<=0) return pop('Total must be > 0',true);
     if(freeInput>total) return pop('Free must be <= total',true);
 
-    /* Time */
     const sH=q('#startHour').value;
     const sM=q('#startMinute').value;
     const sP=q('#startPeriod').value;
@@ -641,77 +733,55 @@ if(q('#addTypeBtn')){
 
     const start24=convertTo24(sH,sM,sP);
     const end24=convertTo24(eH,eM,eP);
-    const displayTime=`${format12From24(start24)} — ${format12From24(end24)}`;
 
-    /* Update existing */
-    const existing=types.find(t=>t.name.toLowerCase()===name.toLowerCase());
-    if(existing){
-      existing.seats=seats;
-      existing.total=total;
-      existing.price=price;
-      existing.cancel=cancel;
-      existing.timeStart=start24;
-      existing.timeEnd=end24;
-      existing.displayTime=displayTime;
-
-      const prevTables=existing.tables||[];
-      if(total < prevTables.length){
-        const future=prevTables.slice(total).filter(t=>t.status==='reserved');
-        if(future.length) return pop('Cannot reduce: reserved exist',true);
-      }
-
-      existing.tables=makeTablesArray(total, prevTables);
-
-      const targetUnavail = clamp(total - freeInput,0,total);
-      let need=targetUnavail;
-      existing.tables.forEach(tb=>{ if(tb.status==='unavailable') tb.status='free'; });
-      for(let i=existing.tables.length-1;i>=0 && need>0;i--){
-        const tb=existing.tables[i];
-        if(tb.status==='free'){ tb.status='unavailable'; need--; }
-      }
-
-      saveTypes(); renderTypes();
-      pop('Type updated');
-      return;
-    }
-
-    /* New type */
-    const typeObj={
-      id:idGen('type'),
-      name,seats,total,price,cancel,
-      tables:makeTablesArray(total,[]),
-      timeStart:start24,
-      timeEnd:end24,
-      displayTime
+    let existing = types.find(t => t.name.toLowerCase() === name.toLowerCase()) || null;
+    const payload = {
+      id: existing ? existing.id : undefined,
+      name, seats,
+      total, price,
+      cancel,
+      timeStart: start24,
+      timeEnd: end24,
+      freeTables: freeInput
     };
 
-    const targetUnavail = clamp(total - freeInput,0,total);
-    let need=targetUnavail;
-    for(let i=typeObj.tables.length-1;i>=0 && need>0;i--){
-      const tb=typeObj.tables[i];
-      if(tb.status==='free'){ tb.status='unavailable'; need--; }
+    try{
+      const data = await apiPost("/api/rest/types", payload);
+      if(!data.success) return pop(data.message || "Error saving type", true);
+      pop(existing ? "Type updated" : "Type added");
+      const tRes = await apiGet("/api/rest/types");
+      if(tRes.success){
+        types = tRes.types || [];
+        renderTypes();
+        populateUserForm();
+      }
+    }catch(err){
+      console.error(err);
+      pop("Error saving type", true);
     }
-
-    types.push(typeObj);
-    saveTypes(); renderTypes();
-    pop('Type added');
   });
 }
 
-/* --------------------------
-   CLEAR TYPES
-   -------------------------- */
 if(q('#clearTypeBtn')){
-  q('#clearTypeBtn').addEventListener('click', ()=>{
-    if(!confirm('Clear all table types?')) return;
-    types=[]; saveTypes(); renderTypes();
-    pop("All types removed");
+  q('#clearTypeBtn').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+    if(!confirm("Clear all table types?")) return;
+    try{
+      for(const t of types){
+        await apiDelete("/api/rest/types/" + t.id);
+      }
+      const tRes = await apiGet("/api/rest/types");
+      types = tRes.types || [];
+      renderTypes();
+      populateUserForm();
+      pop("All types removed");
+    }catch(err){
+      console.error(err);
+      pop("Error clearing types", true);
+    }
   });
 }
 
-/* --------------------------
-   RENDER TYPES
-   -------------------------- */
 function renderTypes(){
   const box=q('#typeList');
   if(!box) return;
@@ -724,10 +794,6 @@ function renderTypes(){
   }
 
   types.forEach(t=>{
-    const freeCount=t.tables.filter(x=>x.status==='free').length;
-    const resCount=t.tables.filter(x=>x.status==='reserved').length;
-    const unCount=t.tables.filter(x=>x.status==='unavailable').length;
-
     const div=document.createElement('div');
     div.className='card';
     div.innerHTML=`
@@ -735,7 +801,7 @@ function renderTypes(){
         <div>
           <strong>${escapeHtml(t.name)}</strong>
           <div class="small">${t.seats} seats</div>
-          <div class="small">Total: ${t.total} • Free: ${freeCount} • Reserved: ${resCount} • Unavail: ${unCount}</div>
+          <div class="small">Total: ${t.total} • Free: ${t.freeCount} • Reserved: ${t.reservedCount} • Unavail: ${t.unavailCount}</div>
           <div class="small">Price: ₹${t.price} • Cancel: ${t.cancel} hrs</div>
           <div class="small">Time: ${escapeHtml(t.displayTime)}</div>
         </div>
@@ -751,69 +817,68 @@ function renderTypes(){
   });
 
   qa('#typeList button').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const id=e.target.dataset.id;
-      const act=e.target.dataset.act;
-      const t=types.find(x=>x.id===id);
+    btn.addEventListener('click', async (e)=>{
+      const id = Number(e.target.dataset.id);
+      const act = e.target.dataset.act;
+      const t = types.find(x=>x.id===id);
       if(!t) return;
 
-      /* Edit */
       if(act==='edit'){
-        q('#typeSelect').value=t.name;
+        q('#typeSelect').value = t.name;
         q('#typeSeats').disabled=false;
         q('#typeSeats').value=t.seats;
         q('#typeTotal').value=t.total;
-        q('#typeFree').value=t.tables.filter(x=>x.status==='free').length;
+        q('#typeFree').value=t.freeCount;
         q('#typePrice').value=t.price;
         q('#typeCancel').value=t.cancel;
 
-        /* Times */
-        const [sh,sm]=t.timeStart.split(':');
-        const [eh,em]=t.timeEnd.split(':');
+        const [sh,sm] = (t.timeStart || "10:00").split(':').map(Number);
+        const [eh,em] = (t.timeEnd || "23:00").split(':').map(Number);
 
-        let shH=parseInt(sh), shM=parseInt(sm);
-        let ehH=parseInt(eh), ehM=parseInt(em);
-
-        let sPeriod=(shH>=12?'PM':'AM');
-        let ePeriod=(ehH>=12?'PM':'AM');
-
-        let s12=shH%12; if(s12===0) s12=12;
-        let e12=ehH%12; if(e12===0) e12=12;
+        let sPeriod = sh >= 12 ? 'PM' : 'AM';
+        let ePeriod = eh >= 12 ? 'PM' : 'AM';
+        let s12 = sh % 12; if(s12===0) s12=12;
+        let e12 = eh % 12; if(e12===0) e12=12;
 
         q('#startHour').value=s12;
-        q('#startMinute').value=shM;
+        q('#startMinute').value=sm;
         q('#startPeriod').value=sPeriod;
-
         q('#endHour').value=e12;
-        q('#endMinute').value=ehM;
+        q('#endMinute').value=em;
         q('#endPeriod').value=ePeriod;
 
         window.scrollTo({top:0, behavior:'smooth'});
       }
 
-      /* Delete */
       if(act==='del'){
-        if(!confirm('Delete this type?')) return;
-        const reserved=t.tables.filter(x=>x.status==='reserved');
-        if(reserved.length) return pop('Cannot delete: reserved tables exist',true);
-        types=types.filter(x=>x.id!==id);
-        saveTypes(); renderTypes();
-        pop('Deleted');
+        if(!confirm("Delete this type?")) return;
+        try{
+          const res = await apiDelete("/api/rest/types/"+id);
+          if(!res.success) return pop(res.message || "Error deleting", true);
+          const tRes = await apiGet("/api/rest/types");
+          types = tRes.types || [];
+          renderTypes();
+          populateUserForm();
+          pop("Deleted");
+        }catch(err){
+          console.error(err);
+          pop("Error deleting type", true);
+        }
       }
 
-      /* Tables Modal */
-      if(act==='tables') openTablesModal(id);
+      if(act==='tables'){
+        openTablesModal(id);
+      }
     });
   });
 
   populateUserForm();
 }
 
-/* --------------------------
-   TABLES MODAL
-   -------------------------- */
-function openTablesModal(typeId){
-  const t=types.find(x=>x.id===typeId);
+/* TABLES MODAL */
+async function openTablesModal(typeId){
+  if(!vendorId) return pop("Set vendor first", true);
+  const t = types.find(x=>x.id===typeId);
   if(!t) return;
 
   const root=q('#modalRoot');
@@ -840,55 +905,74 @@ function openTablesModal(typeId){
   mb.appendChild(md);
   root.appendChild(mb);
 
-  const grid=md.querySelector('#modalTableGrid');
+  const grid = md.querySelector('#modalTableGrid');
 
-  function renderGrid(){
-    grid.innerHTML='';
-    t.tables.forEach(tb=>{
+  async function loadTablesForType(){
+    const data = await apiGet("/api/rest/types/"+typeId+"/tables");
+    if(!data.success) throw new Error("Failed to load tables");
+    const tables = data.tables || [];
+    grid.innerHTML = "";
+    tables.forEach(tb=>{
       const d=document.createElement('div');
       d.className='table-cell';
-      d.textContent=tb.num;
-
+      d.textContent = tb.num;
       if(tb.status==='free') d.classList.add('cell-free');
       if(tb.status==='reserved') d.classList.add('cell-reserved');
       if(tb.status==='unavailable') d.classList.add('cell-unavail');
 
-      d.addEventListener('click', ()=>{
-        if(tb.status==='reserved') return pop('Reserved table',true);
-        tb.status=(tb.status==='free')?'unavailable':'free';
-        saveTypes();
-        renderTypes();
-        renderGrid();
+      d.addEventListener('click', async ()=>{
+        if(tb.status==='reserved') return pop("Reserved table", true);
+        try{
+          const res = await apiPost("/api/rest/tables/"+tb.id+"/toggle", {});
+          if(!res.success) return pop(res.message || "Error toggling", true);
+          await loadTablesForType();
+          const tRes = await apiGet("/api/rest/types");
+          types = tRes.types || [];
+          renderTypes();
+        }catch(err){
+          console.error(err);
+          pop("Error toggling table", true);
+        }
       });
 
       grid.appendChild(d);
     });
   }
 
-  renderGrid();
+  try{
+    await loadTablesForType();
+  }catch(err){
+    console.error(err);
+    pop("Error loading tables", true);
+  }
 
   md.querySelector('#closeModal').addEventListener('click', ()=>{
     root.style.display='none';
     root.innerHTML='';
   });
 
-  md.querySelector('#markAllFree').addEventListener('click', ()=>{
-    t.tables.forEach(tb=>{ if(tb.status!=='reserved') tb.status='free'; });
-    saveTypes(); renderTypes(); renderGrid();
+  md.querySelector('#markAllFree').addEventListener('click', async ()=>{
+    try{
+      const res = await apiPost("/api/rest/tables/mark_all_free", { typeId });
+      if(!res.success) return pop(res.message || "Error", true);
+      await loadTablesForType();
+      const tRes = await apiGet("/api/rest/types");
+      types = tRes.types || [];
+      renderTypes();
+    }catch(err){
+      console.error(err);
+      pop("Error marking all free", true);
+    }
   });
 }
 
-/* --------------------------
+/* ===================================================
    SLOTS
-   -------------------------- */
-/* use local slots variable and key k_slots(vendor) */
+   =================================================== */
 function renderSlots(){
   const box=q('#slotList');
   if(!box) return;
   box.innerHTML='';
-
-  // ensure slots array up-to-date from storage for current vendor
-  if(vendor) slots = JSON.parse(localStorage.getItem(k_slots(vendor)) || '[]');
 
   if(!slots.length){
     box.innerHTML='<div class="small">No slots</div>';
@@ -915,42 +999,45 @@ function renderSlots(){
   });
 
   qa('#slotList button').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const id=e.target.dataset.id;
-      const act=e.target.dataset.act;
-
+    btn.addEventListener('click', async (e)=>{
+      const id = Number(e.target.dataset.id);
+      const act = e.target.dataset.act;
       if(act==='del'){
-        if(!confirm('Delete slot?')) return;
-        slots=slots.filter(x=>x.id!==id);
-        saveSlots(); renderSlots();
+        if(!confirm("Delete slot?")) return;
+        try{
+          const res = await apiDelete("/api/rest/slots/"+id);
+          if(!res.success) return pop(res.message || "Error deleting slot", true);
+          const sRes = await apiGet("/api/rest/slots");
+          slots = sRes.slots || [];
+          renderSlots();
+          populateUserForm();
+          pop("Slot deleted");
+        }catch(err){
+          console.error(err);
+          pop("Error deleting slot", true);
+        }
       }
-
       if(act==='edit'){
-        const s=slots.find(x=>x.id===id);
+        const s = slots.find(x=>x.id===id);
         if(!s) return;
-        q('#slotName').value=s.name;
+        q('#slotName').value = s.name;
 
-        // convert 24h back to 12h components for edit
-        const [sh,sm] = s.start.split(':').map(Number);
-        const [eh,em] = s.end.split(':').map(Number);
+        const [sh,sm] = (s.start || "10:00").split(':').map(Number);
+        const [eh,em] = (s.end || "23:00").split(':').map(Number);
 
         let sPeriod = sh >= 12 ? 'PM' : 'AM';
         let ePeriod = eh >= 12 ? 'PM' : 'AM';
-        let s12 = sh % 12; if(s12 === 0) s12 = 12;
-        let e12 = eh % 12; if(e12 === 0) e12 = 12;
+        let s12 = sh % 12; if(s12===0) s12=12;
+        let e12 = eh % 12; if(e12===0) e12=12;
 
         q('#startHourSlot').value = s12;
         q('#startMinSlot').value = sm;
         q('#startPeriodSlot').value = sPeriod;
-
         q('#endHourSlot').value = e12;
         q('#endMinSlot').value = em;
         q('#endPeriodSlot').value = ePeriod;
 
-        // remove the slot from array so add will replace it
-        slots = slots.filter(x=>x.id!==id);
-        saveSlots();
-        renderSlots();
+        q('#addSlotBtn').dataset.editId = String(id);
       }
     });
   });
@@ -958,78 +1045,82 @@ function renderSlots(){
   populateUserForm();
 }
 
-/* Robust Add Slot handler (works with AM/PM) */
-(function attachAddSlotHandler(){
-  const addBtn = q('#addSlotBtn');
-  if(!addBtn){
-    console.warn('Add Slot button not found (#addSlotBtn)');
-    return;
-  }
-
-  addBtn.addEventListener('click', ()=>{
-    if(!vendor) return pop('Set vendor first',true);
+if(q('#addSlotBtn')){
+  q('#addSlotBtn').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
 
     const name = (q('#slotName') && q('#slotName').value.trim()) || '';
-    const sh = (q('#startHourSlot') && q('#startHourSlot').value.trim()) || '';
-    const sm = (q('#startMinSlot') && q('#startMinSlot').value.trim()) || '';
-    const sp = (q('#startPeriodSlot') && q('#startPeriodSlot').value) || 'AM';
+    const sh = q('#startHourSlot').value.trim();
+    const sm = q('#startMinSlot').value.trim();
+    const sp = q('#startPeriodSlot').value;
+    const eh = q('#endHourSlot').value.trim();
+    const em = q('#endMinSlot').value.trim();
+    const ep = q('#endPeriodSlot').value;
 
-    const eh = (q('#endHourSlot') && q('#endHourSlot').value.trim()) || '';
-    const em = (q('#endMinSlot') && q('#endMinSlot').value.trim()) || '';
-    const ep = (q('#endPeriodSlot') && q('#endPeriodSlot').value) || 'AM';
+    if(!name) return pop("Enter slot name", true);
+    if(!sh||!sm||!eh||!em) return pop("Enter start/end time", true);
 
-    if(!name) return pop('Enter slot name', true);
-    if(!sh || !sm || !eh || !em) return pop('Enter start and end time', true);
-
-    const shN = Number(sh), smN = Number(sm), ehN = Number(eh), emN = Number(em);
-    if(isNaN(shN) || isNaN(smN) || isNaN(ehN) || isNaN(emN)) return pop('Invalid time numbers', true);
-    if(shN < 1 || shN > 12 || ehN < 1 || ehN > 12 || smN < 0 || smN > 59 || emN < 0 || emN > 59) return pop('Time out of range', true);
+    const shN = Number(sh), smN=Number(sm), ehN=Number(eh), emN=Number(em);
+    if(isNaN(shN)||isNaN(smN)||isNaN(ehN)||isNaN(emN)) return pop("Invalid time numbers", true);
 
     const start24 = convertTo24(shN, smN, sp);
     const end24 = convertTo24(ehN, emN, ep);
 
-    if(!start24 || !end24) return pop('Invalid time conversion', true);
+    const editId = q('#addSlotBtn').dataset.editId || null;
+    const payload = {
+      id: editId ? Number(editId) : undefined,
+      name,
+      start: start24,
+      end: end24
+    };
 
-    // ensure slots list loaded
-    if(vendor) slots = JSON.parse(localStorage.getItem(k_slots(vendor)) || '[]');
-
-    const newSlot = { id: idGen('slot'), name, start: start24, end: end24 };
-    slots.push(newSlot);
-    if(vendor) localStorage.setItem(k_slots(vendor), JSON.stringify(slots));
-
-    renderSlots();
-    pop('Slot added');
-
-    // clear inputs
-    q('#slotName').value = '';
-    q('#startHourSlot').value = '';
-    q('#startMinSlot').value = '';
-    q('#endHourSlot').value = '';
-    q('#endMinSlot').value = '';
-  });
-})();
-
-/* --------------------------
-   SETTINGS
-   -------------------------- */
-if(q('#saveSettings')){
-  q('#saveSettings').addEventListener('click', ()=>{
-    settings.maxAdvanceDays=Number(q('#maxAdvance').value)||365;
-    settings.cancelBeforeHrs=Number(q('#cancelBeforeHrs').value)||2;
-    saveSettings();
-    pop("Settings saved");
+    try{
+      const res = await apiPost("/api/rest/slots", payload);
+      if(!res.success) return pop(res.message || "Error saving slot", true);
+      const sRes = await apiGet("/api/rest/slots");
+      slots = sRes.slots || [];
+      renderSlots();
+      populateUserForm();
+      pop(editId ? "Slot updated" : "Slot added");
+      q('#slotName').value = "";
+      q('#startHourSlot').value = "";
+      q('#startMinSlot').value = "";
+      q('#endHourSlot').value = "";
+      q('#endMinSlot').value = "";
+      delete q('#addSlotBtn').dataset.editId;
+    }catch(err){
+      console.error(err);
+      pop("Error saving slot", true);
+    }
   });
 }
 
-/* --------------------------
+/* ===================================================
+   SETTINGS
+   =================================================== */
+if(q('#saveSettings')){
+  q('#saveSettings').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+    settings.maxAdvanceDays = Number(q('#maxAdvance').value||365);
+    settings.cancelBeforeHrs = Number(q('#cancelBeforeHrs').value||2);
+    try{
+      const res = await apiPost("/api/rest/settings", settings);
+      if(!res.success) return pop(res.message || "Error saving settings", true);
+      pop("Settings saved");
+    }catch(err){
+      console.error(err);
+      pop("Error saving settings", true);
+    }
+  });
+}
+
+/* ===================================================
    BOOKINGS
-   -------------------------- */
+   =================================================== */
 function renderBookings(){
   const list=q('#bookingsList');
   if(!list) return;
   list.innerHTML='';
-
-  bookings = JSON.parse(localStorage.getItem(k_bookings(vendor)) || '[]');
 
   if(!bookings.length){
     list.innerHTML='<div class="small">No bookings</div>';
@@ -1047,7 +1138,7 @@ function renderBookings(){
           <div>
             <strong>${escapeHtml(b.customer)}</strong>
             <div class="small">${b.phone || ''} • ${b.typeName || ''}</div>
-            <div class="small">${b.date || ''} • ${escapeHtml(b.slotName || '')} • Tables: ${b.tables ? b.tables.join(', ') : ''}</div>
+            <div class="small">${b.date || ''} • ${escapeHtml(b.slotName || '')} • Tables: ${(b.tables||[]).join(', ')}</div>
             <div class="small">₹${b.price || 0} • ${b.status || ''}</div>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
@@ -1062,107 +1153,63 @@ function renderBookings(){
     });
 
   qa('#bookingsList button').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const id=e.target.dataset.id;
-      const act=e.target.dataset.act;
+    btn.addEventListener('click', async (e)=>{
+      const id = Number(e.target.dataset.id);
+      const act = e.target.dataset.act;
+      const b = bookings.find(x=>x.id===id);
+      if(!b) return;
 
       if(act==='view'){
-        alert(JSON.stringify(bookings.find(x=>x.id===id), null, 2));
+        alert(JSON.stringify(b, null, 2));
       }
-      if(act==='toggle') toggleBooking(id);
+      if(act==='toggle'){
+        try{
+          const res = await apiPost("/api/rest/bookings/"+id+"/toggle", {});
+          if(!res.success) return pop(res.message || "Error toggling booking", true);
+          const bRes = await apiGet("/api/rest/bookings");
+          bookings = bRes.bookings || [];
+          renderBookings();
+          renderStats();
+          pop("Booking updated");
+        }catch(err){
+          console.error(err);
+          pop("Error updating booking", true);
+        }
+      }
     });
   });
 }
 
-function toggleBooking(id){
-  bookings = JSON.parse(localStorage.getItem(k_bookings(vendor)) || '[]');
-  const b=bookings.find(x=>x.id===id);
-  if(!b) return;
-
-  types = JSON.parse(localStorage.getItem(k_types(vendor)) || '[]');
-  const t=types.find(x=>x.id===b.typeId);
-  if(!t) return pop("Type missing", true);
-
-  if(b.status==='upcoming'){
-    if(!canCancelBooking(b)) return pop("Too late to cancel", true);
-
-    b.status='cancelled';
-
-    /* free tables */
-    b.tables.forEach(n=>{
-      const tb=t.tables.find(x=>x.num===n);
-      if(tb && tb.bookingId===b.id){
-        tb.status='free';
-        tb.bookingId=null;
-      }
-    });
-
-  } else {
-
-    b.status='upcoming';
-
-    /* re-reserve */
-    b.tables.forEach(n=>{
-      const tb=t.tables.find(x=>x.num===n);
-      if(tb && tb.status==='free'){
-        tb.status='reserved';
-        tb.bookingId=b.id;
-      }
-    });
-  }
-
-  // save both types and bookings
-  saveTypes();
-  localStorage.setItem(k_bookings(vendor), JSON.stringify(bookings));
-  renderBookings();
-  renderStats();
-}
-
-function canCancelBooking(b){
-  const hrs=settings.cancelBeforeHrs||0;
-  const eventTime=new Date(b.datetimeISO).getTime();
-  return Date.now() <= (eventTime - hrs*3600*1000);
-}
-
-/* --------------------------
+/* ===================================================
    STATS
-   -------------------------- */
-function renderStats(){
-  types = JSON.parse(localStorage.getItem(k_types(vendor)) || '[]');
-  bookings = JSON.parse(localStorage.getItem(k_bookings(vendor)) || '[]');
-
-  const totalTables = types.reduce((s,t)=>s+(t.tables? t.tables.length : 0),0);
+   =================================================== */
+function renderStats(stats){
+  if(!q('#dashStats')) return;
+  const totalTypes = types.length;
+  const totalTables = types.reduce((sum, t)=> sum + (t.total || 0), 0);
+  const upcoming = (stats && stats.upcomingBookings) || (bookings.filter(b=>b.status==='upcoming').length);
   q('#dashStats').innerHTML =
-    `Table Types: <b>${types.length}</b><br>`+
+    `Table Types: <b>${totalTypes}</b><br>`+
     `Total Tables: <b>${totalTables}</b><br>`+
-    `Upcoming Bookings: <b>${bookings.filter(x=>x.status==='upcoming').length}</b>`;
+    `Upcoming Bookings: <b>${upcoming}</b>`;
 }
 
-/* --------------------------
+/* ===================================================
    USER SIMULATOR
-   -------------------------- */
+   =================================================== */
 if(q('#loadVendorData')){
   q('#loadVendorData').addEventListener('click', ()=>{
-    const v=q('#userVendor').value.trim();
+    const v = q('#userVendor').value.trim();
     if(!v) return pop("Enter vendor email", true);
-    vendor=v;
-    q('#vendorEmail').value=v;
-    loadAll();
+    q('#vendorEmail').value = v;
+    window.scrollTo({top:0, behavior:'smooth'});
+    pop("Email filled above, click Set.");
   });
-}
-
-/* load rest name placeholder */
-const rn = localStorage.getItem(k_restName(vendor)) || "";
-if (rn && q('#userVendor')) {
-    q('#userVendor').placeholder = rn;
 }
 
 function populateUserForm(){
   const selT=q('#typeSelectUser');
   if(!selT) return;
-
-  types = JSON.parse(localStorage.getItem(k_types(vendor)) || '[]');
-  slots = JSON.parse(localStorage.getItem(k_slots(vendor)) || '[]');
 
   selT.innerHTML='';
   types.forEach(t=>{
@@ -1173,154 +1220,132 @@ function populateUserForm(){
   });
 
   const selS=q('#slotSelect');
-  if(selS) selS.innerHTML='';
-  slots.forEach(s=>{
-    const o=document.createElement('option');
-    o.value=s.id;
-    o.text=`${s.name} (${s.start}-${s.end})`;
-    selS.appendChild(o);
-  });
+  if(selS){
+    selS.innerHTML='';
+    slots.forEach(s=>{
+      const o=document.createElement('option');
+      o.value=s.id;
+      o.text=`${s.name} (${s.start}-${s.end})`;
+      selS.appendChild(o);
+    });
+  }
 
-  if(q('#userForm')) q('#userForm').style.display = types.length ? 'block':'none';
-  if(q('#date')) q('#date').value = new Date().toISOString().slice(0,10);
+  if(q('#userForm')){
+    q('#userForm').style.display = types.length ? 'block' : 'none';
+  }
+  if(q('#date')){
+    q('#date').value = new Date().toISOString().slice(0,10);
+  }
 
   updatePriceDisplay();
 }
 
+function updatePriceDisplay(){
+  const sel = q('#typeSelectUser');
+  if(!sel) return;
+  const id = Number(sel.value || 0);
+  const t = types.find(x=>x.id===id);
+  if(q('#price')) q('#price').value = t ? t.price : '';
+}
 if(q('#typeSelectUser')){
   q('#typeSelectUser').addEventListener('change', updatePriceDisplay);
 }
 
-function updatePriceDisplay(){
-  const id = q('#typeSelectUser') ? q('#typeSelectUser').value : null;
-  const t=types.find(x=>x.id===id);
-  if(q('#price')) q('#price').value = t ? t.price : '';
-}
-
 /* BOOK NOW */
 if(q('#bookNow')){
-  q('#bookNow').addEventListener('click', ()=>{
+  q('#bookNow').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
 
-    const typeId=q('#typeSelectUser').value;
-    const slotId=q('#slotSelect').value;
-    const date=q('#date').value;
-    const customer=q('#name').value.trim() || 'Guest';
-    const phone=q('#phone').value.trim() || '';
-    const count=Number(q('#numTables').value||1);
+    const typeId = Number(q('#typeSelectUser').value || 0);
+    const slotId = Number(q('#slotSelect').value || 0);
+    const dateVal = q('#date').value;
+    const customer = (q('#name').value.trim() || "Guest");
+    const phone = q('#phone').value.trim();
+    const count = Number(q('#numTables').value || 1);
 
-    if(!typeId||!slotId||!date) return pop('Fill all fields',true);
+    if(!typeId || !slotId || !dateVal) return pop("Fill all fields", true);
 
-    // reload from storage to ensure most recent
-    types=JSON.parse(localStorage.getItem(k_types(vendor))||'[]');
-    slots=JSON.parse(localStorage.getItem(k_slots(vendor))||'[]');
-    bookings=JSON.parse(localStorage.getItem(k_bookings(vendor))||'[]');
-
-    const t=types.find(x=>x.id===typeId);
-    const s=slots.find(x=>x.id===slotId);
-
-    if(!t) return pop('Type not available',true);
-    if(!s) return pop('Slot not available',true);
-
-    const today=new Date(new Date().toISOString().slice(0,10));
-    const d=new Date(date);
-    const diffDays=(d - today)/(1000*3600*24);
-
-    if(diffDays<0) return pop('Past date not allowed',true);
-    if(diffDays > settings.maxAdvanceDays) return pop('Exceeds max advance days',true);
-
-    const freeTables=t.tables.filter(x=>x.status==='free');
-    if(count > freeTables.length) return pop('Not enough free tables',true);
-
-    const take=freeTables.slice(0,count).map(x=>x.num);
-    const id=idGen('bk');
-
-    take.forEach(n=>{
-      const tb=t.tables.find(x=>x.num===n);
-      tb.status='reserved';
-      tb.bookingId=id;
-    });
-
-    const isoTimePart = (s.start.length===5) ? s.start : (s.start + ":00");
-    const ISO=new Date(date+'T'+isoTimePart).toISOString();
-
-    const booking={
-      id,
-      customer,
-      phone,
-      typeId:t.id,
-      typeName:t.name,
-      tables:take,
-      date,
-      slotName:s.name,
-      datetimeISO:ISO,
-      price:t.price*count,
-      count,
-      status:'upcoming',
-      createdAt:new Date().toISOString()
-    };
-
-    bookings.push(booking);
-    saveTypes(); saveBookings();
-
-    renderBookings(); renderStats();
-    pop("Booking created");
+    try{
+      const data = await apiPost("/api/rest/bookings", {
+        typeId, slotId,
+        date: dateVal,
+        customer, phone,
+        count
+      });
+      if(!data.success) return pop(data.message || "Error creating booking", true);
+      const bRes = await apiGet("/api/rest/bookings");
+      bookings = bRes.bookings || [];
+      renderBookings();
+      renderStats();
+      pop("Booking created");
+    }catch(err){
+      console.error(err);
+      pop("Error creating booking", true);
+    }
   });
 }
 
-/* --------------------------
+/* ===================================================
    LOCATION
-   -------------------------- */
+   =================================================== */
 if(q('#saveLocationBtn')){
-  q('#saveLocationBtn').addEventListener('click', ()=>{
-    locationObj={
-      addr1:q('#addr1').value.trim(),
-      addr2:q('#addr2').value.trim(),
-      city:q('#city').value.trim(),
-      state:q('#state').value.trim(),
-      pincode:q('#pincode').value.trim()
+  q('#saveLocationBtn').addEventListener('click', async ()=>{
+    if(!vendorId) return pop("Set vendor first", true);
+    locationObj = {
+      addr1: q('#addr1').value.trim(),
+      addr2: q('#addr2').value.trim(),
+      city: q('#city').value.trim(),
+      state: q('#state').value.trim(),
+      pincode: q('#pincode').value.trim(),
     };
-    saveLocation();
-    renderLocation();
-    pop("Location saved");
+    try{
+      const res = await apiPost("/api/rest/location", locationObj);
+      if(!res.success) return pop(res.message || "Error saving location", true);
+      renderLocation();
+      pop("Location saved");
+    }catch(err){
+      console.error(err);
+      pop("Error saving location", true);
+    }
   });
 }
 
 function renderLocation(){
-  if(!locationObj || !locationObj.addr1){
-    if(q('#locInfo')) q('#locInfo').textContent='';
-    return;
+  if(!locationObj) return;
+  q('#addr1').value = locationObj.addr1 || '';
+  q('#addr2').value = locationObj.addr2 || '';
+  q('#city').value = locationObj.city || '';
+  q('#state').value = locationObj.state || '';
+  q('#pincode').value = locationObj.pincode || '';
+
+  const li = q('#locInfo');
+  if(li && locationObj.addr1){
+    li.textContent =
+      `${locationObj.addr1}, ${locationObj.city || ''}, ${locationObj.state || ''} - ${locationObj.pincode || ''}`;
   }
-
-  q('#addr1').value=locationObj.addr1 || '';
-  q('#addr2').value=locationObj.addr2 || '';
-  q('#city').value=locationObj.city || '';
-  q('#state').value=locationObj.state || '';
-  q('#pincode').value=locationObj.pincode || '';
-
-  q('#locInfo').textContent =
-    `${locationObj.addr1}, ${locationObj.city}, ${locationObj.state} - ${locationObj.pincode}`;
 }
 
-/* --------------------------
-   INIT
-   -------------------------- */
-(function(){
-  // If vendor is already present, make sure UI reflects it
-  if(vendor){
-    loadAll();
-  } else {
-    // also try to prefill vendor from last saved key
-    vendor = localStorage.getItem('tb_vendor') || '';
-    if(vendor){
-      if(q('#vendorEmail')) q('#vendorEmail').value = vendor;
-      loadAll();
+/* ===================================================
+   AUTO-LOAD vendorId FROM URL (?vendor_id=1)
+   =================================================== */
+(function initVendorFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const vid = params.get("vendor_id");
+  if(vid){
+    const parsed = Number(vid);
+    if(!isNaN(parsed) && parsed > 0){
+      vendorId = parsed;
+      console.log("VendorId loaded from URL:", vendorId);
+      pop(`VendorId loaded from URL: ${vendorId}`);
+      loadAllFromBackend();
     }
   }
-
-  if(q('#maxAdvance')) q('#maxAdvance').value=settings.maxAdvanceDays;
-  if(q('#cancelBeforeHrs')) q('#cancelBeforeHrs').value=settings.cancelBeforeHrs;
 })();
-</script>
 
+/* ===================================================
+   INIT
+   =================================================== */
+// nothing else; everything kicks in after vendor is set / URL vendor_id
+</script>
 </body>
 </html>

@@ -1,0 +1,1415 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vendor Nightlife Dashboard — ZomaClone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="./Images/logo_512.png" />
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
+
+    body{
+      display:flex;
+      min-height:100vh;
+      background:#060608;
+      color:#f5f5ff;
+      transition:background .25s,color .25s;
+    }
+
+    body.theme-light{
+      background:#f5f5fb;
+      color:#111;
+    }
+
+    /* SIDEBAR */
+    .sidebar{
+      width:260px;background:#050507;padding:24px 18px;
+      position:fixed;left:0;top:0;bottom:0;overflow-y:auto;
+      box-shadow:3px 0 18px rgba(0,0,0,.45);
+      transition:background .25s,color .25s;
+    }
+    body.theme-light .sidebar{
+      background:#ffffff;
+      color:#111;
+      box-shadow:3px 0 12px rgba(0,0,0,.12);
+    }
+
+    .brand{
+      display:flex;align-items:center;gap:10px;margin-bottom:32px;
+    }
+    .brand-logo{
+      width:40px;height:40px;border-radius:12px;
+      background:linear-gradient(135deg,#ff2e63,#ff7b3b);
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-weight:700;font-size:20px;
+    }
+    .brand-text{line-height:1.1;}
+    .brand-text span:first-child{font-size:14px;color:#ff798f;}
+    .brand-text span:last-child{font-size:18px;font-weight:600;color:#fff;}
+    body.theme-light .brand-text span:last-child{color:#111;}
+
+    .nav-title{
+      font-size:11px;text-transform:uppercase;
+      letter-spacing:1.4px;color:#777;margin-bottom:10px;
+    }
+
+    .menu-item{
+      display:flex;align-items:center;gap:10px;
+      padding:11px 14px;margin-bottom:8px;
+      border-radius:10px;background:transparent;
+      color:#d6d6dc;text-decoration:none;font-size:14px;
+      cursor:pointer;transition:.18s;
+    }
+    body.theme-light .menu-item{color:#333;}
+
+    .menu-item span.icon{
+      width:26px;height:26px;border-radius:8px;
+      display:flex;align-items:center;justify-content:center;
+      background:#14141a;font-size:14px;
+    }
+    body.theme-light .menu-item span.icon{background:#f2f2f8;}
+
+    .menu-item:hover,
+    .menu-item.active{
+      background:linear-gradient(90deg,#ff2e63,#ff6b3c);
+      color:#fff;transform:translateX(3px);
+    }
+    .menu-item:hover span.icon,
+    .menu-item.active span.icon{
+      background:rgba(0,0,0,.12);
+    }
+
+    /* MAIN AREA */
+    .main{
+      margin-left:260px;
+      width:calc(100% - 260px);
+      min-height:100vh;
+      background:radial-gradient(circle at top,#201126 0,#050308 55%);
+      padding:26px 30px 40px;
+      color:#fff;
+      transition:background .25s,color .25s;
+    }
+    body.theme-light .main{
+      background:radial-gradient(circle at top,#ffffff 0,#f0f0f7 55%);
+      color:#111;
+    }
+
+    .top-bar{
+      display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:22px;
+      gap:12px;
+    }
+    .top-heading{
+      font-size:24px;font-weight:600;
+    }
+    .top-sub{
+      font-size:13px;color:#999;margin-top:2px;
+    }
+    body.theme-light .top-sub{color:#666;}
+
+    .pill{
+      padding:7px 14px;border-radius:999px;
+      font-size:12px;background:rgba(255,46,99,.08);color:#ffadc3;
+      border:1px solid rgba(255,46,99,.30);
+      white-space:nowrap;
+    }
+    body.theme-light .pill{
+      background:rgba(255,46,99,.05);
+      color:#b02048;
+      border-color:rgba(255,46,99,.18);
+    }
+
+    .gradient-strip{
+      width:100%;height:4px;border-radius:999px;
+      background:linear-gradient(90deg,#ff2e63,#ff6b3c,#ffc75f);
+      margin-bottom:26px;opacity:.9;
+    }
+
+    .layout-2col{
+      display:grid;
+      grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
+      gap:22px;
+    }
+
+    .card{
+      background:#0e0e15;
+      border-radius:16px;
+      padding:20px 18px 18px;
+      box-shadow:0 14px 40px rgba(0,0,0,.6);
+      border:1px solid rgba(255,255,255,.03);
+      margin-bottom:20px;
+      transition:background .25s,box-shadow .25s,border-color .25s;
+    }
+    body.theme-light .card{
+      background:#ffffff;
+      border-color:rgba(0,0,0,.06);
+      box-shadow:0 12px 28px rgba(0,0,0,.06);
+    }
+
+    .card-header{
+      display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
+    }
+    .card-title{
+      font-size:17px;font-weight:600;
+    }
+    .card-sub{
+      font-size:12px;color:#9a9aa5;margin-top:2px;
+    }
+    body.theme-light .card-sub{color:#777;}
+
+    .btn-chip{
+      padding:5px 11px;border-radius:999px;font-size:10px;
+      border:1px solid #343445;color:#b9b9c7;background:#11111a;
+      cursor:default;
+    }
+    body.theme-light .btn-chip{
+      background:#f7f7ff;
+      border-color:#d7d7e5;
+      color:#555;
+    }
+
+    .input-row{
+      display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;
+    }
+    .input-control{
+      flex:1;min-width:220px;
+      position:relative;
+    }
+    .input-control label{
+      font-size:11px;color:#a1a1ac;margin-bottom:4px;display:block;
+    }
+    body.theme-light .input-control label{color:#555;}
+
+    .input-box, .input-select, .input-file, .input-textarea{
+      width:100%;border-radius:10px;border:1px solid #272733;
+      background:#11111b;color:#f3f3ff;
+      padding:10px 11px;font-size:13px;
+      transition:border-color .2s,box-shadow .2s,background .2s,color .2s;
+    }
+    .input-box::placeholder,.input-textarea::placeholder{
+      color:#63637a;
+    }
+    .input-box:focus,.input-select:focus,.input-textarea:focus{
+      outline:none;border-color:#ff2e63;
+      box-shadow:0 0 0 1px rgba(255,46,99,.35);
+    }
+    .input-textarea{
+      min-height:72px;resize:vertical;
+    }
+    .input-file{
+      padding:8px 10px;background:#11111b;
+    }
+
+    body.theme-light .input-box,
+    body.theme-light .input-select,
+    body.theme-light .input-file,
+    body.theme-light .input-textarea{
+      background:#f9f9ff;
+      border-color:#d4d4e2;
+      color:#111;
+    }
+    body.theme-light .input-box::placeholder,
+    body.theme-light .input-textarea::placeholder{
+      color:#999;
+    }
+
+    .btn-primary{
+      padding:10px 20px;border-radius:999px;
+      border:none;background:linear-gradient(90deg,#ff2e63,#ff6b3c);
+      color:#fff;font-size:14px;font-weight:600;
+      cursor:pointer;margin-top:12px;
+      box-shadow:0 12px 25px rgba(255,46,99,.45);
+      display:inline-flex;align-items:center;gap:6px;
+      transition:transform .15s,filter .15s,box-shadow .15s;
+    }
+    .btn-primary:hover{
+      filter:brightness(1.05);
+      transform:translateY(-1px);
+    }
+
+    .stat-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+    .stat-pill{
+      background:#15151f;
+      border-radius:12px;
+      padding:12px 14px;
+      border:1px solid #262636;
+      font-size:13px;
+    }
+    body.theme-light .stat-pill{
+      background:#f7f7ff;
+      border-color:#dadbf0;
+    }
+    .stat-pill span.value{
+      font-size:18px;font-weight:600;display:block;margin-bottom:2px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+      margin-top:10px;
+    }
+    th,td{
+      padding:10px;
+      text-align:left;
+      border-bottom:1px solid #222233;
+    }
+    th{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:#9ca3af;
+    }
+    body.theme-light th, body.theme-light td{
+      border-bottom-color:#e5e7eb;
+    }
+    body.theme-light th{
+      color:#6b7280;
+    }
+
+    .product-img{
+      width:50px;height:50px;border-radius:10px;object-fit:cover;
+    }
+    .status-btn{
+      background:#1674ff;color:#fff;border:none;padding:6px 12px;border-radius:999px;cursor:pointer;font-size:12px;
+    }
+    .order-status{
+      padding:4px 8px;border-radius:5px;color:#fff;font-weight:600;font-size:11px;
+    }
+
+    .pending{background:#f59e0b;}
+    .preparing{background:#3b82f6;}
+    .accepted{background:#38bdf8;}
+    .ready{background:#8b5cf6;}
+    .served{background:#22c55e;}
+    .outfordelivery{background:#9333ea;}
+    .delivered{background:#22c55e;}
+
+    .toast{
+      position:fixed;top:18px;right:20px;
+      background:#111;border-radius:999px;
+      padding:9px 16px;font-size:12px;color:#fff;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 8px 22px rgba(0,0,0,.7);
+      opacity:0;transform:translateY(-8px);
+      transition:.25s;pointer-events:none;z-index:9999;
+    }
+    body.theme-light .toast{
+      background:#222;
+      border-color:rgba(0,0,0,.2);
+    }
+
+    .small{font-size:12px;color:#9ca3af;}
+    body.theme-light .small{color:#6b7280;}
+
+    .coupon-row{
+      display:flex;gap:8px;align-items:center;margin-bottom:8px;
+    }
+    .coupon-row input,.coupon-row select{
+      padding:8px;border-radius:8px;border:1px solid #272733;
+      background:#11111b;color:#f3f3ff;font-size:13px;
+    }
+    body.theme-light .coupon-row input,
+    body.theme-light .coupon-row select{
+      background:#f9f9ff;
+      border-color:#d4d4e2;
+      color:#111;
+    }
+    .coupon-actions button{
+      padding:8px 12px;margin-right:8px;border-radius:999px;border:none;cursor:pointer;font-size:12px;
+    }
+    .coupon-list{margin-top:10px;}
+    .coupon-item{
+      padding:10px;border-radius:10px;border:1px dashed #303043;margin-bottom:8px;
+      display:flex;justify-content:space-between;align-items:center;font-size:13px;
+    }
+    body.theme-light .coupon-item{border-color:#d1d5db;}
+
+    .theme-btn{
+      border-radius:999px;padding:6px 14px;border:none;font-size:12px;cursor:pointer;
+      background:#111827;color:#f9fafb;
+    }
+    body.theme-light .theme-btn{
+      background:#e5e7eb;color:#111827;
+    }
+    .logout-btn{
+      border-radius:999px;padding:6px 16px;border:none;font-size:12px;cursor:pointer;
+      background:#ef4444;color:#fff;
+    }
+
+    .badge-pill{
+      display:inline-flex;align-items:center;gap:4px;
+      border-radius:999px;font-size:11px;
+      background:rgba(34,197,94,.12);
+      color:#bbf7d0;padding:4px 8px;
+      border:1px solid rgba(34,197,94,.4);
+    }
+    body.theme-light .badge-pill{
+      background:#dcfce7;color:#166534;border-color:#86efac;
+    }
+
+    @media(max-width:960px){
+      body{display:block;}
+      .sidebar{position:relative;width:100%;display:flex;gap:16px;align-items:center;}
+      .main{margin-left:0;width:100%;padding:18px 16px 32px;}
+      .layout-2col{grid-template-columns:1fr;}
+      .top-bar{flex-direction:column;align-items:flex-start;}
+    }
+  </style>
+</head>
+<body class="theme-dark">
+
+<div id="toast" class="toast"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-logo">Z</div>
+    <div class="brand-text">
+      <span>Club Vendor</span><br />
+      <span>ZomaClone</span>
+    </div>
+  </div>
+
+  <div class="nav-title">Overview</div>
+  <a href="#dashboardSection" class="menu-item active"><span class="icon">📊</span><span>Dashboard</span></a>
+  <a href="#productsSection" class="menu-item"><span class="icon">🍸</span><span>Nightlife Items</span></a>
+  <a href="#ordersSection" class="menu-item"><span class="icon">🧾</span><span>Orders</span></a>
+  <a href="#revenueSection" class="menu-item"><span class="icon">💰</span><span>Revenue</span></a>
+  <a href="#feedbackSection" class="menu-item"><span class="icon">⭐</span><span>Feedbacks</span></a>
+  <a href="#couponSection" class="menu-item"><span class="icon">🎟</span><span>Coupons</span></a>
+
+  <div style="margin-top:18px;border-top:1px solid rgba(148,163,184,.35);padding-top:12px;">
+    <button id="themeToggle" class="theme-btn" type="button">☀ Day</button>
+    <button class="logout-btn" type="button" onclick="logout()">Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main" id="dashboardSection">
+  <div class="top-bar">
+    <div>
+      <div class="top-heading">Nightlife Vendor Control Center</div>
+      <div class="top-sub">Manage your club profile, nightlife menu, orders & revenue.</div>
+    </div>
+    <div class="pill" id="vendorLabel">Vendor: —</div>
+  </div>
+
+  <div class="gradient-strip"></div>
+
+  <!-- TOP: CLUB INFO + STATS -->
+  <div class="layout-2col">
+    <!-- LEFT: CLUB PROFILE + SETTINGS -->
+    <section>
+      <div class="card" id="restInfoCard">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Club / Nightlife Profile</div>
+            <div class="card-sub">Users see this on the nightlife page.</div>
+          </div>
+          <span class="badge-pill" id="restRatingBadge">⭐ 0.0 • 0 Reviews</span>
+        </div>
+        <div id="restInfoInner">
+          <div style="font-size:18px;font-weight:600;margin-bottom:4px;" id="restName"></div>
+          <div class="small" id="restEmail"></div>
+          <div class="small" id="restAddress" style="margin-top:4px;"></div>
+          <div class="small" id="restCharges" style="margin-top:6px;"></div>
+          <div class="small" id="restDescription" style="margin-top:6px;"></div>
+          <img id="restBanner" alt="Banner"
+               style="width:100%;max-width:580px;border-radius:12px;margin-top:10px;border:1px solid rgba(148,163,184,.3);display:none;" />
+        </div>
+
+        <!-- EDIT PROFILE -->
+        <div style="margin-top:16px;border-top:1px solid rgba(148,163,184,.35);padding-top:12px;">
+          <div class="card-sub" style="margin-bottom:8px;">Edit Club Profile</div>
+
+          <div class="input-row">
+            <div class="input-control">
+              <label>Club Name</label>
+              <input type="text" id="profileName" class="input-box" placeholder="Club XO / Nightlife Hub">
+            </div>
+            <div class="input-control">
+              <label>Contact Number</label>
+              <input type="text" id="profilePhone" class="input-box" placeholder="10-digit mobile number">
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="input-control">
+              <label>Contact Email</label>
+              <input type="email" id="profileEmail" class="input-box" placeholder="you@example.com">
+            </div>
+            <div class="input-control">
+              <label>Location</label>
+              <input type="text" id="profileLocation" class="input-box" placeholder="Area, City">
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="input-control">
+              <label>Short Description</label>
+              <textarea id="profileDescription" class="input-textarea"
+                        placeholder="Music type, ambience, crowd, cuisine focus etc."></textarea>
+            </div>
+          </div>
+
+          <button class="btn-primary" type="button" id="saveProfileBtn">
+            <span>✅ Save Profile</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Club Settings</div>
+            <div class="card-sub">Banner, delivery fee & packaging fee.</div>
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="input-control">
+            <label>Banner image (optional)</label>
+            <input type="file" id="bannerImage" class="input-file" accept="image/*">
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="input-control">
+            <label>Delivery fee (₹)</label>
+            <input type="number" id="deliveryFee" class="input-box" placeholder="0">
+          </div>
+          <div class="input-control">
+            <label>Packaging fee (₹)</label>
+            <input type="number" id="packagingFee" class="input-box" placeholder="0">
+          </div>
+        </div>
+
+        <button id="saveSettingsBtn" class="btn-primary" type="button">
+          <span>💾 Save Settings</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- RIGHT: STATS + REVENUE -->
+    <section>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Today’s Snapshot</div>
+            <div class="card-sub">Key stats based on your nightlife items, orders & ratings.</div>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-pill">
+            <span class="value" id="totalCuisines">0</span>
+            <span>Total Nightlife Items</span>
+          </div>
+          <div class="stat-pill">
+            <span class="value" id="activeOrders">0</span>
+            <span>Active Orders</span>
+          </div>
+          <div class="stat-pill">
+            <span class="value" id="avgRating">0.0⭐</span>
+            <span>Average Rating</span>
+          </div>
+          <div class="stat-pill">
+            <span class="value">₹<span id="todaysRevenue">0</span></span>
+            <span>Today’s Revenue</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="revenueSection">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Revenue History</div>
+            <div class="card-sub">Aggregated by date based on delivered orders.</div>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Date</th><th>Total Revenue</th><th>Orders</th></tr></thead>
+          <tbody id="dailyRevenueBody"></tbody>
+        </table>
+        <div class="small" style="margin-top:8px;">Monthly/yearly stats can be computed from this same data if needed.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- NIGHTLIFE ITEMS -->
+  <section class="card" id="productsSection">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Add / Manage Nightlife Items</div>
+        <div class="card-sub">These items appear on the NightlifeOrder page.</div>
+      </div>
+      <button class="btn-chip" type="button">Tip: Good photos = more orders</button>
+    </div>
+
+    <form id="productForm">
+      <div class="input-row">
+        <div class="input-control">
+          <label>Item Name</label>
+          <input type="text" id="productName" class="input-box" placeholder="Red Wine / Chicken Tikka" required>
+        </div>
+        <div class="input-control">
+          <label>Price (₹)</label>
+          <input type="number" id="price" class="input-box" placeholder="249" required>
+        </div>
+        <div class="input-control">
+          <label>Category</label>
+          <select id="category" class="input-select" required>
+            <option disabled selected>Select Category</option>
+            <option>Starter</option>
+            <option>Wine</option>
+            <option>Beer</option>
+            <option>Rum</option>
+            <option>Vodka</option>
+            <option>Whisky</option>
+            <option>Cocktail</option>
+            <option>Mocktail</option>
+            <option>Non-Alcoholic</option>
+            <option>Snacks</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="input-row">
+        <div class="input-control">
+          <label>Item Description</label>
+          <textarea id="productDescription" class="input-textarea"
+                    placeholder="Small description about the drink / starter"></textarea>
+        </div>
+        <div class="input-control">
+          <label>Availability</label>
+          <select id="availability" class="input-select" required>
+            <option>Available</option>
+            <option>Out of Stock</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="input-row">
+        <div class="input-control">
+          <label>Item Image</label>
+          <input type="file" id="productImage" class="input-file" accept="image/*" required>
+        </div>
+      </div>
+
+      <button class="btn-primary" type="submit">
+        <span>➕ Add Nightlife Item</span>
+      </button>
+    </form>
+
+    <table style="margin-top:14px;">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Item</th>
+          <th>Category</th>
+          <th>Price (₹)</th>
+          <th>Description</th>
+          <th>Availability</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="productTableBody"></tbody>
+    </table>
+  </section>
+
+  <!-- ORDERS -->
+  <section class="card" id="ordersSection">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Live Orders</div>
+        <div class="card-sub">Track status from pending to delivered.</div>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Update</th></tr>
+      </thead>
+      <tbody id="ordersTableBody"></tbody>
+    </table>
+  </section>
+
+  <!-- FEEDBACKS -->
+  <section class="card" id="feedbackSection">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Customer Feedbacks</div>
+        <div class="card-sub">Real ratings used to compute your average rating.</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Customer</th><th>Item</th><th>Rating</th><th>Feedback</th><th>Date</th></tr></thead>
+      <tbody id="feedbackTableBody"></tbody>
+    </table>
+  </section>
+
+  <!-- COUPONS -->
+  <section class="card" id="couponSection">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Coupon Management</div>
+        <div class="card-sub">Vendor coupons appear on your club page & override admin coupons.</div>
+      </div>
+    </div>
+
+    <div class="coupon-row">
+      <input id="couponCode" placeholder="Code (e.g., SAVE40)">
+      <select id="couponType">
+        <option value="percent">Percent (%)</option>
+        <option value="flat">Flat (₹)</option>
+      </select>
+      <input id="couponValue" type="number" placeholder="Value (e.g., 40)">
+      <input id="couponMin" type="number" placeholder="Min order (₹) e.g., 199">
+    </div>
+
+    <div class="coupon-actions">
+      <button id="saveCouponBtn" style="background:#10b981;color:#fff;">Save Coupon</button>
+      <button id="clearCouponBtn" style="background:#f59e0b;color:#fff;">Clear</button>
+    </div>
+
+    <div class="coupon-list" id="couponListBox"></div>
+    <div class="small" style="margin-top:8px;">Users will see only one coupon at a time — vendor coupon gets priority.</div>
+  </section>
+</main>
+
+<script>
+/* =================== CONFIG =================== */
+const API_URL = "http://127.0.0.1:5001";
+
+/* ---------------- TOAST ---------------- */
+const toastEl = document.getElementById('toast');
+function showToast(msg){
+  if(!toastEl) return;
+  toastEl.textContent = msg;
+  toastEl.style.opacity = 1;
+  toastEl.style.transform = "translateY(0)";
+  setTimeout(()=>{
+    toastEl.style.opacity = 0;
+    toastEl.style.transform = "translateY(-8px)";
+  },2200);
+}
+
+/* ---------------- THEME (REMEMBER CHOICE) ---------------- */
+let themeMode = localStorage.getItem("nightlife_theme") || "dark";
+
+function applyTheme(theme){
+  document.body.classList.remove("theme-light","theme-dark");
+  if(theme === "light"){
+    document.body.classList.add("theme-light");
+    document.getElementById("themeToggle").textContent = "🌙 Night";
+  }else{
+    document.body.classList.add("theme-dark");
+    document.getElementById("themeToggle").textContent = "☀ Day";
+  }
+  localStorage.setItem("nightlife_theme", theme);
+}
+applyTheme(themeMode);
+
+document.getElementById("themeToggle").addEventListener("click", ()=>{
+  themeMode = themeMode === "light" ? "dark" : "light";
+  applyTheme(themeMode);
+});
+
+/* ---------------- Helpers ---------------- */
+const $ = s => document.querySelector(s);
+function escapeHTML(s){
+  if(s===null||s===undefined) return '';
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+/* ---------------- current vendor via URL ---------------- */
+function getVendorIdFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("vendor_id");
+}
+const VENDOR_ID = getVendorIdFromURL();
+if(!VENDOR_ID){
+  alert("Vendor ID missing. Login again.");
+  location.href = "vendor.html";
+}
+
+/* 🔹 RUNTIME STATE */
+let CURRENT_VENDOR = null;
+let CURRENT_CLUB   = null;
+let NIGHTLIFE_ITEMS = [];
+
+let CURRENT_ORDERS = [];
+let CURRENT_RATINGS = {avg:0, count:0, items:[]};
+let CURRENT_SETTINGS = {deliveryFee:0, packagingFee:0};
+let CURRENT_COUPON = null;
+
+const ORDER_FLOW = ["PENDING","ACCEPTED","PREPARING","READY","SERVED"];
+
+/* =================== BACKEND HELPERS =================== */
+
+async function fetchVendorByID(id){
+  const res = await fetch(`${API_URL}/vendor/find/${id}`);
+  if(!res.ok){
+    throw new Error('Vendor not found in backend for id ' + id);
+  }
+  const data = await res.json();
+  if(!data.ok || !data.vendor){
+    throw new Error('Invalid vendor data from backend');
+  }
+  return data.vendor;
+}
+
+async function fetchVendorClubs(vendorId){
+  const res = await fetch(`${API_URL}/vendor/getClubs/${vendorId}`);
+  if(!res.ok){
+    return [];
+  }
+  const data = await res.json();
+  if(!Array.isArray(data)) return [];
+  return data;
+}
+
+async function loadCurrentClub(){
+  if(!VENDOR_ID) return;
+  const clubs = await fetchVendorClubs(VENDOR_ID);
+  if(clubs.length > 0){
+    CURRENT_CLUB = clubs[0];
+  } else {
+    CURRENT_CLUB = null;
+  }
+}
+
+async function createClubOnBackend(payload){
+  const res = await fetch(`${API_URL}/vendor/addClub`, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  });
+  if(!res.ok){
+    throw new Error('Failed to create club');
+  }
+  const data = await res.json();
+  if(!data.ok){
+    throw new Error(data.message || 'Club create error');
+  }
+  return data.club_id;
+}
+
+async function updateClubOnBackend(clubId, payload){
+  const res = await fetch(`${API_URL}/vendor/updateClub/${clubId}`, {
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  });
+  if(!res.ok){
+    throw new Error('Failed to update club');
+  }
+  const data = await res.json();
+  if(!data.ok){
+    throw new Error(data.message || 'Club update error');
+  }
+  return true;
+}
+
+async function uploadClubBannerImage(clubId, file){
+  if(!file) return;
+  const fd = new FormData();
+  fd.append("images", file);
+  const res = await fetch(`${API_URL}/vendor/uploadClubImages/${clubId}`, {
+    method:"POST",
+    body: fd
+  });
+  if(!res.ok){
+    throw new Error('Upload failed');
+  }
+  const data = await res.json();
+  if(!data.ok){
+    throw new Error(data.message || 'Upload error');
+  }
+  return data.images || [];
+}
+
+/* =================== PRODUCTS = NIGHTLIFE ITEMS =================== */
+function getVendorProducts(){ return NIGHTLIFE_ITEMS; }
+function setVendorProducts(list){ NIGHTLIFE_ITEMS = Array.isArray(list) ? list : []; }
+
+async function loadNightlifeItemsFromServer(){
+  if(!CURRENT_VENDOR) return;
+  try{
+    const res = await fetch(`${API_URL}/vendor/getNightlifeItems/${CURRENT_VENDOR.id}`);
+    if(!res.ok){
+      setVendorProducts([]);
+      renderProducts();
+      return;
+    }
+    const data = await res.json();
+    setVendorProducts(Array.isArray(data) ? data : []);
+    renderProducts();
+  }catch(err){
+    console.error(err);
+    setVendorProducts([]);
+    renderProducts();
+  }
+}
+
+function resolveImageSrc(path) {
+  if(!path) return '';
+  if(path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${API_URL}${path}`;
+}
+
+function renderProducts(){
+  const prods = getVendorProducts();
+  const tbody = document.getElementById('productTableBody');
+  tbody.innerHTML = '';
+
+  prods.forEach(item => {
+    const id = item.id || item.item_id;
+    let imgPath = item.image_url || item.image || item.image_path || null;
+    const imgSrc = imgPath ? resolveImageSrc(imgPath) : '';
+
+    const availability = item.availability || item.status || 'Available';
+
+    tbody.innerHTML += `
+      <tr>
+        <td>
+          ${imgSrc ? `<img src="${imgSrc}" class="product-img" alt="">` : '<span class="small">No image</span>'}
+        </td>
+        <td>
+          <input class="input-box" id="ni_name_${id}" value="${escapeHTML(item.item_name || item.name || '')}">
+        </td>
+        <td>
+          <input class="input-box" id="ni_cat_${id}" value="${escapeHTML(item.category || '')}">
+        </td>
+        <td>
+          <input class="input-box" id="ni_price_${id}" type="number" value="${Number(item.price || 0)}">
+        </td>
+        <td>
+          <textarea class="input-textarea" id="ni_desc_${id}">${escapeHTML(item.description || '')}</textarea>
+        </td>
+        <td>
+          <select class="input-select" id="ni_avail_${id}">
+            <option ${availability === 'Available' ? 'selected' : ''}>Available</option>
+            <option ${availability === 'Out of Stock' ? 'selected' : ''}>Out of Stock</option>
+          </select>
+        </td>
+        <td>
+          <button class="status-btn" onclick="updateNightlifeItem(${id})">Save</button>
+          <button class="status-btn" style="background:#ef4444;margin-left:4px;" onclick="deleteNightlifeItem(${id})">Delete</button>
+        </td>
+      </tr>`;
+  });
+
+  document.getElementById('totalCuisines').textContent = prods.length;
+}
+
+document.getElementById('productForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  try{
+    if(!CURRENT_VENDOR){
+      showToast('Vendor not loaded');
+      return;
+    }
+    if(!CURRENT_CLUB){
+      showToast('Create your club profile first');
+      return;
+    }
+
+    const name = $('#productName').value.trim();
+    const price = $('#price').value;
+    const category = $('#category').value;
+    const description = $('#productDescription').value.trim();
+    const availability = $('#availability').value;
+    const file = $('#productImage').files[0];
+
+    if(!name || !price || !category || !file){
+      showToast('Fill all required fields');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append("vendor_id", CURRENT_VENDOR.id);
+    fd.append("club_id", CURRENT_CLUB.club_id || CURRENT_CLUB.id);
+    fd.append("item_name", name);
+    fd.append("category", category);
+    fd.append("price", price);
+    fd.append("description", description);
+    fd.append("availability", availability);
+    fd.append("image", file);
+
+    const res = await fetch(`${API_URL}/vendor/addNightlifeItem`, {
+      method: "POST",
+      body: fd
+    });
+
+    const result = await res.json();
+
+    if(result.success){
+      showToast('Nightlife item added');
+      document.getElementById('productForm').reset();
+      await loadNightlifeItemsFromServer();
+    }else{
+      showToast(result.message || 'Failed to add item');
+    }
+  }catch(err){
+    console.error(err);
+    showToast('Error adding item');
+  }
+});
+
+window.updateNightlifeItem = async (id)=>{
+  try{
+    const payload = {
+      item_name: document.getElementById(`ni_name_${id}`).value.trim(),
+      category: document.getElementById(`ni_cat_${id}`).value.trim(),
+      price: document.getElementById(`ni_price_${id}`).value,
+      description: document.getElementById(`ni_desc_${id}`).value.trim(),
+      availability: document.getElementById(`ni_avail_${id}`).value
+    };
+
+    const res = await fetch(`${API_URL}/vendor/editNightlifeItem/${id}`, {
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(data.success){
+      showToast('Item updated');
+      await loadNightlifeItemsFromServer();
+    }else{
+      showToast(data.message || 'Update failed');
+    }
+  }catch(err){
+    console.error(err);
+    showToast('Error updating item');
+  }
+};
+
+window.deleteNightlifeItem = async (id)=>{
+  if(!confirm('Delete this item?')) return;
+  try{
+    const res = await fetch(`${API_URL}/vendor/deleteNightlifeItem/${id}`, {
+      method:"DELETE"
+    });
+    const data = await res.json();
+    if(data.success){
+      showToast('Item deleted');
+      await loadNightlifeItemsFromServer();
+    }else{
+      showToast(data.message || 'Delete failed');
+    }
+  }catch(err){
+    console.error(err);
+    showToast('Error deleting item');
+  }
+};
+
+/* =================== RESTAURANT / CLUB INFO (UI) =================== */
+function loadRestaurantInfo(){
+  const v = CURRENT_VENDOR || {};
+  const c = CURRENT_CLUB || {};
+
+  const displayName =
+    c.club_name ||
+    v.restaurant_name ||
+    'My Club';
+
+  const displayEmail = c.email || v.email || '';
+  const displayPhone = c.phone || v.phone || '';
+
+  const locationText =
+    c.location ||
+    v.address ||
+    '';
+
+  const desc = c.description || '';
+
+  document.getElementById('restName').textContent = displayName;
+
+  const emailText = displayEmail ? ('📧 ' + displayEmail) : '';
+  const phoneText = displayPhone ? (' • 📞 ' + displayPhone) : '';
+  document.getElementById('restEmail').textContent = emailText + phoneText;
+
+  document.getElementById('restAddress').textContent =
+    locationText ? ('📍 ' + locationText) : '📍 Location not set';
+
+  document.getElementById('restCharges').textContent =
+    `Delivery: ₹${Number(CURRENT_SETTINGS.deliveryFee||0)} • Packaging: ₹${Number(CURRENT_SETTINGS.packagingFee||0)}`;
+
+  document.getElementById('restDescription').textContent =
+    desc ? ('📝 ' + desc) : '';
+
+  const bannerEl = document.getElementById('restBanner');
+  const bannerPath = c.image || c.main_image || null;
+  if(bannerPath){
+    bannerEl.src = resolveImageSrc(bannerPath);
+    bannerEl.style.display = 'block';
+  }else{
+    bannerEl.style.display = 'none';
+  }
+
+  document.getElementById('deliveryFee').value = CURRENT_SETTINGS.deliveryFee || 0;
+  document.getElementById('packagingFee').value = CURRENT_SETTINGS.packagingFee || 0;
+
+  document.getElementById("vendorLabel").textContent = "Vendor: " + displayName;
+
+  document.getElementById('profileName').value        = displayName || '';
+  document.getElementById('profilePhone').value       = displayPhone || '';
+  document.getElementById('profileEmail').value       = displayEmail || '';
+  document.getElementById('profileLocation').value    = locationText || '';
+  document.getElementById('profileDescription').value = desc || '';
+}
+
+/* =================== ORDERS / REVENUE / FEEDBACKS =================== */
+
+async function loadOrdersFromBackend(){
+  if(!CURRENT_VENDOR) return;
+  try{
+    const res = await fetch(`${API_URL}/api/vendor/orders/qr/${CURRENT_VENDOR.id}`);
+    if(!res.ok){
+      CURRENT_ORDERS = [];
+    } else {
+      CURRENT_ORDERS = await res.json();
+    }
+  }catch(e){
+    console.error(e);
+    CURRENT_ORDERS = [];
+  }
+  renderOrders();
+  renderRevenue();
+  updateStats();
+}
+
+function renderOrders(){
+  const orders = CURRENT_ORDERS || [];
+  const tbody = document.getElementById('ordersTableBody');
+  tbody.innerHTML = '';
+
+  orders.forEach(o=>{
+    const itemsText = Array.isArray(o.items)
+      ? o.items.map(it => `${it.name} x${it.qty}`).join(', ')
+      : '';
+
+    const status = (o.status || 'PENDING').toUpperCase();
+    const cls = status.toLowerCase();
+
+    const idx = ORDER_FLOW.indexOf(status);
+    let updateBtn = '';
+    if(idx === -1 || idx === ORDER_FLOW.length-1){
+      updateBtn = `<span style="color:#22c55e;font-weight:600;font-size:12px;">Completed</span>`;
+    }else{
+      updateBtn = `<button class="status-btn" onclick="updateOrderStatus(${o.id}, '${status}')">Next</button>`;
+    }
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${escapeHTML(o.user_name || 'Guest')}</td>
+        <td>${escapeHTML(itemsText)}</td>
+        <td>₹${Number(o.total || 0)}</td>
+        <td><span class="order-status ${cls}">${escapeHTML(status)}</span></td>
+        <td>${updateBtn}</td>
+      </tr>`;
+  });
+
+  const activeCount = orders.filter(o=>{
+    const s = (o.status || '').toUpperCase();
+    return s !== 'SERVED' && s !== 'CANCELLED';
+  }).length;
+  document.getElementById('activeOrders').textContent = activeCount;
+}
+
+window.updateOrderStatus = async (orderId, currentStatus)=>{
+  try{
+    const cur = (currentStatus || 'PENDING').toUpperCase();
+    const idx = ORDER_FLOW.indexOf(cur);
+    const next = ORDER_FLOW[Math.min(ORDER_FLOW.length-1, idx+1)];
+    if(!next || next === cur) return;
+
+    const res = await fetch(`${API_URL}/api/vendor/orders/qr/${orderId}/status`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({status: next})
+    });
+    const data = await res.json();
+    if(data.success){
+      showToast(`Order updated → ${next}`);
+      await loadOrdersFromBackend();
+    }else{
+      showToast(data.message || 'Failed to update order');
+    }
+  }catch(err){
+    console.error(err);
+    showToast('Error updating order');
+  }
+};
+
+function renderRevenue(){
+  const orders = CURRENT_ORDERS || [];
+  const grouped = {};
+  orders.forEach(o=>{
+    if(!o.created_at) return;
+    const d = new Date(o.created_at);
+    if(isNaN(d.getTime())) return;
+    const key = d.toLocaleDateString();
+    if(!grouped[key]) grouped[key] = {total:0,count:0};
+    grouped[key].total += Number(o.total || 0);
+    grouped[key].count += 1;
+  });
+
+  const tbody = document.getElementById('dailyRevenueBody');
+  tbody.innerHTML = '';
+
+  Object.keys(grouped).sort((a,b)=> new Date(b)-new Date(a)).forEach(day=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${day}</td>
+        <td>₹${grouped[day].total.toFixed(2)}</td>
+        <td>${grouped[day].count}</td>
+      </tr>`;
+  });
+
+  const todayKey = new Date().toLocaleDateString();
+  const today = grouped[todayKey];
+  const todayTotal = today ? today.total : 0;
+  document.getElementById('todaysRevenue').textContent = todayTotal.toFixed(2);
+}
+
+async function loadFeedbacks(){
+  const tbody = document.getElementById('feedbackTableBody');
+  tbody.innerHTML = '';
+
+  if(!CURRENT_CLUB){
+    CURRENT_RATINGS = {avg:0,count:0,items:[]};
+    document.getElementById('avgRating').textContent = '0.0⭐';
+    document.getElementById('restRatingBadge').textContent = '⭐ 0.0 • 0 Reviews';
+    return;
+  }
+
+  try{
+    const res = await fetch(`${API_URL}/rating/club/${CURRENT_CLUB.club_id || CURRENT_CLUB.id}`);
+    if(!res.ok){
+      CURRENT_RATINGS = {avg:0,count:0,items:[]};
+    }else{
+      CURRENT_RATINGS = await res.json();
+    }
+  }catch(e){
+    console.error(e);
+    CURRENT_RATINGS = {avg:0,count:0,items:[]};
+  }
+
+  (CURRENT_RATINGS.items || []).forEach(f=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${escapeHTML(f.name || '')}</td>
+        <td>—</td>
+        <td>${'⭐'.repeat(Number(f.stars || 0))}</td>
+        <td>${escapeHTML(f.comment || '')}</td>
+        <td>${escapeHTML(f.date || '')}</td>
+      </tr>`;
+  });
+
+  const avg = Number(CURRENT_RATINGS.avg || 0);
+  const count = CURRENT_RATINGS.count || (CURRENT_RATINGS.items || []).length || 0;
+  document.getElementById('avgRating').textContent = (avg ? avg.toFixed(1) : '0.0') + '⭐';
+  document.getElementById('restRatingBadge').textContent = `⭐ ${(avg ? avg.toFixed(1) : '0.0')} • ${count} Reviews`;
+}
+
+/* =================== COUPONS (session only) =================== */
+function loadVendorCouponUI(){
+  const box = document.getElementById('couponListBox');
+  box.innerHTML = '';
+  if(!CURRENT_COUPON){
+    box.innerHTML = '<div class="small">No vendor coupon saved (session only).</div>';
+    document.getElementById('couponCode').value='';
+    document.getElementById('couponType').value='percent';
+    document.getElementById('couponValue').value='';
+    document.getElementById('couponMin').value='';
+    return;
+  }
+  const c = CURRENT_COUPON;
+  document.getElementById('couponCode').value = c.code || '';
+  document.getElementById('couponType').value = c.type || 'percent';
+  document.getElementById('couponValue').value = c.value || '';
+  document.getElementById('couponMin').value = c.minOrder || '';
+
+  box.innerHTML = `
+    <div class="coupon-item">
+      <div><strong>${escapeHTML(c.code)}</strong> • ${escapeHTML(String(c.type).toUpperCase())} ${escapeHTML(String(c.value))} • Min: ₹${escapeHTML(String(c.minOrder||0))}</div>
+      <div><button onclick="deleteVendorCoupon()" style="background:#ef4444;color:#fff;border:none;padding:6px 10px;border-radius:999px;font-size:12px;">Delete</button></div>
+    </div>`;
+}
+
+document.getElementById('saveCouponBtn').addEventListener('click', ()=>{
+  const code = document.getElementById('couponCode').value.trim();
+  const type = document.getElementById('couponType').value;
+  const value = Number(document.getElementById('couponValue').value || 0);
+  const minOrder = Number(document.getElementById('couponMin').value || 0);
+  if(!code || !type || !value){
+    showToast('Fill coupon code, type, value');
+    return;
+  }
+  CURRENT_COUPON = {code,type,value,minOrder};
+  showToast('Coupon saved (this session only)');
+  loadVendorCouponUI();
+});
+
+document.getElementById('clearCouponBtn').addEventListener('click', ()=>{
+  document.getElementById('couponCode').value='';
+  document.getElementById('couponValue').value='';
+  document.getElementById('couponMin').value='';
+  document.getElementById('couponType').value='percent';
+  showToast('Cleared form');
+});
+
+window.deleteVendorCoupon = ()=>{
+  CURRENT_COUPON = null;
+  loadVendorCouponUI();
+  showToast('Coupon deleted');
+};
+
+/* =================== SAVE SETTINGS (fees + banner) =================== */
+document.getElementById('saveSettingsBtn').addEventListener('click', async ()=>{
+  try{
+    CURRENT_SETTINGS.deliveryFee = Number(document.getElementById('deliveryFee').value || 0);
+    CURRENT_SETTINGS.packagingFee = Number(document.getElementById('packagingFee').value || 0);
+    const file = document.getElementById('bannerImage').files[0];
+
+    if(file && CURRENT_CLUB){
+      try{
+        const images = await uploadClubBannerImage(CURRENT_CLUB.club_id || CURRENT_CLUB.id, file);
+        if(images && images.length){
+          document.getElementById('restBanner').src = resolveImageSrc(images[0]);
+          document.getElementById('restBanner').style.display = 'block';
+        }
+        showToast('Settings saved & banner uploaded');
+      }catch(err){
+        console.error(err);
+        showToast('Banner upload failed');
+      }
+    }else{
+      showToast('Settings saved (fees in this session)');
+    }
+    loadRestaurantInfo();
+  }catch(err){
+    console.error(err);
+    showToast('Error saving settings');
+  }
+});
+
+/* =================== SAVE PROFILE → SYNC CLUB IN DB =================== */
+document.getElementById('saveProfileBtn').addEventListener('click', async ()=>{
+  const name = $('#profileName').value.trim();
+  const phone = $('#profilePhone').value.trim();
+  const email = $('#profileEmail').value.trim();
+  const locationText = $('#profileLocation').value.trim();
+  const description = $('#profileDescription').value.trim();
+
+  if(!CURRENT_VENDOR){
+    showToast('Vendor not loaded from server');
+    return;
+  }
+
+  try{
+    const payload = {
+      vendor_id: CURRENT_VENDOR.id,
+      club_name: name || (CURRENT_CLUB && CURRENT_CLUB.club_name) || CURRENT_VENDOR.restaurant_name || 'My Club',
+      location: locationText || CURRENT_VENDOR.address || '',
+      music: "",
+      dress: "",
+      description: description || '',
+      phone: phone,
+      email: email || CURRENT_VENDOR.email
+    };
+
+    if(CURRENT_CLUB){
+      const cid = CURRENT_CLUB.club_id || CURRENT_CLUB.id;
+      await updateClubOnBackend(cid, payload);
+      CURRENT_CLUB = {
+        ...CURRENT_CLUB,
+        club_name: payload.club_name,
+        location: payload.location,
+        description: payload.description,
+        phone: payload.phone,
+        email: payload.email
+      };
+    }else{
+      const newId = await createClubOnBackend(payload);
+      CURRENT_CLUB = {
+        club_id: newId,
+        club_name: payload.club_name,
+        location: payload.location,
+        music: payload.music,
+        dress: payload.dress,
+        description: payload.description,
+        phone: payload.phone,
+        email: payload.email
+      };
+    }
+
+    loadRestaurantInfo();
+    await loadFeedbacks();
+    showToast('Profile updated & synced to nightlife');
+  }catch(err){
+    console.error(err);
+    showToast('Profile saved locally, server sync failed');
+  }
+});
+
+/* =================== STATS =================== */
+function updateStats(){
+  const prods = getVendorProducts();
+  document.getElementById('totalCuisines').textContent = prods.length;
+
+  const orders = CURRENT_ORDERS || [];
+  const activeCount = orders.filter(o=>{
+    const s = (o.status || '').toUpperCase();
+    return s !== 'SERVED' && s !== 'CANCELLED';
+  }).length;
+  document.getElementById('activeOrders').textContent = activeCount;
+
+  const avg = Number(CURRENT_RATINGS.avg || 0);
+  document.getElementById('avgRating').textContent = (avg ? avg.toFixed(1) : '0.0') + '⭐';
+}
+
+/* =================== LOGOUT & SIDEBAR =================== */
+function logout(){
+  showToast('Logged out');
+  setTimeout(()=> location.href='vendor.html',900);
+}
+window.logout = logout;
+
+document.querySelectorAll('.menu-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+
+/* =================== BOOT =================== */
+(async function boot(){
+  try{
+    CURRENT_VENDOR = await fetchVendorByID(VENDOR_ID);
+    await loadCurrentClub();
+
+    loadRestaurantInfo();
+    await loadNightlifeItemsFromServer();
+    await loadOrdersFromBackend();
+    await loadFeedbacks();
+    loadVendorCouponUI();
+    updateStats();
+  }catch(err){
+    console.error(err);
+    showToast('Error loading vendor dashboard');
+  }
+})();
+</script>
+
+</body>
+</html>
