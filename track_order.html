@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ZomaClone | Track Order</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+    body{margin:0;font-family:Poppins,sans-serif;background:#fafafa}
+    .container{max-width:900px;margin:20px auto;padding:20px}
+    .heading{text-align:center;font-size:26px;font-weight:700;color:#e23744;margin-bottom:20px}
+
+    .order-card{
+        background:#fff;
+        border-radius:12px;
+        padding:16px;
+        margin-bottom:16px;
+        box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .status{
+        padding:6px 12px;
+        border-radius:6px;
+        font-size:13px;
+        color:#fff;
+        font-weight:600;
+    }
+
+    .pending{background:#f59e0b}
+    .preparing{background:#3b82f6}
+    .out_for_delivery{background:#9333ea}
+    .delivered{background:#16a34a}
+    .cancelled{background:#ef4444}
+
+    .refresh-btn{
+        width:100%;
+        background:#1674ff;
+        padding:10px;
+        border:none;
+        border-radius:8px;
+        color:#fff;
+        font-size:15px;
+        cursor:pointer;
+        margin-top:10px;
+    }
+
+    .empty{text-align:center;padding:20px;color:#666}
+    
+    #map{
+        height:300px;
+        width:100%;
+        border-radius:12px;
+        margin-top:16px;
+        display:none;
+    }
+    
+    .track-btn{
+        background:#16a34a;
+        color:#fff;
+        padding:8px 16px;
+        border:none;
+        border-radius:6px;
+        cursor:pointer;
+        margin-top:8px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="heading">Your Orders</div>
+    <div id="ordersBox"></div>
+    <div id="map"></div>
+    <button class="refresh-btn" onclick="loadOrders()">Refresh</button>
+</div>
+
+<script>
+const API = window.location.origin;
+let map = null;
+let marker = null;
+let trackingInterval = null;
+let currentOrderId = null;
+
+// Get phone from URL
+function getPhone() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("phone");
+}
+
+function formatOrderTime(utcString) {
+    if (!utcString) return "N/A";
+    const date = new Date(utcString + " UTC");
+    return date.toLocaleString("en-IN", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+    });
+}
+
+// Load all orders
+async function loadOrders() {
+    const phone = getPhone();
+
+    if (!phone) {
+        document.getElementById("ordersBox").innerHTML =
+            `<div class="empty">Phone number missing.<br>Try: track_order.html?phone=9876543210</div>`;
+        return;
+    }
+
+    try {
+        // Use the correct endpoint: /api/orders/user/<phone>
+        const res = await fetch(`${API}/api/orders/user/${phone}`);
+        let data = { success: false, orders: [], data: [] };
+        
+        if (res.ok) {
+            data = await res.json();
+        }
+        
+        // Combine orders from both endpoints
+        let orders = [];
+        
+        // From data.orders or data.data (both are used in different responses)
+        if (data.success && data.orders) {
+            orders = orders.concat(data.orders);
+        }
+        if (data.success && data.data && Array.isArray(data.data)) {
+            orders = orders.concat(data.data);
+        }
+
+        // Remove duplicates by order_id
+        const uniqueOrders = [];
+        const seen = new Set();
+        for (const order of orders) {
+            if (!seen.has(order.id)) {
+                seen.add(order.id);
+                uniqueOrders.push(order);
+            }
+        }
+
+        if (!uniqueOrders.length) {
+            document.getElementById("ordersBox").innerHTML =
+                `<div class="empty">No orders found.</div>`;
+            return;
+        }
+
+        let html = "";
+
+        uniqueOrders.forEach(o => {
+            // Handle different data structures
+            const items = Array.isArray(o.items) 
+                ? o.items.map(i => `${i.name || i.item_name || 'Item'} × ${i.qty || i.quantity || 1}`).join(", ")
+                : "Items unavailable";
+
+            const statusClass = o.status
+                ? o.status.replaceAll(" ", "_").toLowerCase()
+                : "pending";
+
+            const restaurantName = o.restaurant_name || o.vendor_name || "Restaurant";
+            const orderId = o.order_id || o.order_number || o.id;
+            
+            // Show track button only for out_for_delivery orders
+            const showTrack = o.status === 'OUT_FOR_DELIVERY' || o.status === 'ACCEPTED' || o.status === 'PREPARING';
+
+            html += `
+                <div class="order-card">
+                    <h3>${restaurantName} 
+                        <span style="font-size:13px;color:#888">#${orderId}</span>
+                    </h3>
+
+                    <p><b>Total:</b> ₹${o.total || o.subtotal || 0}</p>
+                    <p><b>Items:</b> ${items}</p>
+
+                    <p><b>Status:</b> 
+                        <span class="status ${statusClass}">${o.status || 'PENDING'}</span>
+                    </p>
+
+                    <p><b>Payment:</b> ${o.payment_method || 'COD'}</p>
+                    <p><b>Ordered At:</b> ${formatOrderTime(o.created_at)}</p>
+                    
+                    ${showTrack ? `<button class="track-btn" onclick="startTracking('${orderId}')">Track Delivery</button>` : ''}
+
+                </div>
+            `;
+        });
+
+        document.getElementById("ordersBox").innerHTML = html;
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById("ordersBox").innerHTML =
+            `<div class="empty">Error loading orders.</div>`;
+    }
+}
+
+// Start live tracking
+async function startTracking(orderId) {
+    // Stop any existing tracking
+    if (trackingInterval) {
+        clearInterval(trackingInterval);
+    }
+    
+    currentOrderId = orderId;
+    
+    // Show map
+    const mapDiv = document.getElementById('map');
+    mapDiv.style.display = 'block';
+    
+    // Initialize map if not already done
+    if (!map) {
+        map = L.map('map').setView([20.2961, 85.8245], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+    }
+    
+    // Add marker if not exists
+    if (!marker) {
+        marker = L.marker([20.2961, 85.8245]).addTo(map);
+        marker.bindPopup("Delivery Partner Location").openPopup();
+    }
+    
+    // Start tracking
+    await updateDeliveryLocation(orderId);
+    
+    trackingInterval = setInterval(async () => {
+        await updateDeliveryLocation(orderId);
+    }, 5000);
+}
+
+// Update delivery location
+async function updateDeliveryLocation(orderId) {
+    try {
+        const res = await fetch(`${API}/api/order/location/${orderId}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.data) {
+                const { lat, lng, status } = data.data;
+                if (lat && lng) {
+                    marker.setLatLng([lat, lng]);
+                    map.setView([lat, lng], 15);
+                    marker.setPopupContent(`Status: ${status || 'On the way'}`);
+                }
+            }
+        }
+    } catch (e) {
+        console.log('Location tracking not available');
+    }
+}
+
+loadOrders();
+</script>
+
+</body>
+</html>

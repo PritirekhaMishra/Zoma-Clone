@@ -1,0 +1,336 @@
+<!-- =====================================================
+     ADMIN SETTINGS UI - Add to admin.html
+     Replace the existing page-settings div with this
+     ===================================================== -->
+
+<!-- Settings Page -->
+<div class="page" id="page-settings">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    
+    <!-- Restaurant Settings -->
+    <div class="settings-card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;">
+      <h3 class="settings-title" style="font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-utensils" style="color: var(--accent);"></i>
+        Restaurant Settings
+      </h3>
+      
+      <div class="form-group">
+        <label class="form-label">GST (%)</label>
+        <input type="number" class="form-input" id="restGst" min="0" max="100" step="0.1" placeholder="5">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Platform Commission (%)</label>
+        <input type="number" class="form-input" id="restCommission" min="0" max="100" step="0.1" placeholder="25">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Admin Delivery Fee (₹)</label>
+        <input type="number" class="form-input" id="restDeliveryFee" min="0" max="500" step="1" placeholder="0">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Admin Packing Fee (₹)</label>
+        <input type="number" class="form-input" id="restPackingFee" min="0" max="200" step="1" placeholder="0">
+      </div>
+      
+      <button class="btn" onclick="saveRestaurantSettings()" style="width: 100%;">
+        <i class="fas fa-save"></i> Save Restaurant Settings
+      </button>
+      <div id="restSettingsMsg" style="margin-top: 10px; font-size: 13px;"></div>
+    
+    <!-- Nightlife Settings -->
+    <div class="settings-card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;">
+      <h3 class="settings-title" style="font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-moon" style="color: var(--success);"></i>
+        Nightlife Settings
+      </h3>
+      
+      <div class="form-group">
+        <label class="form-label">Platform Commission (%)</label>
+        <input type="number" class="form-input" id="nlCommission" min="0" max="100" step="0.1" placeholder="20">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Service Fee (%)</label>
+        <input type="number" class="form-input" id="nlServiceFee" min="0" max="100" step="0.1" placeholder="0">
+      </div>
+      
+      <button class="btn" onclick="saveNightlifeSettings()" style="width: 100%; background: var(--success);">
+        <i class="fas fa-save"></i> Save Nightlife Settings
+      </button>
+      <div id="nlSettingsMsg" style="margin-top: 10px; font-size: 13px;"></div>
+  </div>
+  
+  <!-- Platform Settings (Legacy - kept for compatibility) -->
+  <div style="margin-top: 20px; padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);">
+    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">
+      <i class="fas fa-cog" style="color: var(--accent); margin-right: 8px;"></i>
+      Platform Configuration
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+      <div class="form-group">
+        <label class="form-label">Platform UPI</label>
+        <input type="text" class="form-input" id="settingUpi" placeholder="platform@upi">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Surge Multiplier</label>
+        <input type="number" class="form-input" id="settingSurge" value="1" min="1" max="3" step="0.1">
+      </div>
+      <div style="display: flex; align-items: flex-end;">
+        <button class="btn btn-sm" onclick="savePlatformConfig()">Save Platform Config</button>
+      </div>
+  </div>
+
+<!-- =====================================================
+     ADMIN SETTINGS JAVASCRIPT - Add to admin.html script
+     ===================================================== -->
+
+<script>
+// ========================================
+// ADMIN SETTINGS FUNCTIONS
+// ========================================
+
+let adminSettingsData = {
+  restaurant: { gst: 5, delivery_fee: 0, packing_fee: 0, platform_commission: 25 },
+  nightlife: { platform_commission: 20, service_fee: 0 }
+};
+
+// Load admin settings when page loads
+async function loadAdminSettings() {
+  try {
+    const res = await fetch(`${window.location.origin}/api/admin/settings`);
+    const data = await res.json();
+    
+    if (data.success) {
+      adminSettingsData = data;
+      
+      // Populate restaurant settings
+      document.getElementById('restGst').value = data.restaurant.gst || 5;
+      document.getElementById('restCommission').value = data.restaurant.platform_commission || 25;
+      document.getElementById('restDeliveryFee').value = data.restaurant.delivery_fee || 0;
+      document.getElementById('restPackingFee').value = data.restaurant.packing_fee || 0;
+      
+      // Populate nightlife settings
+      document.getElementById('nlCommission').value = data.nightlife.platform_commission || 20;
+      document.getElementById('nlServiceFee').value = data.nightlife.service_fee || 0;
+      
+      // Update legacy settings
+      if (document.getElementById('settingGst')) {
+        document.getElementById('settingGst').value = data.restaurant.gst || 5;
+      }
+      if (document.getElementById('commPlatform')) {
+        document.getElementById('commPlatform').value = data.restaurant.platform_commission || 25;
+      }
+      if (document.getElementById('commDelivery')) {
+        document.getElementById('commDelivery').value = data.restaurant.delivery_fee || 0;
+      }
+      if (document.getElementById('commPacking')) {
+        document.getElementById('commPacking').value = data.restaurant.packing_fee || 0;
+      }
+      
+      console.log('Admin settings loaded:', data);
+    }
+  } catch (err) {
+    console.error('Failed to load admin settings:', err);
+    // Use defaults
+    document.getElementById('restGst').value = 5;
+    document.getElementById('restCommission').value = 25;
+    document.getElementById('restDeliveryFee').value = 0;
+    document.getElementById('restPackingFee').value = 0;
+    document.getElementById('nlCommission').value = 20;
+    document.getElementById('nlServiceFee').value = 0;
+  }
+}
+
+// Save Restaurant Settings
+async function saveRestaurantSettings() {
+  const msgEl = document.getElementById('restSettingsMsg');
+  
+  const gst = parseFloat(document.getElementById('restGst').value);
+  const commission = parseFloat(document.getElementById('restCommission').value);
+  const deliveryFee = parseFloat(document.getElementById('restDeliveryFee').value);
+  const packingFee = parseFloat(document.getElementById('restPackingFee').value);
+  
+  // Validation
+  if (isNaN(gst) || gst < 0 || gst > 100) {
+    msgEl.innerHTML = '<span style="color: var(--danger);">GST must be between 0 and 100</span>';
+    return;
+  }
+  if (isNaN(commission) || commission < 0 || commission > 100) {
+    msgEl.innerHTML = '<span style="color: var(--danger);">Commission must be between 0 and 100</span>';
+    return;
+  }
+  if (isNaN(deliveryFee) || deliveryFee < 0) {
+    msgEl.innerHTML = '<span style="color: var(--danger);">Delivery fee cannot be negative</span>';
+    return;
+  }
+  if (isNaN(packingFee) || packingFee < 0) {
+    msgEl.innerHTML = '<span style="color: var(--danger);">Packing fee cannot be negative</span>';
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${window.location.origin}/api/admin/settings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        restaurant_gst: gst,
+        restaurant_platform_commission: commission,
+        restaurant_delivery_fee: deliveryFee,
+        restaurant_packing_fee: packingFee
+      })
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      msgEl.innerHTML = '<span style="color: var(--success);">✓ Restaurant settings saved successfully!</span>';
+      
+      // Update local cache
+      adminSettingsData.restaurant = {
+        gst: gst,
+        platform_commission: commission,
+        delivery_fee: deliveryFee,
+        packing_fee: packingFee
+      };
+      
+      // Update legacy fields
+      if (document.getElementById('settingGst')) {
+        document.getElementById('settingGst').value = gst;
+      }
+      if (document.getElementById('commPlatform')) {
+        document.getElementById('commPlatform').value = commission;
+      }
+      if (document.getElementById('commDelivery')) {
+        document.getElementById('commDelivery').value = deliveryFee;
+      }
+      if (document.getElementById('commPacking')) {
+        document.getElementById('commPacking').value = packingFee;
+      }
+      
+      setTimeout(() => { msgEl.innerHTML = ''; }, 3000);
+    } else {
+      msgEl.innerHTML = '<span style="color: var(--danger);">Error: ' + (data.message || 'Failed to save') + '</span>';
+    }
+  } catch (err) {
+    msgEl.innerHTML = '<span style="color: var(--danger);">Network error: ' + err.message + '</span>';
+  }
+}
+
+// Save Nightlife Settings
+async function saveNightlifeSettings() {
+  const msgEl = document.getElementById('nlSettingsMsg');
+  
+  const commission = parseFloat(document.getElementById('nlCommission').value);
+  const serviceFee = parseFloat(document.getElementById('nlServiceFee').value);
+  
+  // Validation
+  if (isNaN(commission) || commission < 0 || commission > 100) {
+    msgEl.innerHTML = '<span style="color: var(--danger);">Commission must be between 0 and 100</span>';
+    return;
+  }
+  if (isNaN(serviceFee) || serviceFee < 0 || serviceFee > 100) {
+    msgEl.innerHTML = '<span style="color: var(--danger);">Service fee must be between 0 and 100</span>';
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${window.location.origin}/api/admin/settings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nightlife_platform_commission: commission,
+        nightlife_service_fee: serviceFee
+      })
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      msgEl.innerHTML = '<span style="color: var(--success);">✓ Nightlife settings saved successfully!</span>';
+      
+      // Update local cache
+      adminSettingsData.nightlife = {
+        platform_commission: commission,
+        service_fee: serviceFee
+      };
+      
+      setTimeout(() => { msgEl.innerHTML = ''; }, 3000);
+    } else {
+      msgEl.innerHTML = '<span style="color: var(--danger);">Error: ' + (data.message || 'Failed to save') + '</span>';
+    }
+  } catch (err) {
+    msgEl.innerHTML = '<span style="color: var(--danger);">Network error: ' + err.message + '</span>';
+  }
+}
+
+// Save Platform Config (legacy)
+async function savePlatformConfig() {
+  const upi = document.getElementById('settingUpi').value;
+  const surge = parseFloat(document.getElementById('settingSurge').value);
+  
+  // Save to localStorage for now (can be extended to backend)
+  adminData.settings.platformUpi = upi;
+  adminData.settings.surgeMultiplier = surge;
+  saveData();
+  
+  alert('Platform configuration saved!');
+}
+
+// Modified saveCommission function (for backward compatibility)
+async function saveCommission(type) {
+  const data = {
+    restaurant_gst: parseFloat(document.getElementById('settingGst')?.value || 5),
+    restaurant_platform_commission: parseFloat(document.getElementById('commPlatform')?.value || 25),
+    restaurant_delivery_fee: parseFloat(document.getElementById('commDelivery')?.value || 0),
+    restaurant_packing_fee: parseFloat(document.getElementById('commPacking')?.value || 0)
+  };
+
+  try {
+    const res = await fetch("/api/admin/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await res.json();
+    
+    if (result.success) {
+      alert("Settings saved to server!");
+      
+      // Update form fields with new values
+      document.getElementById('restGst').value = data.restaurant_gst;
+      document.getElementById('restCommission').value = data.restaurant_platform_commission;
+      document.getElementById('restDeliveryFee').value = data.restaurant_delivery_fee;
+      document.getElementById('restPackingFee').value = data.restaurant_packing_fee;
+    } else {
+      alert("Error: " + (result.message || "Unknown error"));
+    }
+  } catch (err) {
+    console.error("Save commission error:", err);
+    alert("Failed to save settings");
+  }
+}
+
+// Load settings when admin panel loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Delay slightly to ensure DOM is ready
+  setTimeout(() => {
+    if (document.getElementById('page-settings')) {
+      loadAdminSettings();
+    }
+  }, 500);
+});
+
+// Also load when navigating to settings page
+const originalNavClick = document.querySelectorAll('.nav-item[data-page]');
+originalNavClick.forEach(item => {
+  item.addEventListener('click', function() {
+    const page = this.dataset.page;
+    if (page === 'settings') {
+      setTimeout(loadAdminSettings, 100);
+    }
+  });
+});
+</script>

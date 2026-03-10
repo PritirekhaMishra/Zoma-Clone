@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dining – Table Booking | ZomaClone</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+<style>
+  :root{
+    --primary:#e23744;
+    --primary-dark:#c72f3a;
+    --primary-light:#ff6b6b;
+    --secondary:#2d3436;
+    --accent:#00cec9;
+    --bg:#fafbfc;
+    --card-bg:#ffffff;
+    --text:#2d3436;
+    --text-muted:#636e72;
+    --text-light:#b2bec3;
+    --success:#00b894;
+    --warning:#fdcb6e;
+    --danger:#e17055;
+    --shadow:0 10px 40px rgba(0,0,0,0.08);
+    --shadow-hover:0 20px 60px rgba(0,0,0,0.15);
+    --radius:16px;
+    --radius-sm:8px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  body{
+    font-family:'Poppins',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+  }
+
+  /* ---------- HEADER ---------- */
+  .header{
+    background:linear-gradient(135deg,var(--primary),var(--primary-light));
+    padding:20px 0;
+    position:sticky;
+    top:0;
+    z-index:1000;
+    box-shadow:0 4px 20px rgba(226,55,68,0.15);
+  }
+
+  .header-inner{
+    max-width:1400px;
+    margin:0 auto;
+    padding:0 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:16px;
+  }
+
+  .logo{
+    color:#fff;
+    font-size:28px;
+    font-weight:800;
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .logo i{font-size:24px;}
+
+  .header-actions{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+
+  .btn-outline{
+    background:transparent;
+    border:2px solid rgba(255,255,255,0.5);
+    color:#fff;
+    padding:10px 20px;
+    border-radius:var(--radius-sm);
+    font-weight:600;
+    cursor:pointer;
+    transition:all 0.3s;
+  }
+
+  .btn-outline:hover{
+    background:#fff;
+    color:var(--primary);
+    border-color:#fff;
+  }
+
+  /* ---------- HERO SECTION ---------- */
+  .hero{
+    background:linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.7)),url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600") center/cover no-repeat;
+    padding:80px 24px;
+    text-align:center;
+    color:#fff;
+  }
+
+  .hero h1{
+    font-size:48px;
+    font-weight:800;
+    margin-bottom:16px;
+    text-shadow:0 2px 10px rgba(0,0,0,0.3);
+  }
+
+  .hero p{
+    font-size:20px;
+    opacity:0.9;
+    max-width:600px;
+    margin:0 auto;
+  }
+
+  /* ---------- SEARCH & FILTERS ---------- */
+  .filters-section{
+    background:#fff;
+    padding:24px 0;
+    box-shadow:0 2px 20px rgba(0,0,0,0.05);
+    position:sticky;
+    top:80px;
+    z-index:999;
+  }
+
+  .filters-inner{
+    max-width:1400px;
+    margin:0 auto;
+    padding:0 24px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    align-items:center;
+  }
+
+  .search-box{
+    flex:1;
+    min-width:300px;
+    position:relative;
+  }
+
+  .search-box input{
+    width:100%;
+    padding:14px 20px 14px 50px;
+    border:2px solid #eee;
+    border-radius:var(--radius);
+    font-size:16px;
+    font-family:inherit;
+    transition:all 0.3s;
+  }
+
+  .search-box input:focus{
+    outline:none;
+    border-color:var(--primary);
+    box-shadow:0 0 0 4px rgba(226,55,68,0.1);
+  }
+
+  .search-box i{
+    position:absolute;
+    left:18px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--text-muted);
+    font-size:18px;
+  }
+
+  .filter-group{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .filter-btn{
+    padding:12px 20px;
+    border:2px solid #eee;
+    background:#fff;
+    border-radius:var(--radius-sm);
+    font-weight:500;
+    cursor:pointer;
+    transition:all 0.3s;
+    font-family:inherit;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .filter-btn:hover,.filter-btn.active{
+    border-color:var(--primary);
+    color:var(--primary);
+    background:rgba(226,55,68,0.05);
+  }
+
+  /* ---------- MAIN CONTENT ---------- */
+  .main-content{
+    max-width:1400px;
+    margin:0 auto;
+    padding:40px 24px;
+  }
+
+  .section-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+    flex-wrap:wrap;
+    gap:16px;
+  }
+
+  .section-title{
+    font-size:28px;
+    font-weight:700;
+    color:var(--text);
+  }
+
+  .results-count{
+    color:var(--text-muted);
+    font-size:14px;
+  }
+
+  /* ---------- RESTAURANT GRID ---------- */
+  .restaurant-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+    gap:28px;
+  }
+
+  /* ---------- RESTAURANT CARD ---------- */
+  .restaurant-card{
+    background:var(--card-bg);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    transition:all 0.3s ease;
+    cursor:pointer;
+    position:relative;
+  }
+
+  .restaurant-card:hover{
+    transform:translateY(-8px);
+    box-shadow:var(--shadow-hover);
+  }
+
+  .card-image{
+    position:relative;
+    height:220px;
+    overflow:hidden;
+  }
+
+  .card-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:transform 0.5s ease;
+  }
+
+  .restaurant-card:hover .card-image img{
+    transform:scale(1.1);
+  }
+
+  .card-badge{
+    position:absolute;
+    top:16px;
+    left:16px;
+    background:rgba(0,0,0,0.7);
+    color:#fff;
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+    backdrop-filter:blur(10px);
+  }
+
+  .card-badge.OPEN{background:rgba(0,184,148,0.9);}
+  .card-badge.BUSY{background:rgba(253,203,110,0.9);}
+  .card-badge.CLOSED{background:rgba(225,112,85,0.9);}
+
+  .card-wishlist{
+    position:absolute;
+    top:16px;
+    right:16px;
+    background:#fff;
+    border:none;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    transition:all 0.3s;
+  }
+
+  .card-wishlist:hover{
+    transform:scale(1.1);
+  }
+
+  .card-wishlist i{color:var(--primary);font-size:18px;}
+
+  .card-content{
+    padding:24px;
+  }
+
+  .card-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:12px;
+  }
+
+  .restaurant-name{
+    font-size:20px;
+    font-weight:700;
+    color:var(--text);
+    margin-bottom:4px;
+  }
+
+  .restaurant-cuisine{
+    font-size:14px;
+    color:var(--text-muted);
+  }
+
+  .restaurant-rating{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:linear-gradient(135deg,#fff3cd,#ffeaa7);
+    padding:6px 12px;
+    border-radius:20px;
+    font-weight:700;
+    font-size:14px;
+  }
+
+  .restaurant-rating i{color:#f39c12;}
+
+  .restaurant-location{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--text-muted);
+    font-size:14px;
+    margin-bottom:16px;
+  }
+
+  .restaurant-location i{color:var(--primary);}
+
+  .restaurant-info{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+    padding-bottom:16px;
+    border-bottom:1px solid #eee;
+  }
+
+  .info-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    color:var(--text-muted);
+  }
+
+  .info-item i{color:var(--accent);}
+
+  .availability-status{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 16px;
+    border-radius:var(--radius-sm);
+    font-weight:600;
+    font-size:13px;
+  }
+
+  .availability-status.available{
+    background:rgba(0,184,148,0.1);
+    color:var(--success);
+  }
+
+  .availability-status.limited{
+    background:rgba(253,203,110,0.2);
+    color:#d68910;
+  }
+
+  .availability-status.unavailable{
+    background:rgba(225,112,85,0.1);
+    color:var(--danger);
+  }
+
+  .availability-status i{
+    font-size:10px;
+    width:18px;
+    height:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:currentColor;
+    color:#fff;
+  }
+
+  .card-actions{
+    display:flex;
+    gap:12px;
+    margin-top:20px;
+  }
+
+  .btn-primary{
+    flex:1;
+    background:linear-gradient(135deg,var(--primary),var(--primary-light));
+    color:#fff;
+    border:none;
+    padding:14px 20px;
+    border-radius:var(--radius-sm);
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition:all 0.3s;
+    font-family:inherit;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+
+  .btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 25px rgba(226,55,68,0.3);
+  }
+
+  .btn-secondary{
+    background:#fff;
+    color:var(--text);
+    border:2px solid #eee;
+    padding:14px 20px;
+    border-radius:var(--radius-sm);
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    transition:all 0.3s;
+    font-family:inherit;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+
+  .btn-secondary:hover{
+    border-color:var(--primary);
+    color:var(--primary);
+  }
+
+  /* ---------- LOADING STATE ---------- */
+  .loading-state{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--text-muted);
+  }
+
+  .loading-spinner{
+    width:50px;
+    height:50px;
+    border:4px solid #eee;
+    border-top-color:var(--primary);
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+    margin:0 auto 20px;
+  }
+
+  @keyframes spin{
+    to{transform:rotate(360deg);}
+  }
+
+  /* ---------- EMPTY STATE ---------- */
+  .empty-state{
+    text-align:center;
+    padding:80px 20px;
+  }
+
+  .empty-state i{
+    font-size:80px;
+    color:var(--text-light);
+    margin-bottom:24px;
+  }
+
+  .empty-state h3{
+    font-size:24px;
+    margin-bottom:12px;
+    color:var(--text);
+  }
+
+  .empty-state p{
+    color:var(--text-muted);
+    margin-bottom:24px;
+  }
+
+  /* ---------- FOOTER ---------- */
+  .footer{
+    background:var(--secondary);
+    color:#fff;
+    padding:60px 24px 30px;
+    margin-top:60px;
+  }
+
+  .footer-inner{
+    max-width:1400px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:40px;
+  }
+
+  .footer-section h4{
+    font-size:18px;
+    margin-bottom:20px;
+    color:#fff;
+  }
+
+  .footer-section p,.footer-section a{
+    color:rgba(255,255,255,0.7);
+    text-decoration:none;
+    display:block;
+    margin-bottom:12px;
+    font-size:14px;
+    transition:color 0.3s;
+  }
+
+  .footer-section a:hover{
+    color:#fff;
+  }
+
+  .footer-bottom{
+    max-width:1400px;
+    margin:40px auto 0;
+    padding-top:24px;
+    border-top:1px solid rgba(255,255,255,0.1);
+    text-align:center;
+    color:rgba(255,255,255,0.5);
+    font-size:14px;
+  }
+
+  /* ---------- MODAL ---------- */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:2000;
+    padding:20px;
+  }
+
+  .modal-overlay.active{display:flex;}
+
+  .modal-content{
+    background:#fff;
+    border-radius:var(--radius);
+    max-width:500px;
+    width:100%;
+    max-height:90vh;
+    overflow-y:auto;
+    animation:modalIn 0.3s ease;
+  }
+
+  @keyframes modalIn{
+    from{opacity:0;transform:translateY(-20px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  .modal-header{
+    padding:24px;
+    border-bottom:1px solid #eee;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+
+  .modal-header h3{font-size:22px;}
+
+  .modal-close{
+    background:none;
+    border:none;
+    font-size:24px;
+    cursor:pointer;
+    color:var(--text-muted);
+  }
+
+  .modal-body{padding:24px;}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:768px){
+    .hero h1{font-size:32px;}
+    .hero p{font-size:16px;}
+    .filters-inner{flex-direction:column;align-items:stretch;}
+    .search-box{min-width:100%;}
+    .filter-group{overflow-x:auto;flex-wrap:nowrap;padding-bottom:8px;}
+    .restaurant-grid{grid-template-columns:1fr;}
+    .card-actions{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <i class="fas fa-utensils"></i>
+      ZomaClone
+    </a>
+    <div class="header-actions">
+      <a href="user_select.html" class="btn-outline">
+        <i class="fas fa-user"></i> Dashboard
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>Book Your Perfect Table</h1>
+  <p>Discover and reserve the best dining experiences at top restaurants near you</p>
+</section>
+
+<!-- Filters -->
+<section class="filters-section">
+  <div class="filters-inner">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchInput" placeholder="Search restaurants, cuisines, locations...">
+    </div>
+    <div class="filter-group">
+      <button class="filter-btn active" data-filter="all">
+        <i class="fas fa-globe"></i> All
+      </button>
+      <button class="filter-btn" data-filter="nearby">
+        <i class="fas fa-map-marker-alt"></i> Nearby
+      </button>
+      <button class="filter-btn" data-filter="top-rated">
+        <i class="fas fa-star"></i> Top Rated
+      </button>
+      <button class="filter-btn" data-filter="available">
+        <i class="fas fa-chair"></i> Available Now
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Main Content -->
+<main class="main-content">
+  <div class="section-header">
+    <h2 class="section-title">Available Restaurants</h2>
+    <span class="results-count" id="resultsCount">Loading...</span>
+  </div>
+
+  <div class="restaurant-grid" id="restaurantGrid">
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Finding best restaurants for you...</p>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <i class="fas fa-search"></i>
+    <h3>No Restaurants Found</h3>
+    <p>Try adjusting your search or filters to find what you're looking for</p>
+    <button class="btn-primary" onclick="resetFilters()">
+      <i class="fas fa-redo"></i> Reset Filters
+    </button>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-section">
+      <h4>ZomaClone</h4>
+      <p>Your go-to platform for dining reservations and food delivery</p>
+    </div>
+    <div class="footer-section">
+      <h4>Quick Links</h4>
+      <a href="index.html">Home</a>
+      <a href="order.html">Order Food</a>
+      <a href="nightlife.html">Nightlife</a>
+    </div>
+    <div class="footer-section">
+      <h4>For Restaurants</h4>
+      <a href="vendor.html">Partner with us</a>
+      <a href="vendor_login.html">Restaurant Login</a>
+    </div>
+    <div class="footer-section">
+      <h4>Support</h4>
+      <a href="#">Help Center</a>
+      <a href="#">Contact Us</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2025 ZomaClone. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- Booking Modal -->
+<div class="modal-overlay" id="bookingModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Book Table</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="bookingForm">
+        <input type="hidden" id="modalVendorId">
+        
+        <div style="margin-bottom:20px;">
+          <label style="display:block;margin-bottom:8px;font-weight:600;">Your Name</label>
+          <input type="text" id="bookingName" required style="width:100%;padding:12px;border:2px solid #eee;border-radius:8px;font-size:16px;">
+        </div>
+        
+        <div style="margin-bottom:20px;">
+          <label style="display:block;margin-bottom:8px;font-weight:600;">Phone Number</label>
+          <input type="tel" id="bookingPhone" required style="width:100%;padding:12px;border:2px solid #eee;border-radius:8px;font-size:16px;">
+        </div>
+        
+        <div style="margin-bottom:20px;">
+          <label style="display:block;margin-bottom:8px;font-weight:600;">Number of Guests</label>
+          <select id="bookingGuests" required style="width:100%;padding:12px;border:2px solid #eee;border-radius:8px;font-size:16px;">
+            <option value="">Select guests</option>
+            <option value="1">1 Person</option>
+            <option value="2">2 People</option>
+            <option value="3">3 People</option>
+            <option value="4">4 People</option>
+            <option value="5">5 People</option>
+            <option value="6">6 People</option>
+            <option value="7">7 People</option>
+            <option value="8">8+ People</option>
+          </select>
+        </div>
+        
+        <div style="margin-bottom:20px;">
+          <label style="display:block;margin-bottom:8px;font-weight:600;">Date</label>
+          <input type="date" id="bookingDate" required style="width:100%;padding:12px;border:2px solid #eee;border-radius:8px;font-size:16px;">
+        </div>
+        
+        <div style="margin-bottom:20px;">
+          <label style="display:block;margin-bottom:8px;font-weight:600;">Time</label>
+          <select id="bookingTime" required style="width:100%;padding:12px;border:2px solid #eee;border-radius:8px;font-size:16px;">
+            <option value="">Select time</option>
+            <option value="11:00">11:00 AM</option>
+            <option value="12:00">12:00 PM</option>
+            <option value="13:00">1:00 PM</option>
+            <option value="14:00">2:00 PM</option>
+            <option value="18:00">6:00 PM</option>
+            <option value="19:00">7:00 PM</option>
+            <option value="20:00">8:00 PM</option>
+            <option value="21:00">9:00 PM</option>
+          </select>
+        </div>
+        
+        <button type="submit" class="btn-primary" style="width:100%;">
+          <i class="fas fa-calendar-check"></i> Confirm Booking
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+let allRestaurants = [];
+let currentFilter = 'all';
+
+// ============ SAFER API FETCH HELPER ============
+async function apiFetch(url, options = {}) {
+  try {
+
+    const res = await fetch(url, options)
+
+    const text = await res.text()
+
+    let json
+
+    try{
+      json = JSON.parse(text)
+    }catch{
+      console.error("Invalid JSON response:", text)
+      return null
+    }
+
+    return json
+
+  }catch(err){
+    console.error("Network/API error:", err)
+    return null
+  }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  loadRestaurants();
+  setupFilters();
+  setupSearch();
+  setupBookingForm();
+});
+
+// Load restaurants from API
+async function loadRestaurants() {
+  const grid = document.getElementById('restaurantGrid');
+  const emptyState = document.getElementById('emptyState');
+  
+  // Fetch food restaurants for table booking (dining)
+  const response = await apiFetch(`${API_BASE}/api/dining/restaurants`);
+  
+  // Handle both array response and object with data property
+  const data = response ? (response.data || response) : null;
+
+  if (!data || data.length === 0) {
+    allRestaurants = [];
+    renderRestaurants([]);
+    return;
+  }
+
+  // Transform data to match expected format for dining/table booking
+  allRestaurants = data.map(r => ({
+    vendor_id: r.id,
+    restaurant_name: r.name,
+    city: r.city || '',
+    address: r.address,
+    phone: '',
+    cuisine: 'Multi-cuisine',
+    rating: 4.2,
+    price_range: '₹₹₹',
+    tables: Math.floor(Math.random() * 10) + 1,
+    status: 'OPEN',
+    image: r.banner || null
+  }));
+
+  renderRestaurants(allRestaurants);
+}
+
+// No fallback - show empty state if no data from API
+
+// Render restaurants
+function renderRestaurants(restaurants) {
+  const grid = document.getElementById('restaurantGrid');
+  const emptyState = document.getElementById('emptyState');
+  const resultsCount = document.getElementById('resultsCount');
+  
+  if (restaurants.length === 0) {
+    grid.style.display = 'none';
+    emptyState.style.display = 'block';
+    resultsCount.textContent = '0 restaurants found';
+    return;
+  }
+  
+  grid.style.display = 'grid';
+  emptyState.style.display = 'none';
+  resultsCount.textContent = `${restaurants.length} restaurant${restaurants.length !== 1 ? 's' : ''} available`;
+  
+  grid.innerHTML = restaurants.map(r => {
+    const statusClass = r.status?.toUpperCase() || 'OPEN';
+    const statusText = statusClass === 'OPEN' ? 'Available' : statusClass === 'BUSY' ? 'Busy' : 'Closed';
+    const availClass = r.tables > 5 ? 'available' : r.tables > 0 ? 'limited' : 'unavailable';
+    const availText = r.tables > 5 ? 'Plenty of tables' : r.tables > 0 ? `Only ${r.tables} tables left` : 'Fully booked';
+    
+    return `
+      <div class="restaurant-card" onclick="openBooking(${r.vendor_id}, '${r.restaurant_name}')">
+        <div class="card-image">
+          <img src="${r.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800'}" alt="${r.restaurant_name}">
+          <span class="card-badge ${statusClass}">${statusText}</span>
+          <button class="card-wishlist" onclick="event.stopPropagation(); toggleWishlist(${r.vendor_id})">
+            <i class="far fa-heart"></i>
+          </button>
+        </div>
+        <div class="card-content">
+          <div class="card-header">
+            <div>
+              <h3 class="restaurant-name">${r.restaurant_name}</h3>
+              <p class="restaurant-cuisine">${r.cuisine || 'Multi-cuisine'}</p>
+            </div>
+            
+          </div>
+          
+          <div class="restaurant-location">
+            <i class="fas fa-map-marker-alt"></i>
+            ${r.city || r.address || 'Location not available'}
+          </div>
+          
+          <div class="restaurant-info">
+            <div class="info-item">
+              <i class="fas fa-tag"></i>
+              ${r.price_range || '₹₹₹'}
+            </div>
+            <div class="info-item">
+              <i class="fas fa-chair"></i>
+              ${r.tables || 0} tables
+            </div>
+            <div class="info-item">
+              <i class="fas fa-phone"></i>
+              ${r.phone || 'N/A'}
+            </div>
+          </div>
+          
+          <div class="availability-status ${availClass}">
+            <i class="fas fa-circle"></i>
+            ${availText}
+          </div>
+          
+          <div class="card-actions">
+            <button class="btn-primary" onclick="event.stopPropagation(); openBooking(${r.vendor_id}, '${r.restaurant_name}')">
+              <i class="fas fa-calendar-plus"></i> Book Now
+            
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Setup filters
+function setupFilters() {
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      applyFilters();
+    });
+  });
+}
+
+// Setup search
+function setupSearch() {
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', (e) => {
+    applyFilters();
+  });
+}
+
+// Apply filters and search
+function applyFilters() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = [...allRestaurants];
+  
+  // Apply search
+  if (searchTerm) {
+    filtered = filtered.filter(r => 
+      r.restaurant_name?.toLowerCase().includes(searchTerm) ||
+      r.city?.toLowerCase().includes(searchTerm) ||
+      r.cuisine?.toLowerCase().includes(searchTerm) ||
+      r.address?.toLowerCase().includes(searchTerm)
+    );
+  }
+  
+  // Apply filter
+  switch(currentFilter) {
+    case 'nearby':
+      // Sort by city (simulated)
+      filtered.sort((a, b) => a.city?.localeCompare(b.city));
+      break;
+    case 'top-rated':
+      filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      break;
+    case 'available':
+      filtered = filtered.filter(r => (r.tables || 0) > 0);
+      break;
+  }
+  
+  renderRestaurants(filtered);
+}
+
+// Reset filters
+function resetFilters() {
+  document.getElementById('searchInput').value = '';
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === 'all');
+  });
+  currentFilter = 'all';
+  renderRestaurants(allRestaurants);
+}
+
+// Open booking modal
+function openBooking(vendorId, name) {
+  // Check login first
+  const storedUser = localStorage.getItem("zoma_user");
+  if (!storedUser) {
+    alert('Please login to book a table');
+    window.location.href = 'login.html?redirect=dining.html';
+    return;
+  }
+  
+  document.getElementById('modalTitle').textContent = `Book ${name}`;
+  document.getElementById('modalVendorId').value = vendorId;
+  
+  // Set minimum date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('bookingDate').min = today;
+  
+  document.getElementById('bookingModal').classList.add('active');
+}
+
+// Close modal
+function closeModal() {
+  document.getElementById('bookingModal').classList.remove('active');
+}
+
+// Setup booking form
+function setupBookingForm() {
+
+  document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+
+    e.preventDefault()
+
+    const vendorId = document.getElementById('modalVendorId').value
+    const name = document.getElementById('bookingName').value
+    const phone = document.getElementById('bookingPhone').value
+    const guests = document.getElementById('bookingGuests').value
+    const date = document.getElementById('bookingDate').value
+
+    const storedUser = JSON.parse(localStorage.getItem("zoma_user")) || {}
+
+    try {
+
+      // 1️⃣ get table types
+      const typesRes = await fetch(`/api/restaurant/types?vendor_id=${vendorId}`)
+      const typesData = await typesRes.json()
+
+      if(!typesData.types || typesData.types.length === 0){
+        alert("Restaurant has no table types configured")
+        return
+      }
+
+      const typeId = typesData.types[0].id
+
+
+      // 2️⃣ get slots
+      const slotsRes = await fetch(`/api/restaurant/slots?vendor_id=${vendorId}`)
+      const slotsData = await slotsRes.json()
+
+      if(!slotsData.slots || slotsData.slots.length === 0){
+        alert("Restaurant has no booking slots available")
+        return
+      }
+
+      const slotId = slotsData.slots[0].id
+
+
+      // 3️⃣ create booking
+      const bookingData = {
+        typeId: typeId,
+        slotId: slotId,
+        date: date,
+        customer: name,
+        phone: phone,
+        count: guests,
+        email: storedUser.email || ""
+      }
+
+      const res = await fetch(`/api/restaurant/bookings?vendor_id=${vendorId}`, {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify(bookingData)
+      })
+
+      const result = await res.json()
+
+      if(result.success){
+        alert("Booking confirmed!")
+        closeModal()
+        document.getElementById('bookingForm').reset()
+      }else{
+        alert(result.message || "Booking failed")
+      }
+
+    }catch(err){
+      console.error(err)
+      alert("Server error")
+    }
+
+  })
+
+}
+
+// Toggle wishlist
+function toggleWishlist(vendorId) {
+  alert('Added to wishlist!');
+}
+
+
+// Close modal on outside click
+document.getElementById('bookingModal').addEventListener('click', (e) => {
+  if (e.target.classList.contains('modal-overlay')) {
+    closeModal();
+  }
+});
+</script>
+
+</body>
+</html>

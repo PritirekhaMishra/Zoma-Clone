@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZomaClone Admin - Unified Dashboard</title>
+<link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --bg: #0f0f14;
+  --surface: #1a1a24;
+  --card: #252532;
+  --accent: #7c3aed;
+  --accent-hover: #9333ea;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --text: #ffffff;
+  --text-muted: #9ca3af;
+  --border: rgba(255,255,255,0.08);
+  --shadow: 0 4px 20px rgba(0,0,0,0.3);
+  --radius: 12px;
+}
+
+/* Light Theme */
+body.light {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: rgba(0,0,0,0.08);
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.theme-toggle {
+  position: fixed; top: 20px; right: 20px; z-index: 3000;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  transition: 0.3s;
+}
+.theme-toggle:hover { background: var(--accent); color: white; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: 0.3s; }
+.sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 20px 0; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; transition: 0.3s; }
+.sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 0 24px 24px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.sidebar-logo { width: 42px; height: 42px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: white; }
+.sidebar-title { font-size: 18px; font-weight: 700; }
+.sidebar-subtitle { font-size: 12px; color: var(--text-muted); }
+.sidebar-nav { padding: 0 12px; }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; color: var(--text-muted); text-decoration: none; cursor: pointer; transition: 0.2s; margin-bottom: 4px; }
+.nav-item:hover, .nav-item.active { background: var(--accent); color: white; }
+.nav-item i { width: 20px; text-align: center; }
+.nav-section { padding: 16px 24px 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 600; }
+.main { flex: 1; margin-left: 260px; padding: 24px; transition: 0.3s; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.page-title { font-size: 28px; font-weight: 700; }
+.page-subtitle { color: var(--text-muted); font-size: 14px; }
+.metrics-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 24px; }
+.metric-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; transition: 0.3s; }
+.metric-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+.metric-icon.food { background: rgba(124, 58, 237, 0.15); color: var(--accent); }
+.metric-icon.nightlife { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.metric-icon.orders { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+.metric-icon.bookings { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.metric-icon.revenue { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+.metric-icon.commission { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+.metric-value { font-size: 22px; font-weight: 700; }
+.metric-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px; }
+.chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: 0.3s; }
+.chart-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+.chart-container { height: 250px; }
+.table-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; transition: 0.3s; }
+.table-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.table-title { font-size: 16px; font-weight: 600; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 16px; text-align: left; transition: 0.3s; }
+th { background: var(--surface); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
+td { border-bottom: 1px solid var(--border); font-size: 14px; }
+tr:hover td { background: var(--surface); }
+.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.status-badge.active, .status-badge.completed { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+.status-badge.cancelled, .status-badge.suspended { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+.badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge.food { background: rgba(124, 58, 237, 0.15); color: var(--accent); }
+.badge.nightlife { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; }
+.btn:hover { background: var(--accent-hover); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-success { background: var(--success); }
+.btn-danger { background: var(--danger); }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: var(--text-muted); }
+.form-input, .form-select { width: 100%; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; transition: 0.3s; }
+.form-input:focus { outline: none; border-color: var(--accent); }
+.form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.settings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.settings-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: 0.3s; }
+.settings-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.settings-title i { color: var(--accent); }
+.payout-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.payout-stat { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; transition: 0.3s; }
+.payout-stat-value { font-size: 20px; font-weight: 700; }
+.payout-stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--card); border-radius: var(--radius); width: 90%; max-width: 500px; transition: 0.3s; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.modal-title { font-size: 16px; font-weight: 600; }
+.modal-close { width: 32px; height: 32px; background: var(--surface); border: none; border-radius: 50%; color: var(--text-muted); cursor: pointer; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+.page { display: none; }
+.page.active { display: block; }
+.login-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+.login-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; width: 100%; max-width: 420px; transition: 0.3s; }
+.login-logo { width: 64px; height: 64px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: white; margin: 0 auto 24px; }
+.login-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+.login-subtitle { text-align: center; color: var(--text-muted); margin-bottom: 32px; }
+.tabs { display: flex; gap: 4px; background: var(--surface); border-radius: 8px; padding: 4px; margin-bottom: 16px; }
+.tab { padding: 8px 16px; background: transparent; border: none; color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 6px; }
+.tab.active { background: var(--accent); color: white; }
+@media (max-width: 1400px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1200px) { .chart-grid { grid-template-columns: 1fr; } .settings-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; } .metrics-grid { grid-template-columns: repeat(2, 1fr); } .payout-grid { grid-template-columns: repeat(2, 1fr); } .settings-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- Theme Toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle Day/Night Mode">
+  <i class="fas fa-moon" id="themeIcon"></i>
+</button>
+
+<!-- Login -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">Z</div>
+    <h1 class="login-title">Admin Login</h1>
+    <p class="login-subtitle">Unified business dashboard</p>
+    <form id="loginForm">
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="loginEmail" required></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="loginPassword" required></div>
+      <button type="submit" class="btn" style="width:100%;justify-content:center;">Login</button>
+    </form>
+    <p style="text-align:center;margin-top:20px;color:var(--text-muted);font-size:13px;">admin@zoma.com / admin123</p>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar" style="display:none;">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">Z</div>
+    <div><div class="sidebar-title">ZomaClone</div><div class="sidebar-subtitle">Admin Panel</div></div>
+  </div>
+  <div class="sidebar-nav">
+    <a class="nav-item active" data-page="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+    <a class="nav-item" data-page="analytics"><i class="fas fa-chart-line"></i> Analytics</a>
+    <div class="nav-section">Orders</div>
+    <a class="nav-item" data-page="food-orders"><i class="fas fa-hamburger"></i> Food Orders</a>
+    <a class="nav-item" data-page="nightlife-orders"><i class="fas fa-glass-cheers"></i> Nightlife Orders</a>
+    <div class="nav-section">Bookings</div>
+    <a class="nav-item" data-page="restaurant-bookings"><i class="fas fa-utensils"></i> Restaurant</a>
+    <a class="nav-item" data-page="nightlife-bookings"><i class="fas fa-moon"></i> Nightlife</a>
+    <div class="nav-section">Management</div>
+    <a class="nav-item" data-page="vendors"><i class="fas fa-store"></i> Vendors</a>
+    <a class="nav-item" data-page="users"><i class="fas fa-users"></i> Users</a>
+    <a class="nav-item" data-page="coupons"><i class="fas fa-tag"></i> Coupons</a>
+    <div class="nav-section">Finance</div>
+    <a class="nav-item" data-page="commissions"><i class="fas fa-percentage"></i> Commissions</a>
+    <a class="nav-item" data-page="payouts"><i class="fas fa-wallet"></i> Payouts</a>
+    <div class="nav-section">Settings</div>
+    <a class="nav-item" data-page="settings"><i class="fas fa-cog"></i> Platform Settings</a>
+    <a class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+</nav>
+
+<!-- Main -->
+<main class="main" id="mainContent" style="display:none;">
+  <header class="page-header">
+    <div><h1 class="page-title" id="pageTitle">Dashboard</h1><p class="page-subtitle" id="pageSubtitle">Business overview</p></div>
+  </header>
+
+  <!-- Dashboard -->
+  <div class="page active" id="page-dashboard">
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="metric-icon revenue"><i class="fas fa-rupee-sign"></i></div><div class="metric-value" id="metricTotalRevenue">₹0</div><div class="metric-label">Total Revenue</div></div>
+      <div class="metric-card"><div class="metric-icon food"><i class="fas fa-hamburger"></i></div><div class="metric-value" id="metricFoodRevenue">₹0</div><div class="metric-label">Food Revenue</div></div>
+      <div class="metric-card"><div class="metric-icon nightlife"><i class="fas fa-glass-cheers"></i></div><div class="metric-value" id="metricNightlifeRevenue">₹0</div><div class="metric-label">Nightlife Revenue</div></div>
+      <div class="metric-card"><div class="metric-icon orders"><i class="fas fa-shopping-bag"></i></div><div class="metric-value" id="metricTotalOrders">0</div><div class="metric-label">Total Orders</div></div>
+      <div class="metric-card"><div class="metric-icon bookings"><i class="fas fa-calendar-check"></i></div><div class="metric-value" id="metricTotalBookings">0</div><div class="metric-label">Total Bookings</div></div>
+      <div class="metric-card"><div class="metric-icon commission"><i class="fas fa-percent"></i></div><div class="metric-value" id="metricCommission">₹0</div><div class="metric-label">Commission Earned</div></div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card"><h3 class="chart-title">Revenue Overview</h3><div class="chart-container"><canvas id="revenueChart"></canvas></div></div>
+      <div class="chart-card"><h3 class="chart-title">Orders vs Bookings</h3><div class="chart-container"><canvas id="ordersChart"></canvas></div></div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card"><h3 class="chart-title">Daily Revenue</h3><div class="chart-container"><canvas id="dailyChart"></canvas></div></div>
+      <div class="chart-card"><h3 class="chart-title">Weekly Revenue</h3><div class="chart-container"><canvas id="weeklyChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- Analytics -->
+  <div class="page" id="page-analytics">
+    <div class="chart-grid">
+      <div class="chart-card"><h3 class="chart-title">Monthly Revenue</h3><div class="chart-container"><canvas id="monthlyChart"></canvas></div></div>
+      <div class="chart-card"><h3 class="chart-title">Yearly Revenue</h3><div class="chart-container"><canvas id="yearlyChart"></canvas></div></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h3 class="table-title">Top Performing Vendors</h3></div>
+      <table><thead><tr><th>Vendor</th><th>Orders</th><th>Bookings</th><th>Revenue</th><th>Commission</th></tr></thead><tbody id="topVendorsTable"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Food Orders -->
+  <div class="page" id="page-food-orders">
+    <div class="table-card">
+      <div class="table-header"><h3 class="table-title">Food Orders</h3></div>
+      <table><thead><tr><th>ID</th><th>Vendor</th><th>Customer</th><th>Items</th><th>Amount</th><th>Commission</th><th>Status</th><th>Date</th></tr></thead><tbody id="foodOrdersTable"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Nightlife Orders -->
+  <div class="page" id="page-nightlife-orders">
+    <div class="table-card">
+      <div class="table-header"><h3 class="table-title">Nightlife Orders</h3></div>
+      <table><thead><tr><th>ID</th><th>Club</th><th>Customer</th><th>Items</th><th>Amount</th><th>Commission</th><th>Status</th><th>Date</th></tr></thead><tbody id="nightlifeOrdersTable"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Restaurant Bookings -->
+  <div class="page" id="page-restaurant-bookings">
+    <div class="table-card">
+      <div class="table-header"><h3 class="table-title">Restaurant Bookings</h3></div>
+      <table><thead><tr><th>ID</th><th>Restaurant</th><th>Customer</th><th>Table</th><th>Date</th><th>Time</th><th>Amount</th><th>Commission</th><th>Status</th></tr></thead><tbody id="restaurantBookingsTable"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Nightlife Bookings -->
+  <div class="page" id="page-nightlife-bookings">
+    <div class="table-card">
+      <div class="table-header"><h3 class="table-title">Nightlife Bookings</h3></div>
+      <table><thead><tr><th>ID</th><th>Club</th><th>Customer</th><th>Table</th><th>Date</th><th>Time</th><th>Amount</th><th>Commission</th><th>Status</th></tr></thead><tbody id="nightlifeBookingsTable"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Vendors -->
+  <div class="page" id="page-vendors">
+    <div class="table-card">
+      <div class="table-header">
+        <h3 class="table-title">All Vendors</h3>
+        <button class="btn btn-sm" onclick="openModal('addVendorModal')"><i class="fas fa-plus"></i> Add Vendor</button>
+      </div>
+      <table><thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Owner</th><th>UPI ID</th><th>Orders</th><th>Revenue</th><th>Status</th><th>Action</th></tr></thead><tbody id="vendorsTable"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Users -->
+  <div class="page" id="page-users">
+    <div class="table-card">
+      <div class="table-header"><h3 class="table-title">All Users</h3></div>
+      <table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Orders</th><th>Bookings</th><th>Status</th><th>Action</th></tr></thead><tbody id="usersTable"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Coupons -->
+  <div class="page" id="page-coupons">
+    <div class="table-card">
+      <div class="table-header">
+        <h3 class="table-title">Coupon Management</h3>
+        <button class="btn btn-sm" onclick="openModal('addCouponModal')"><i class="fas fa-plus"></i> Create Coupon</button>
+      </div>
+      <table><thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Min Order</th><th>Uses</th><th>Expiry</th><th>Status</th><th>Action</th></tr></thead><tbody id="couponsTable"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Commissions -->
+<div class="page" id="page-commissions">
+  <div class="settings-grid">
+
+    <div class="settings-card">
+      <h3 class="settings-title">
+        <i class="fas fa-percentage"></i> Platform Commission For Restaurants (%)
+      </h3>
+      <div class="form-group">
+        <input type="number" class="form-input" id="commRestaurant" value="25">
+      </div>
+      <button class="btn btn-sm" onclick="saveCommission()">Save</button>
+    </div>
+
+    <div class="settings-card">
+      <h3 class="settings-title">
+        <i class="fas fa-percentage"></i> Platform Commission For Club (%)
+      </h3>
+      <div class="form-group">
+        <input type="number" class="form-input" id="commNightlife" value="20">
+      </div>
+      <button class="btn btn-sm" onclick="saveCommission()">Save</button>
+    </div>
+
+    <div class="settings-card">
+      <h3 class="settings-title">
+        <i class="fas fa-box"></i> GST (%)
+      </h3>
+      <div class="form-group">
+        <input type="number" class="form-input" id="commGst" value="5">
+      </div>
+      <button class="btn btn-sm" onclick="saveCommission()">Save</button>
+    </div>
+
+    <div class="settings-card">
+      <h3 class="settings-title">
+        <i class="fas fa-truck"></i> Nightlife Handling Charges (₹)
+      </h3>
+      <div class="form-group">
+        <input type="number" class="form-input" id="commHandling" value="29">
+      </div>
+      <button class="btn btn-sm" onclick="saveCommission()">Save</button>
+    </div>
+
+  </div>
+</div>
+  </div>
+
+  <!-- Payouts -->
+  <div class="page" id="page-payouts">
+    <div class="payout-grid">
+      <div class="payout-stat"><div class="payout-stat-value" style="color:var(--success)" id="totalPaid">₹0</div><div class="payout-stat-label">Total Paid</div></div>
+      <div class="payout-stat"><div class="payout-stat-value" style="color:var(--warning)" id="pendingPayout">₹0</div><div class="payout-stat-label">Pending</div></div>
+      <div class="payout-stat"><div class="payout-stat-value" id="totalCommEarned">₹0</div><div class="payout-stat-label">Commission Earned</div></div>
+      <div class="payout-stat"><div class="payout-stat-value" id="totalPayoutAmt">₹0</div><div class="payout-stat-label">Total Payout Amount</div></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h3 class="table-title">Payout History</h3><button class="btn btn-sm" onclick="openModal('payoutModal')"><i class="fas fa-plus"></i> New Payout</button></div>
+      <table><thead><tr><th>ID</th><th>Vendor</th><th>Amount</th><th>UPI</th><th>Tx ID</th><th>Status</th><th>Date</th></tr></thead><tbody id="payoutsTable"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="page" id="page-settings">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <!-- Restaurant Settings -->
+      <div class="settings-card">
+        <h3 class="settings-title"><i class="fas fa-utensils"></i> Restaurant Settings</h3>
+        <div class="form-group">
+          <label class="form-label">GST (%)</label>
+          <input type="number" class="form-input" id="restGst" value="5" min="0" max="30" step="0.5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Platform Commission (%)</label>
+          <input type="number" class="form-input" id="restCommission" value="25" min="0" max="50" step="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Delivery Fee (₹)</label>
+          <input type="number" class="form-input" id="restDeliveryFee" value="0" min="0" step="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Packing Fee (₹)</label>
+          <input type="number" class="form-input" id="restPackingFee" value="0" min="0" step="1">
+        </div>
+        <button class="btn btn-sm" onclick="saveRestaurantSettings()">Save Restaurant Settings</button>
+      </div>
+
+      <!-- Nightlife Settings -->
+      <div class="settings-card">
+        <h3 class="settings-title"><i class="fas fa-glass-cheers"></i> Nightlife Settings</h3>
+        <div class="form-group">
+          <label class="form-label">Platform Commission (%)</label>
+          <input type="number" class="form-input" id="nightCommission" value="20" min="0" max="50" step="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Service Fee (%)</label>
+          <input type="number" class="form-input" id="nightServiceFee" value="0" min="0" max="30" step="0.5">
+        </div>
+        <button class="btn btn-sm" onclick="saveNightlifeSettings()">Save Nightlife Settings</button>
+      </div>
+    </div>
+    
+    <!-- General Settings -->
+    <div class="settings-card" style="margin-top: 20px;">
+      <h3 class="settings-title"><i class="fas fa-cog"></i> General Settings</h3>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <div class="form-group">
+          <label class="form-label">Platform UPI</label>
+          <input type="text" class="form-input" id="settingUpi" placeholder="platform@upi">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Surge Multiplier</label>
+          <input type="number" class="form-input" id="settingSurge" value="1" min="1" max="3" step="0.1">
+        </div>
+        <div class="form-group" style="display: flex; align-items: flex-end;">
+          <button class="btn btn-sm" onclick="saveGeneralSettings()">Save General Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Modals -->
+<div class="modal-overlay" id="addVendorModal">
+  <div class="modal">
+    <div class="modal-header"><h3 class="modal-title">Add Vendor</h3><button class="modal-close" onclick="closeModal('addVendorModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Vendor Name</label><input type="text" class="form-input" id="newVendorName"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="newVendorType"><option value="restaurant">Restaurant</option><option value="nightlife">Nightlife Club</option></select></div>
+        <div class="form-group"><label class="form-label">Owner Name</label><input type="text" class="form-input" id="newVendorOwner"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="newVendorEmail"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input" id="newVendorPhone"></div>
+      </div>
+      <div class="form-group"><label class="form-label">UPI ID</label><input type="text" class="form-input" id="newVendorUpi"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm btn-outline" onclick="closeModal('addVendorModal')">Cancel</button><button class="btn btn-sm" onclick="addVendor()">Add</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addCouponModal">
+  <div class="modal">
+    <div class="modal-header"><h3 class="modal-title">Create Coupon</h3><button class="modal-close" onclick="closeModal('addCouponModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Code</label><input type="text" class="form-input" id="newCouponCode" style="text-transform:uppercase;"></div>
+        <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="newCouponType"><option value="percentage">Percentage</option><option value="flat">Flat</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Value</label><input type="number" class="form-input" id="newCouponValue"></div>
+        <div class="form-group"><label class="form-label">Min Order</label><input type="number" class="form-input" id="newCouponMin"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Expiry</label><input type="date" class="form-input" id="newCouponExpiry"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm btn-outline" onclick="closeModal('addCouponModal')">Cancel</button><button class="btn btn-sm" onclick="addCoupon()">Create</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="payoutModal">
+  <div class="modal">
+    <div class="modal-header"><h3 class="modal-title">Process Payout</h3><button class="modal-close" onclick="closeModal('payoutModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Select Vendor</label><select class="form-select" id="payoutVendor"></select></div>
+      <div class="form-group"><label class="form-label">Amount (₹)</label><input type="number" class="form-input" id="payoutAmount"></div>
+      <div class="form-group"><label class="form-label">Transaction ID</label><input type="text" class="form-input" id="payoutTxId"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm btn-outline" onclick="closeModal('payoutModal')">Cancel</button><button class="btn btn-sm btn-success" onclick="processPayout()">Process</button></div>
+  </div>
+</div>
+
+<script>
+// ========================================
+// THEME TOGGLE
+// ========================================
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  const icon = document.getElementById('themeIcon');
+  if (document.body.classList.contains('light')) {
+    icon.classList.remove('fa-moon');
+    icon.classList.add('fa-sun');
+    localStorage.setItem('adminTheme', 'light');
+  } else {
+    icon.classList.remove('fa-sun');
+    icon.classList.add('fa-moon');
+    localStorage.setItem('adminTheme', 'dark');
+  }
+}
+
+function loadTheme() {
+  const theme = localStorage.getItem('adminTheme');
+  if (theme === 'light') {
+    document.body.classList.add('light');
+    document.getElementById('themeIcon').classList.remove('fa-moon');
+    document.getElementById('themeIcon').classList.add('fa-sun');
+  }
+}
+
+// ========================================
+// DATA
+// ========================================
+let adminData = {
+  vendors: [],
+  users: [],
+  orders: [],
+  bookings: [],
+  coupons: [],
+  payouts: [],
+  settings: { platformUpi: 'zoma@upi', gst: 5, platformComm: 10, deliveryPerKm: 10, packingFee: 20, surgeMultiplier: 1 }
+};
+
+async function loadData() {
+  // Load real data from API
+  try {
+    // Get overview stats
+    const overviewRes = await fetch(`${window.location.origin}/api/admin/overview`);
+    const overview = await overviewRes.json();
+    
+    if (overview.users !== undefined) {
+      adminData.stats = overview;
+    }
+    
+    // Get vendors
+    try {
+      const vendorsRes = await fetch(`${window.location.origin}/api/vendors`);
+      const vendorsData = await vendorsRes.json();
+      if (vendorsData.success && vendorsData.vendors) {
+        adminData.vendors = vendorsData.vendors.map(v => ({
+          id: v.id,
+          name: v.restaurant_name || v.name,
+          type: v.vendor_type || 'restaurant',
+          owner: v.owner_name || '',
+          email: v.email,
+          phone: v.phone,
+          upi: v.upi_id || '',
+          orders: 0,
+          revenue: 0,
+          status: 'active'
+        }));
+      }
+    } catch (e) { console.log('Vendors API not available'); }
+    
+    // Get users
+    try {
+      const usersRes = await fetch(`${window.location.origin}/api/users`);
+      const usersData = await usersRes.json();
+      if (usersData.success && usersData.users) {
+        adminData.users = usersData.users.map(u => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone,
+          orders: 0,
+          bookings: 0,
+          status: 'active'
+        }));
+      }
+    } catch (e) { console.log('Users API not available'); }
+    
+    // Get restaurant bookings
+    try {
+      const bookingsRes = await fetch(`${window.location.origin}/api/restaurant/bookings?vendor_id=0`);
+      const bookingsData = await bookingsRes.json();
+      if (bookingsData.success && bookingsData.bookings) {
+        adminData.bookings = bookingsData.bookings.map(b => ({
+          id: b.id,
+          vendorId: b.vendor_id,
+          type: 'restaurant',
+          customer: b.customer,
+          table: b.typeName || 'Table',
+          date: b.date,
+          time: b.slotName || '',
+          amount: b.price || 0,
+          commission: Math.round((b.price || 0) * 0.1),
+          status: b.status
+        }));
+      }
+    } catch (e) { console.log('Restaurant bookings API not available'); }
+    
+    // Get nightlife bookings
+    try {
+      const nlBookingsRes = await fetch(`${window.location.origin}/api/nightlife/bookings?vendor_id=0`);
+      const nlBookingsData = await nlBookingsRes.json();
+      if (nlBookingsData.success && nlBookingsData.bookings) {
+        const nlBookings = nlBookingsData.bookings.map(b => ({
+          id: b.id,
+          vendorId: b.vendor_id,
+          type: 'nightlife',
+          customer: b.customer_name,
+          table: b.typeName || 'Table',
+          date: b.date,
+          time: b.slotName || '',
+          amount: b.total_price || 0,
+          commission: Math.round((b.total_price || 0) * 0.1),
+          status: b.status
+        }));
+        adminData.bookings = [...adminData.bookings, ...nlBookings];
+      }
+    } catch (e) { console.log('Nightlife bookings API not available'); }
+    
+  } catch (e) {
+    console.log('Using fallback demo data');
+    // Fallback to demo data if API not available
+    adminData.vendors = [
+      { id: 1, name: 'Urban Bites', type: 'restaurant', owner: 'Rahul K', email: 'urban@test.com', phone: '+919876543210', upi: 'urban@upi', orders: 45, revenue: 67500, status: 'active' },
+      { id: 2, name: 'Pizza House', type: 'restaurant', owner: 'Priya S', email: 'pizza@test.com', phone: '+919876543211', upi: 'pizza@upi', orders: 78, revenue: 124800, status: 'active' },
+      { id: 3, name: 'Club Havana', type: 'nightlife', owner: 'Amit P', email: 'havana@test.com', phone: '+919876543212', upi: 'havana@upi', orders: 34, revenue: 89000, status: 'active' },
+      { id: 4, name: 'Skye Lounge', type: 'nightlife', owner: 'Raj M', email: 'skye@test.com', phone: '+919876543213', upi: 'skye@upi', orders: 23, revenue: 56000, status: 'active' }
+    ];
+    adminData.users = [
+      { id: 1, name: 'John Doe', email: 'john@test.com', phone: '+919999999901', orders: 5, bookings: 2, status: 'active' },
+      { id: 2, name: 'Jane Smith', email: 'jane@test.com', phone: '+919999999902', orders: 12, bookings: 4, status: 'active' },
+      { id: 3, name: 'Mike Johnson', email: 'mike@test.com', phone: '+919999999903', orders: 8, bookings: 1, status: 'suspended' }
+    ];
+    adminData.orders = [
+      { id: 'ORD001', vendorId: 1, type: 'food', customer: 'John D', items: 3, amount: 1500, commission: 150, status: 'completed', date: '2024-03-15' },
+      { id: 'ORD002', vendorId: 2, type: 'food', customer: 'Jane S', items: 2, amount: 2300, commission: 230, status: 'completed', date: '2024-03-15' },
+      { id: 'ORD003', vendorId: 3, type: 'nightlife_food', customer: 'Mike R', items: 5, amount: 4500, commission: 450, status: 'completed', date: '2024-03-16' },
+      { id: 'ORD004', vendorId: 1, type: 'food', customer: 'Rahul K', items: 1, amount: 450, commission: 45, status: 'pending', date: '2024-03-16' },
+      { id: 'ORD005', vendorId: 4, type: 'nightlife_food', customer: 'Priya M', items: 4, amount: 3200, commission: 320, status: 'pending', date: '2024-03-16' }
+    ];
+    adminData.bookings = [
+      { id: 'BK001', vendorId: 1, type: 'restaurant', customer: 'John D', table: 'AC Table', date: '2024-03-20', time: '7:00 PM', amount: 1500, commission: 150, status: 'confirmed' },
+      { id: 'BK002', vendorId: 2, type: 'restaurant', customer: 'Jane S', table: 'Window Seat', date: '2024-03-21', time: '8:00 PM', amount: 2000, commission: 200, status: 'pending' },
+      { id: 'BK003', vendorId: 3, type: 'nightlife', customer: 'Mike R', table: 'VIP Booth', date: '2024-03-22', time: '10:00 PM', amount: 5000, commission: 500, status: 'completed' },
+      { id: 'BK004', vendorId: 4, type: 'nightlife', customer: 'Rahul K', table: 'Premium Table', date: '2024-03-23', time: '9:00 PM', amount: 3500, commission: 350, status: 'confirmed' }
+    ];
+    adminData.coupons = [
+      { code: 'FIRST50', type: 'percentage', value: 50, minOrder: 200, uses: 45, expiry: '2024-12-31', status: 'active' },
+      { code: 'FLAT100', type: 'flat', value: 100, minOrder: 500, uses: 23, expiry: '2024-06-30', status: 'active' }
+    ];
+    adminData.payouts = [
+      { id: 'PAY001', vendor: 'Urban Bites', amount: 10000, upi: 'urban@upi', txId: 'UPI123456', status: 'completed', date: '2024-03-10' },
+      { id: 'PAY002', vendor: 'Club Havana', amount: 15000, upi: 'havana@upi', txId: 'UPI234567', status: 'completed', date: '2024-03-12' },
+      { id: 'PAY003', vendor: 'Pizza House', amount: 8000, upi: 'pizza@upi', txId: '', status: 'pending', date: '2024-03-16' }
+    ];
+  }
+  document.getElementById('commPlatform').value = adminData.settings.platformComm;
+  document.getElementById('commDelivery').value = adminData.settings.deliveryPerKm;
+  document.getElementById('commPacking').value = adminData.settings.packingFee;
+  document.getElementById('settingUpi').value = adminData.settings.platformUpi;
+  document.getElementById('settingGst').value = adminData.settings.gst;
+  document.getElementById('settingSurge').value = adminData.settings.surgeMultiplier;
+}
+
+function saveData() { localStorage.setItem('unifiedAdminData', JSON.stringify(adminData)); }
+
+// ========================================
+// AUTH
+// ========================================
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  if (document.getElementById('loginEmail').value === 'admin@zoma.com' && document.getElementById('loginPassword').value === 'admin123') {
+    localStorage.setItem('adminSession', 'true');
+    showPanel();
+  } else { alert('Invalid credentials'); }
+});
+
+function checkSession() { if (localStorage.getItem('adminSession')) showPanel(); }
+
+function showPanel() {
+  loadTheme();
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('sidebar').style.display = 'block';
+  document.getElementById('mainContent').style.display = 'block';
+  loadData();
+  renderDashboard();
+  renderCharts();
+}
+
+document.getElementById('logoutBtn').addEventListener('click', function() {
+  localStorage.removeItem('adminSession');
+  location.reload();
+});
+
+// ========================================
+// NAVIGATION
+// ========================================
+document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+  item.addEventListener('click', function() {
+    const page = this.dataset.page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+    const titles = {
+      dashboard: ['Dashboard', 'Business overview'], analytics: ['Analytics', 'Performance insights'],
+      'food-orders': ['Food Orders', 'Food delivery orders'], 'nightlife-orders': ['Nightlife Orders', 'Club food orders'],
+      'restaurant-bookings': ['Restaurant Bookings', 'Table reservations'], 'nightlife-bookings': ['Nightlife Bookings', 'Club table bookings'],
+      vendors: ['Vendors', 'Manage vendors'], users: ['Users', 'Manage users'], coupons: ['Coupons', 'Manage coupons'],
+      commissions: ['Commissions', 'Configure rates'], payouts: ['Payouts', 'Process payouts'], settings: ['Settings', 'Platform settings']
+    };
+    document.getElementById('pageTitle').textContent = titles[page][0];
+    document.getElementById('pageSubtitle').textContent = titles[page][1];
+    if (page === 'vendors') renderVendors();
+    if (page === 'users') renderUsers();
+    if (page === 'coupons') renderCoupons();
+    if (page === 'payouts') renderPayouts();
+    if (page === 'food-orders') renderFoodOrders();
+    if (page === 'nightlife-orders') renderNightlifeOrders();
+    if (page === 'restaurant-bookings') renderRestaurantBookings();
+    if (page === 'nightlife-bookings') renderNightlifeBookings();
+    if (page === 'settings') loadAdminSettings();
+  });
+});
+
+// ========================================
+// DASHBOARD
+// ========================================
+function renderDashboard(){
+
+  const completedOrders = adminData.orders.filter(o => o.status === "completed");
+
+  const totalRevenue =
+      completedOrders.reduce((sum,o)=> sum + o.amount ,0);
+
+  const totalCommission =
+      completedOrders.reduce((sum,o)=> sum + o.commission ,0);
+
+  const foodRevenue =
+      completedOrders
+      .filter(o=>o.type==="food")
+      .reduce((s,o)=>s+o.amount,0);
+
+  const nightlifeRevenue =
+      completedOrders
+      .filter(o=>o.type==="nightlife_food")
+      .reduce((s,o)=>s+o.amount,0);
+
+  document.getElementById("metricTotalRevenue").textContent =
+      "₹"+totalRevenue.toLocaleString();
+
+  document.getElementById("metricFoodRevenue").textContent =
+      "₹"+foodRevenue.toLocaleString();
+
+  document.getElementById("metricNightlifeRevenue").textContent =
+      "₹"+nightlifeRevenue.toLocaleString();
+
+  document.getElementById("metricCommission").textContent =
+      "₹"+totalCommission.toLocaleString();
+
+}
+function renderTopVendors() {
+  const tbody = document.getElementById('topVendorsTable');
+  tbody.innerHTML = adminData.vendors.slice(0, 5).map(v => {
+    const orders = adminData.orders.filter(o => o.vendorId === v.id).length;
+    const bookings = adminData.bookings.filter(b => b.vendorId === v.id).length;
+    const comm = v.revenue * (adminData.settings.platformComm / 100);
+    return '<tr><td>' + v.name + '</td><td>' + orders + '</td><td>' + bookings + '</td><td>₹' + v.revenue.toLocaleString() + '</td><td>₹' + comm.toLocaleString() + '</td></tr>';
+  }).join('');
+}
+
+function renderCharts() {
+  new Chart(document.getElementById('revenueChart').getContext('2d'), {
+    type: 'line', data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Revenue', data: [12000, 18500, 15200, 22000, 19800, 28000, 35000], borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.1)', fill: true, tension: 0.4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+  new Chart(document.getElementById('ordersChart').getContext('2d'), {
+    type: 'bar', data: { labels: ['Food Orders', 'Nightlife Orders', 'Restaurant BK', 'Nightlife BK'], datasets: [{ label: 'Count', data: [adminData.orders.filter(o => o.type === 'food').length, adminData.orders.filter(o => o.type === 'nightlife_food').length, adminData.bookings.filter(b => b.type === 'restaurant').length, adminData.bookings.filter(b => b.type === 'nightlife').length], backgroundColor: ['#7c3aed', '#10b981', '#f59e0b', '#3b82f6'] }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+  new Chart(document.getElementById('dailyChart').getContext('2d'), { type: 'bar', data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Daily', data: [12000, 18500, 15200, 22000, 19800, 28000, 35000], backgroundColor: '#7c3aed' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+  new Chart(document.getElementById('weeklyChart').getContext('2d'), { type: 'bar', data: { labels: ['Week1', 'Week2', 'Week3', 'Week4'], datasets: [{ label: 'Weekly', data: [85000, 102000, 95000, 125000], backgroundColor: '#10b981' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+  new Chart(document.getElementById('monthlyChart').getContext('2d'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mar', 'Apr'], datasets: [{ label: 'Monthly', data: [320000, 385000, 450000, 520000], backgroundColor: '#f59e0b' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+  new Chart(document.getElementById('yearlyChart').getContext('2d'), { type: 'bar', data: { labels: ['2022', '2023', '2024'], datasets: [{ label: 'Yearly', data: [3200000, 4500000, 5800000], backgroundColor: '#ef4444' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+}
+
+function renderFoodOrders() {
+  const orders = adminData.orders.filter(o => o.type === 'food');
+  document.getElementById('foodOrdersTable').innerHTML = orders.map(o => {
+    const v = adminData.vendors.find(v => v.id === o.vendorId);
+    return '<tr><td>' + o.id + '</td><td>' + (v ? v.name : 'N/A') + '</td><td>' + o.customer + '</td><td>' + o.items + '</td><td>₹' + o.amount + '</td><td>₹' + o.commission + '</td><td><span class="status-badge ' + o.status + '">' + o.status + '</span></td><td>' + o.date + '</td></tr>';
+  }).join('');
+}
+
+function renderNightlifeOrders() {
+  const orders = adminData.orders.filter(o => o.type === 'nightlife_food');
+  document.getElementById('nightlifeOrdersTable').innerHTML = orders.map(o => {
+    const v = adminData.vendors.find(v => v.id === o.vendorId);
+    return '<tr><td>' + o.id + '</td><td>' + (v ? v.name : 'N/A') + '</td><td>' + o.customer + '</td><td>' + o.items + '</td><td>₹' + o.amount + '</td><td>₹' + o.commission + '</td><td><span class="status-badge ' + o.status + '">' + o.status + '</span></td><td>' + o.date + '</td></tr>';
+  }).join('');
+}
+
+function renderRestaurantBookings() {
+  const bookings = adminData.bookings.filter(b => b.type === 'restaurant');
+  document.getElementById('restaurantBookingsTable').innerHTML = bookings.map(b => {
+    const v = adminData.vendors.find(v => v.id === b.vendorId);
+    return '<tr><td>' + b.id + '</td><td>' + (v ? v.name : 'N/A') + '</td><td>' + b.customer + '</td><td>' + b.table + '</td><td>' + b.date + '</td><td>' + b.time + '</td><td>₹' + b.amount + '</td><td>₹' + b.commission + '</td><td><span class="status-badge ' + b.status + '">' + b.status + '</span></td></tr>';
+  }).join('');
+}
+
+function renderNightlifeBookings() {
+  const bookings = adminData.bookings.filter(b => b.type === 'nightlife');
+  document.getElementById('nightlifeBookingsTable').innerHTML = bookings.map(b => {
+    const v = adminData.vendors.find(v => v.id === b.vendorId);
+    return '<tr><td>' + b.id + '</td><td>' + (v ? v.name : 'N/A') + '</td><td>' + b.customer + '</td><td>' + b.table + '</td><td>' + b.date + '</td><td>' + b.time + '</td><td>₹' + b.amount + '</td><td>₹' + b.commission + '</td><td><span class="status-badge ' + b.status + '">' + b.status + '</span></td></tr>';
+  }).join('');
+}
+
+function renderVendors() {
+  document.getElementById('vendorsTable').innerHTML = adminData.vendors.map(v => 
+    '<tr><td>' + v.id + '</td><td>' + v.name + '</td><td><span class="badge ' + v.type + '">' + v.type + '</span></td><td>' + v.owner + '</td><td>' + v.upi + '</td><td>' + v.orders + '</td><td>₹' + v.revenue.toLocaleString() + '</td><td><span class="status-badge ' + v.status + '">' + v.status + '</span></td><td><button class="btn btn-sm btn-outline" onclick="toggleVendor(' + v.id + ')">' + (v.status === 'active' ? 'Suspend' : 'Activate') + '</button></td></tr>'
+  ).join('');
+  const sel = document.getElementById('payoutVendor');
+  sel.innerHTML = adminData.vendors.map(v => '<option value="' + v.id + '">' + v.name + '</option>').join('');
+}
+
+function addVendor() {
+  const name = document.getElementById('newVendorName').value;
+  const type = document.getElementById('newVendorType').value;
+  const owner = document.getElementById('newVendorOwner').value;
+  const email = document.getElementById('newVendorEmail').value;
+  const phone = document.getElementById('newVendorPhone').value;
+  const upi = document.getElementById('newVendorUpi').value;
+  if (!name || !email) return alert('Fill required fields');
+  adminData.vendors.push({ id: Date.now(), name, type, owner, email, phone, upi, orders: 0, revenue: 0, status: 'active' });
+  saveData(); renderVendors(); closeModal('addVendorModal');
+}
+
+function toggleVendor(id) {
+  const v = adminData.vendors.find(v => v.id === id);
+  if (v) { v.status = v.status === 'active' ? 'suspended' : 'active'; saveData(); renderVendors(); }
+}
+
+function renderUsers() {
+  document.getElementById('usersTable').innerHTML = adminData.users.map(u => 
+    '<tr><td>' + u.id + '</td><td>' + u.name + '</td><td>' + u.email + '</td><td>' + u.phone + '</td><td>' + u.orders + '</td><td>' + u.bookings + '</td><td><span class="status-badge ' + u.status + '">' + u.status + '</span></td><td><button class="btn btn-sm btn-outline" onclick="toggleUser(' + u.id + ')">' + (u.status === 'active' ? 'Suspend' : 'Activate') + '</button></td></tr>'
+  ).join('');
+}
+
+function toggleUser(id) {
+  const u = adminData.users.find(u => u.id === id);
+  if (u) { u.status = u.status === 'active' ? 'suspended' : 'active'; saveData(); renderUsers(); }
+}
+
+function renderCoupons() {
+  document.getElementById('couponsTable').innerHTML = adminData.coupons.map(c => 
+    '<tr><td><strong>' + c.code + '</strong></td><td>' + c.type + '</td><td>' + (c.type === 'percentage' ? c.value + '%' : '₹' + c.value) + '</td><td>₹' + c.minOrder + '</td><td>' + c.uses + '</td><td>' + c.expiry + '</td><td><span class="status-badge ' + c.status + '">' + c.status + '</span></td><td><button class="btn btn-sm btn-danger" onclick="deleteCoupon(\'' + c.code + '\')"><i class="fas fa-trash"></i></button></td></tr>'
+  ).join('');
+}
+
+function addCoupon() {
+  const code = document.getElementById('newCouponCode').value.toUpperCase();
+  const type = document.getElementById('newCouponType').value;
+  const value = parseFloat(document.getElementById('newCouponValue').value);
+  const min = parseFloat(document.getElementById('newCouponMin').value);
+  const expiry = document.getElementById('newCouponExpiry').value;
+  if (!code || !value) return alert('Fill required fields');
+  adminData.coupons.push({ code, type, value, minOrder: min, uses: 0, expiry, status: 'active' });
+  saveData(); renderCoupons(); closeModal('addCouponModal');
+}
+
+function deleteCoupon(code) {
+  if (!confirm('Delete coupon?')) return;
+  adminData.coupons = adminData.coupons.filter(c => c.code !== code);
+  saveData(); renderCoupons();
+}
+
+function renderPayouts() {
+  const paid = adminData.payouts.filter(p => p.status === 'completed').reduce((s, p) => s + p.amount, 0);
+  const pending = adminData.payouts.filter(p => p.status === 'pending').reduce((s, p) => s + p.amount, 0);
+  const comm = adminData.orders.reduce((s, o) => s + (o.commission || 0), 0) + adminData.bookings.reduce((s, b) => s + (b.commission || 0), 0);
+  document.getElementById('totalPaid').textContent = '₹' + paid.toLocaleString();
+  document.getElementById('pendingPayout').textContent = '₹' + pending.toLocaleString();
+  document.getElementById('totalCommEarned').textContent = '₹' + comm.toLocaleString();
+  document.getElementById('totalPayoutAmt').textContent = '₹' + adminData.payouts.reduce((s, p) => s + p.amount, 0).toLocaleString();
+  document.getElementById('payoutsTable').innerHTML = adminData.payouts.map(p => 
+    '<tr><td>' + p.id + '</td><td>' + p.vendor + '</td><td>₹' + p.amount + '</td><td>' + p.upi + '</td><td>' + (p.txId || '-') + '</td><td><span class="status-badge ' + p.status + '">' + p.status + '</span></td><td>' + p.date + '</td></tr>'
+  ).join('');
+}
+
+function processPayout() {
+  const vendorId = parseInt(document.getElementById('payoutVendor').value);
+  const amount = parseFloat(document.getElementById('payoutAmount').value);
+  const txId = document.getElementById('payoutTxId').value;
+  const vendor = adminData.vendors.find(v => v.id === vendorId);
+  if (!amount || !vendor) return alert('Fill required fields');
+  adminData.payouts.push({ id: 'PAY' + (adminData.payouts.length + 1), vendor: vendor.name, amount, upi: vendor.upi, txId, status: 'completed', date: new Date().toISOString().split('T')[0] });
+  saveData(); renderPayouts(); closeModal('payoutModal'); alert('Payout processed!');
+}
+
+async function saveCommission(){
+
+  const data = {
+    gst_percent: parseFloat(document.getElementById("commGst").value),
+    restaurant_platform_commission: parseFloat(document.getElementById("commRestaurant").value),
+    nightlife_platform_commission: parseFloat(document.getElementById("commNightlife").value),
+    nightlife_handling_fee: parseFloat(document.getElementById("commHandling").value)
+  };
+
+  try{
+
+    const res = await fetch("/api/admin/settings",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if(result.success){
+      alert("Commission settings saved successfully");
+    }else{
+      alert("Failed: " + result.message);
+    }
+
+  }catch(err){
+    console.error(err);
+    alert("Server error");
+  }
+}
+
+// ========================================
+// ADMIN SETTINGS
+// ========================================
+
+// Load admin settings from backend
+async function loadAdminSettings(){
+
+  try{
+
+    const res = await fetch("/api/admin/settings");
+    const data = await res.json();
+
+    if(!data.success) return;
+
+    document.getElementById("commRestaurant").value =
+        data.restaurant.platform_commission;
+
+    document.getElementById("commNightlife").value =
+        data.nightlife.platform_commission;
+
+    document.getElementById("commGst").value =
+        data.restaurant.gst_percent;
+
+    document.getElementById("commHandling").value =
+        data.nightlife.handling_fee;
+
+  }catch(err){
+    console.log("Settings load error",err);
+  }
+
+}
+// Save Restaurant Settings
+async function saveRestaurantSettings() {
+
+  const data = {
+    restaurant_gst: parseFloat(document.getElementById("restGst").value),
+    restaurant_platform_commission: parseFloat(document.getElementById("restCommission").value),
+    restaurant_delivery_fee: parseFloat(document.getElementById("restDeliveryFee").value),
+    restaurant_packing_fee: parseFloat(document.getElementById("restPackingFee").value)
+  };
+
+  const res = await fetch("/api/admin/settings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+
+  if(result.success){
+     alert("Restaurant settings saved");
+  }
+}
+// Save Nightlife Settings
+async function saveNightlifeSettings() {
+  const data = {
+    nightlife_platform_commission: parseFloat(document.getElementById('nightCommission').value) || 20,
+    nightlife_service_fee: parseFloat(document.getElementById('nightServiceFee').value) || 0
+  };
+  
+  try {
+    const res = await fetch(`${window.location.origin}/api/admin/settings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    
+    if (result.success) {
+      alert('Nightlife settings saved successfully!');
+    } else {
+      alert('Failed to save: ' + result.message);
+    }
+  } catch (err) {
+    alert('Error saving settings: ' + err.message);
+  }
+}
+
+// Save General Settings (UPI, Surge)
+function saveGeneralSettings() {
+  adminData.settings.platformUpi = document.getElementById('settingUpi').value;
+  adminData.settings.surgeMultiplier = parseFloat(document.getElementById('settingSurge').value) || 1;
+  saveData();
+  alert('General settings saved!');
+}
+
+// Legacy function for compatibility
+function saveSetting(type) {
+  if (type === 'upi') {
+    adminData.settings.platformUpi = document.getElementById('settingUpi').value;
+  }
+  if (type === 'gst') {
+    adminData.settings.gst = parseFloat(document.getElementById('restGst').value) || 5;
+  }
+  if (type === 'surge') {
+    adminData.settings.surgeMultiplier = parseFloat(document.getElementById('settingSurge').value) || 1;
+  }
+  saveData();
+  alert('Saved!');
+}
+
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+checkSession();
+</script>
+</body>
+</html>

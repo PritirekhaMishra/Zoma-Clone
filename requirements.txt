@@ -1,0 +1,25 @@
+# Web Framework
+Flask>=3.0.0
+Flask-CORS>=4.0.0
+Flask-SQLAlchemy>=3.1.0
+Flask-JWT-Extended>=4.6.0
+
+# Database
+psycopg2-binary>=2.9.11
+SQLAlchemy>=2.0.36
+
+# Email & Validation
+email-validator>=2.1.0
+
+# Payment Gateway
+razorpay>=1.4.2
+
+# Utilities
+python-dotenv>=1.0.0
+Werkzeug>=3.0.0
+
+# ORM & Database Tools
+marshmallow>=3.20.0
+
+# Optional: SMS via Twilio
+# twilio>=8.10.0

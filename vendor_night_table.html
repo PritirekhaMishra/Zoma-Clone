@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nightlife Vendor Dashboard | ZomaClone</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: rgba(20, 20, 35, 0.8);
+            --bg-card-hover: rgba(30, 30, 50, 0.9);
+            --accent-primary: #8b5cf6;
+            --accent-secondary: #a855f7;
+            --accent-neon: #22d3ee;
+            --accent-pink: #ec4899;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-dark); color: var(--text-primary); min-height: 100vh; }
+
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at 20% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; width: var(--sidebar-width); height: 100vh;
+            background: linear-gradient(180deg, rgba(15, 15, 25, 0.95) 0%, rgba(10, 10, 15, 0.98) 100%);
+            backdrop-filter: blur(20px); border-right: 1px solid var(--border-color); padding: 24px 16px;
+            z-index: 100; display: flex; flex-direction: column; }
+        
+        .sidebar-logo { display: flex; align-items: center; gap: 12px; padding: 0 8px 24px;
+            border-bottom: 1px solid var(--border-color); margin-bottom: 24px; }
+        .logo-icon { width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 18px; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4); }
+        .logo-text { font-weight: 700; font-size: 20px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-neon));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .nav-section { margin-bottom: 24px; }
+        .nav-section-title { font-size: 11px; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 1.5px; padding: 0 12px; margin-bottom: 12px; }
+        
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px;
+            cursor: pointer; transition: all 0.3s ease; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px; }
+        .nav-item:hover { background: var(--glass-bg); color: var(--text-primary); }
+        .nav-item.active { background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1));
+            color: var(--accent-primary); border: 1px solid var(--border-color); }
+        .nav-item i { width: 20px; text-align: center; font-size: 16px; }
+
+        /* Main Content */
+        .main-content { margin-left: var(--sidebar-width); padding: 32px; min-height: 100vh; position: relative; z-index: 1; }
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-size: 28px; font-weight: 700; margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .page-subtitle { color: var(--text-secondary); font-size: 14px; }
+
+        /* Cards */
+        .card { background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
+            border-radius: 20px; padding: 24px; margin-bottom: 24px; transition: all 0.3s ease; }
+        .card:hover { border-color: var(--border-color); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .card-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .card-title i { color: var(--accent-primary); }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px; }
+        .stat-card { background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 24px; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-neon)); }
+        .stat-card:hover { transform: translateY(-4px); border-color: var(--accent-primary); }
+        .stat-icon { width: 48px; height: 48px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+            color: var(--accent-primary); margin-bottom: 16px; }
+        .stat-value { font-size: 32px; font-weight: 700; margin-bottom: 4px;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-neon));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { color: var(--text-secondary); font-size: 14px; }
+
+        /* Forms */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary);
+            font-size: 14px; font-family: inherit; transition: all 0.3s ease; }
+        .form-input:focus { outline: none; border-color: var(--accent-primary);
+            background: rgba(139, 92, 246, 0.05); box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1); }
+        .form-input::placeholder { color: var(--text-muted); }
+        .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 600;
+            font-family: inherit; cursor: pointer; transition: all 0.3s ease; border: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4); }
+        .btn-secondary { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--accent-primary); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); }
+        .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+        /* Tables */
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .data-table th { text-align: left; padding: 14px 16px; font-size: 12px; font-weight: 600;
+            color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+            border-bottom: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.02); }
+        .data-table td { padding: 16px; border-bottom: 1px solid var(--glass-border); font-size: 14px; }
+        .data-table tr:hover td { background: var(--glass-bg); }
+
+        /* Badges */
+        .badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .badge-info { background: rgba(34, 211, 238, 0.15); color: var(--accent-neon); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: flex;
+            align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 24px;
+            padding: 32px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+            transform: scale(0.9); transition: all 0.3s ease; }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .modal-title { font-size: 20px; font-weight: 600; }
+        .modal-close { width: 36px; height: 36px; border-radius: 10px; background: var(--glass-bg);
+            border: 1px solid var(--glass-border); color: var(--text-secondary); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .modal-close:hover { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        /* Section Display */
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Table Grid */
+        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; margin-top: 16px; }
+        .table-item { aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-weight: 600; cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent; }
+        .table-item.free { background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+        .table-item.free:hover { background: rgba(16, 185, 129, 0.25); }
+        .table-item.reserved { background: rgba(245, 158, 11, 0.15); color: var(--warning); border-color: rgba(245, 158, 11, 0.3); cursor: not-allowed; }
+        .table-item.unavailable { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); border-color: rgba(100, 116, 139, 0.3); }
+
+        /* Banner Upload */
+        .banner-upload { position: relative; width: 100%; height: 200px; border: 2px dashed var(--glass-border);
+            border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.3s ease; overflow: hidden; background: var(--glass-bg); }
+        .banner-upload:hover { border-color: var(--accent-primary); }
+        .banner-upload img { width: 100%; height: 100%; object-fit: cover; }
+        .banner-upload-placeholder { text-align: center; color: var(--text-muted); }
+        .banner-upload-placeholder i { font-size: 40px; margin-bottom: 12px; color: var(--accent-primary); }
+
+        /* Location Detect Button */
+        .location-detect-btn { background: linear-gradient(135deg, var(--accent-neon), var(--accent-primary));
+            color: white; padding: 14px 24px; border-radius: 12px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 10px; cursor: pointer; border: none;
+            transition: all 0.3s ease; margin-bottom: 20px; }
+        .location-detect-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(34, 211, 238, 0.3); }
+        .location-detect-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Gallery Grid */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin-top: 16px; }
+        .gallery-item { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-item .delete-btn { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px;
+            background: rgba(239, 68, 68, 0.9); border: none; border-radius: 50%; color: white;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+        .gallery-item:hover .delete-btn { opacity: 1; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 12px; }
+        .toast { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px;
+            padding: 16px 20px; display: flex; align-items: center; gap: 12px; min-width: 300px;
+            animation: slideIn 0.3s ease; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .toast.success .toast-icon { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .toast.error .toast-icon { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        /* Chart Container */
+        .chart-container { height: 300px; margin-top: 20px; }
+
+        /* Responsive */
+        @media (max-width: 1024px) { .sidebar { width: 80px; padding: 16px 8px; } .logo-text { display: none; } .nav-item { justify-content: center; padding: 12px; } .nav-item span { display: none; } .main-content { margin-left: 80px; } }
+        @media (max-width: 768px) { .sidebar { display: none; } .main-content { margin-left: 0; } .stats-grid { grid-template-columns: 1fr 1fr; } .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">Z</div>
+            <span class="logo-text">ZomaClone</span>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <div class="nav-item active" data-section="dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></div>
+                <div class="nav-item" data-section="venue"><i class="fas fa-store"></i><span>Venue Info</span></div>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <div class="nav-item" data-section="table-types"><i class="fas fa-chair"></i><span>Table Types</span></div>
+                <div class="nav-item" data-section="slots"><i class="fas fa-clock"></i><span>Slots</span></div>
+                <div class="nav-item" data-section="bookings"><i class="fas fa-calendar-check"></i><span>Bookings</span></div>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Settings</div>
+                <div class="nav-item" data-section="settings"><i class="fas fa-cog"></i><span>Settings</span></div>
+                <div class="nav-item" data-section="location"><i class="fas fa-map-marker-alt"></i><span>Location</span></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Your venue analytics overview</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+                    <div class="stat-value" id="todayRevenue">₹0</div>
+                    <div class="stat-label">Today's Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-calendar-week"></i></div>
+                    <div class="stat-value" id="weeklyRevenue">₹0</div>
+                    <div class="stat-label">Weekly Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <div class="stat-value" id="monthlyRevenue">₹0</div>
+                    <div class="stat-label">Monthly Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="stat-value" id="totalRevenue">₹0</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-chart-area"></i> Revenue Chart (Last 30 Days)</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="stat-value" id="upcomingBookings">0</div>
+                    <div class="stat-label">Upcoming Bookings</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Venue Info Section -->
+        <section id="venue" class="section">
+            <div class="page-header">
+                <h1 class="page-title">Venue Information</h1>
+                <p class="page-subtitle">Manage your club details</p>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-store"></i> Basic Information</h2>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Club Name</label>
+                        <input type="text" class="form-input" id="clubName" placeholder="Enter club name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="vendorEmail" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">UPI ID</label>
+                    <div style="display: flex; gap: 12px;">
+                        <input type="text" class="form-input" id="upiId" placeholder="e.g., club@upi">
+                        <button class="btn btn-primary" onclick="saveUpi()">Save UPI</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-image"></i> Banner Image</h2>
+                </div>
+                <div class="banner-upload" onclick="document.getElementById('bannerInput').click()">
+                    <input type="file" id="bannerInput" accept="image/*" style="display: none;" onchange="uploadBanner(event)">
+                    <div class="banner-upload-placeholder" id="bannerPlaceholder">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload banner</p>
+                    </div>
+                    <img id="bannerPreview" style="display: none;">
+                </div>
+                <button class="btn btn-danger btn-sm" id="deleteBannerBtn" style="display: none; margin-top: 12px;" onclick="deleteBanner()">
+                    <i class="fas fa-trash"></i> Delete Banner
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-images"></i> Gallery Images</h2>
+                </div>
+                <button class="btn btn-secondary" onclick="document.getElementById('galleryInput').click()">
+                    <i class="fas fa-plus"></i> Add Images
+                </button>
+                <input type="file" id="galleryInput" accept="image/*" multiple style="display: none;" onchange="uploadGallery(event)">
+                <div class="gallery-grid" id="galleryGrid"></div>
+            </div>
+        </section>
+
+        <!-- Table Types Section -->
+        <section id="table-types" class="section">
+            <div class="page-header">
+                <h1 class="page-title">Table Types</h1>
+                <p class="page-subtitle">Manage your table configurations</p>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-plus-circle"></i> Add New Type</h2>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Type Name</label>
+                        <input type="text" class="form-input" id="typeName" placeholder="e.g., VIP Table">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Seats per Table</label>
+                        <input type="number" class="form-input" id="typeSeats" placeholder="e.g., 4" min="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Total Tables</label>
+                        <input type="number" class="form-input" id="typeTotal" placeholder="e.g., 10" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Free Tables</label>
+                        <input type="number" class="form-input" id="typeFree" placeholder="e.g., 5" min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Price (₹)</label>
+                        <input type="number" class="form-input" id="typePrice" placeholder="e.g., 2500" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cancel Before (Hours)</label>
+                        <input type="number" class="form-input" id="typeCancel" placeholder="e.g., 2" min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Start Time</label>
+                        <input type="time" class="form-input" id="typeStart" value="18:00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Time</label>
+                        <input type="time" class="form-input" id="typeEnd" value="02:00">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveTableType()">
+                    <i class="fas fa-save"></i> Save Table Type
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-list"></i> Existing Types</h2>
+                </div>
+                <div id="tableTypesList"></div>
+            </div>
+        </section>
+
+        <!-- Slots Section -->
+        <section id="slots" class="section">
+            <div class="page-header">
+                <h1 class="page-title">Time Slots</h1>
+                <p class="page-subtitle">Manage your booking time slots</p>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-plus-circle"></i> Add New Slot</h2>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Slot Name</label>
+                        <input type="text" class="form-input" id="slotName" placeholder="e.g., Prime Time">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Start Time</label>
+                        <input type="time" class="form-input" id="slotStart" value="20:00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Time</label>
+                        <input type="time" class="form-input" id="slotEnd" value="23:00">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveSlot()">
+                    <i class="fas fa-save"></i> Save Slot
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-list"></i> Existing Slots</h2>
+                </div>
+                <div id="slotsList"></div>
+            </div>
+        </section>
+
+        <!-- Bookings Section -->
+        <section id="bookings" class="section">
+            <div class="page-header">
+                <h1 class="page-title">Bookings</h1>
+                <p class="page-subtitle">View and manage all bookings</p>
+            </div>
+            <div class="card">
+                <div id="bookingsList"></div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings" class="section">
+            <div class="page-header">
+                <h1 class="page-title">Settings</h1>
+                <p class="page-subtitle">Configure your venue settings</p>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-cog"></i> Booking Settings</h2>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Max Advance Days</label>
+                        <input type="number" class="form-input" id="maxAdvanceDays" placeholder="e.g., 30" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cancel Before (Hours)</label>
+                        <input type="number" class="form-input" id="cancelBeforeHours" placeholder="e.g., 2" min="0">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </div>
+        </section>
+
+        <!-- Location Section -->
+        <section id="location" class="section">
+            <div class="page-header">
+                <h1 class="page-title">Location</h1>
+                <p class="page-subtitle">Manage your venue location</p>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-map-marker-alt"></i> Venue Location</h2>
+                </div>
+                <button class="location-detect-btn" id="detectLocationBtn" onclick="detectLocation()">
+                    <i class="fas fa-crosshairs"></i> Detect My Location
+                </button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Building Name / Plot No.</label>
+                        <input type="text" class="form-input" id="locAddr1" placeholder="e.g., Club Havana Building">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Road Name / Area</label>
+                        <input type="text" class="form-input" id="locAddr2" placeholder="e.g., MG Road">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">City</label>
+                        <input type="text" class="form-input" id="locCity" placeholder="e.g., Mumbai">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">State</label>
+                        <input type="text" class="form-input" id="locState" placeholder="e.g., Maharashtra">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Pincode</label>
+                        <input type="text" class="form-input" id="locPincode" placeholder="e.g., 400001">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveLocation()">
+                    <i class="fas fa-save"></i> Save Location
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Table Modal -->
+    <div class="modal-overlay" id="tableModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="tableModalTitle">Manage Tables</h3>
+                <button class="modal-close" onclick="closeTableModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="tableModalContent"></div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-success btn-sm" onclick="markAllFree()">
+                    <i class="fas fa-check-circle"></i> Mark All Free
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIG ====================
+        const API_BASE = window.location.origin;
+        let vendorId = null;
+        let currentTypeId = null;
+        let revenueChart = null;
+
+        // Get vendor_id from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlVendorId = urlParams.get('vendor_id');
+        if (urlVendorId) vendorId = parseInt(urlVendorId);
+
+        // ==================== SAFER API FETCH HELPER ====================
+        async function apiFetch(url, options = {}) {
+            try {
+                const res = await fetch(url, options);
+                const text = await res.text();
+                let json;
+                try {
+                    json = JSON.parse(text);
+                } catch {
+                    console.error("Invalid JSON response:", text);
+                    return null;
+                }
+                if (!json.success && json.success !== undefined) {
+                    console.error("API returned error:", json);
+                    return null;
+                }
+                return json;
+            } catch (err) {
+                console.error("Network/API error:", err);
+                return null;
+            }
+        }
+
+        // ==================== HELPERS ====================
+        function q(sel) { return document.querySelector(sel); }
+        function qa(sel) { return document.querySelectorAll(sel); }
+
+        function showToast(message, type = 'success') {
+            const container = q('#toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<div class="toast-icon"><i class="fas fa-${type === 'success' ? 'check' : 'times'}"></i></div><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function formatTime12(timeStr) {
+            if (!timeStr) return '';
+            try { const [h, m] = timeStr.split(':'); const hour = parseInt(h); const period = hour >= 12 ? 'PM' : 'AM'; const hour12 = hour % 12 || 12; return `${hour12}:${m} ${period}`; } catch { return timeStr; }
+        }
+
+        // ==================== API LAYER ====================
+        async function apiGet(endpoint) {
+            const data = await apiFetch(`${API_BASE}${endpoint}`);
+            return data;
+        }
+
+        async function apiPost(endpoint, data) {
+            return await apiFetch(`${API_BASE}${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        }
+
+        async function apiPut(endpoint, data) {
+            return await apiFetch(`${API_BASE}${endpoint}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        }
+
+        async function apiDelete(endpoint) {
+            return await apiFetch(`${API_BASE}${endpoint}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        async function apiUpload(endpoint, formData) {
+            try {
+                const res = await fetch(`${API_BASE}${endpoint}`, { method: 'POST', body: formData });
+                const text = await res.text();
+                let json;
+                try {
+                    json = JSON.parse(text);
+                } catch {
+                    console.error("Invalid JSON response:", text);
+                    return null;
+                }
+                return json;
+            } catch (err) { console.error('Upload Error:', err); return null; }
+        }
+
+        // ==================== NAVIGATION ====================
+        qa('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                qa('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                const section = item.dataset.section;
+                qa('.section').forEach(s => s.classList.remove('active'));
+                q(`#${section}`).classList.add('active');
+                if (section === 'dashboard') loadAnalytics();
+                if (section === 'table-types') loadTableTypes();
+                if (section === 'slots') loadSlots();
+                if (section === 'bookings') loadBookings();
+                if (section === 'settings') loadSettings();
+                if (section === 'location') loadLocation();
+                if (section === 'venue') loadVenueInfo();
+            });
+        });
+
+        // ==================== INIT ====================
+        async function init() {
+            if (!vendorId) { showToast('Please provide vendor_id in URL', 'error'); return; }
+            loadAnalytics();
+            loadVenueInfo();
+        }
+
+        // ==================== ANALYTICS ====================
+        async function loadAnalytics() {
+            const data = await apiGet(`/api/nightlife/analytics?vendor_id=${vendorId}`);
+            if (!data) return;
+            if (!data.success) return;
+            
+            const a = data.analytics || {};
+            q('#todayRevenue').textContent = '₹' + (a.todayRevenue || 0).toLocaleString();
+            q('#weeklyRevenue').textContent = '₹' + (a.weeklyRevenue || 0).toLocaleString();
+            q('#monthlyRevenue').textContent = '₹' + (a.monthlyRevenue || 0).toLocaleString();
+            q('#totalRevenue').textContent = '₹' + (a.totalRevenue || 0).toLocaleString();
+            q('#upcomingBookings').textContent = a.upcomingBookings || 0;
+            renderChart(a.chartData || []);
+        }
+
+        function renderChart(chartData) {
+            const ctx = q('#revenueChart').getContext('2d');
+            if (revenueChart) revenueChart.destroy();
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.map(d => d.date.slice(5)),
+                    datasets: [{
+                        label: 'Revenue',
+                        data: chartData.map(d => d.revenue),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+
+        // ==================== VENUE INFO ====================
+        async function loadVenueInfo() {
+            try {
+                const data = await apiGet(`/api/nightlife/vendor/me?vendor_id=${vendorId}`);
+                if (!data.success) return;
+                const vendor = data.vendor;
+                q('#vendorEmail').value = vendor.email;
+                q('#clubName').value = vendor.restaurant_name || '';
+                q('#upiId').value = vendor.upi_id || '';
+                if (vendor.banner) {
+                    q('#bannerPreview').src = vendor.banner;
+                    q('#bannerPreview').style.display = 'block';
+                    q('#bannerPlaceholder').style.display = 'none';
+                    q('#deleteBannerBtn').style.display = 'inline-flex';
+                }
+            } catch (err) { console.error('Error loading venue:', err); }
+        }
+
+        async function saveUpi() {
+            const upiId = q('#upiId').value.trim();
+            if (!upiId) return showToast('Please enter UPI ID', 'warning');
+            try {
+                const data = await apiPut(`/api/nightlife/vendor/${vendorId}/upi`, { upi_id: upiId });
+                if (data.success) showToast('UPI ID saved successfully');
+                else showToast(data.message || 'Failed to save UPI', 'error');
+            } catch (err) { showToast('Error saving UPI', 'error'); }
+        }
+
+        async function uploadBanner(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('banner', file);
+            try {
+                const data = await apiUpload(`/api/nightlife/banner?vendor_id=${vendorId}`, formData);
+                if (data.success) {
+                    q('#bannerPreview').src = data.bannerUrl;
+                    q('#bannerPreview').style.display = 'block';
+                    q('#bannerPlaceholder').style.display = 'none';
+                    q('#deleteBannerBtn').style.display = 'inline-flex';
+                    showToast('Banner uploaded successfully');
+                } else showToast(data.message || 'Upload failed', 'error');
+            } catch (err) { showToast('Error uploading banner', 'error'); }
+        }
+
+        async function deleteBanner() {
+            try {
+                const data = await apiDelete(`/api/nightlife/banner?vendor_id=${vendorId}`);
+                if (data.success) {
+                    q('#bannerPreview').style.display = 'none';
+                    q('#bannerPreview').src = '';
+                    q('#bannerPlaceholder').style.display = 'block';
+                    q('#deleteBannerBtn').style.display = 'none';
+                    showToast('Banner deleted');
+                }
+            } catch (err) { showToast('Error deleting banner', 'error'); }
+        }
+
+        async function uploadGallery(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+            for (let i = 0; i < files.length; i++) {
+                const formData = new FormData();
+                formData.append('images', files[i]);
+                try {
+                    await apiUpload(`/api/nightlife/gallery?vendor_id=${vendorId}`, formData);
+                } catch (err) { console.error('Error uploading gallery:', err); }
+            }
+            showToast('Gallery images uploaded');
+            q('#galleryInput').value = '';
+        }
+
+        // ==================== TABLE TYPES ====================
+        async function loadTableTypes() {
+            try {
+                const data = await apiGet(`/api/nightlife/types?vendor_id=${vendorId}`);
+                const container = q('#tableTypesList');
+                if (!data.success || !data.types || data.types.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-chair"></i><h3>No Table Types</h3></div>';
+                    return;
+                }
+                let html = '<table class="data-table"><thead><tr><th>Name</th><th>Seats</th><th>Total</th><th>Free</th><th>Price</th><th>Time</th><th>Actions</th></tr></thead><tbody>';
+                data.types.forEach(type => {
+                    html += `<tr><td><strong>${type.name}</strong></td><td>${type.seats}</td><td>${type.total}</td><td><span class="badge badge-success">${type.freeCount}</span></td><td>₹${type.price}</td><td>${formatTime12(type.start_time)} - ${formatTime12(type.end_time)}</td><td>
+                        <button class="btn btn-secondary btn-sm" onclick="openTableManage(${type.id}, '${type.name}')"><i class="fas fa-th"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteTableType(${type.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } catch (err) { console.error('Error loading table types:', err); }
+        }
+
+        async function saveTableType() {
+
+    const name = q('#typeName').value.trim();
+    const seats = parseInt(q('#typeSeats').value);
+    const total_tables = parseInt(q('#typeTotal').value);
+    const price = parseInt(q('#typePrice').value) || 0;
+    const cancel_hours = parseInt(q('#typeCancel').value) || 2;
+    
+    if (!name) return showToast('Please enter type name','warning');
+    if (!seats || seats <= 0) return showToast('Seats must be greater than 0','warning');
+    if (!total_tables || total_tables <= 0) return showToast('Total tables must be greater than 0','warning');
+
+    const start_time = q('#typeStart').value;
+const end_time = q('#typeEnd').value;
+
+const freeTables = parseInt(q('#typeFree').value) || 0;
+
+const payload = {
+    name: name,
+    seats: seats,
+    total_tables: total_tables,
+    freeTables: freeTables,
+    price: price,
+    cancel_hours: cancel_hours,
+    start_time: start_time,
+    end_time: end_time
+};
+    try {
+
+        const data = await apiPost(`/api/nightlife/types?vendor_id=${vendorId}`, payload);
+
+        if (data && data.success) {
+            showToast("Table type saved");
+            clearTypeForm();
+            loadTableTypes();
+        } else {
+            showToast(data?.message || "Failed to save","error");
+        }
+
+    } catch(err) {
+        console.error(err);
+        showToast("Server error","error");
+    }
+
+}
+
+        function clearTypeForm() { q('#typeName').value = ''; q('#typeSeats').value = ''; q('#typeTotal').value = ''; q('#typeFree').value = ''; q('#typePrice').value = ''; q('#typeCancel').value = ''; q('#typeStart').value = '18:00'; q('#typeEnd').value = '02:00'; }
+
+        async function deleteTableType(id) {
+            if (!confirm('Delete this type?')) return;
+            try {
+                const data = await apiDelete(`/api/nightlife/types/${id}?vendor_id=${vendorId}`);
+                if (data.success) { showToast('Type deleted'); loadTableTypes(); }
+            } catch (err) { showToast('Error deleting type', 'error'); }
+        }
+
+        async function openTableManage(typeId, typeName) { currentTypeId = typeId; q('#tableModalTitle').textContent = `Manage ${typeName} Tables`; q('#tableModal').classList.add('active'); await loadTablesForType(typeId); }
+
+        async function loadTablesForType(typeId) {
+            try {
+                const data = await apiGet(`/api/nightlife/types/${typeId}/tables?vendor_id=${vendorId}`);
+                const container = q('#tableModalContent');
+                if (!data || !data.success || !data.tables || data.tables.length === 0) { container.innerHTML = '<p>No tables found</p>'; return; }
+                let html = '<div class="table-grid">';
+                data.tables.forEach(table => {
+                    const statusClass = table.status;
+                    html += `<div class="table-item ${statusClass}" onclick="${table.status === 'reserved' ? '' : `toggleTable(${table.id})`}" title="${table.status === 'reserved' ? 'Reserved' : `Click to toggle (${table.status})`}">${table.num}</div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) { console.error('Error loading tables:', err); }
+        }
+
+        async function toggleTable(tableId) {
+            try {
+                const data = await apiPost(`/api/nightlife/tables/${tableId}/toggle?vendor_id=${vendorId}`, {});
+                if (data.success) { loadTablesForType(currentTypeId); loadTableTypes(); }
+                else showToast(data.message || 'Failed to toggle', 'error');
+            } catch (err) { showToast('Error toggling table', 'error'); }
+        }
+
+        async function markAllFree() {
+            if (!currentTypeId) return;
+            try {
+                const data = await apiPost(`/api/nightlife/tables/mark_all_free?vendor_id=${vendorId}`, { typeId: currentTypeId });
+                if (data.success) { showToast('All tables marked as free'); loadTablesForType(currentTypeId); loadTableTypes(); }
+            } catch (err) { showToast('Error marking tables', 'error'); }
+        }
+
+        function closeTableModal() { q('#tableModal').classList.remove('active'); currentTypeId = null; }
+
+        // ==================== SLOTS ====================
+        async function loadSlots() {
+            try {
+                const data = await apiGet(`/api/nightlife/slots?vendor_id=${vendorId}`);
+                const container = q('#slotsList');
+                if (!data.success || !data.slots || data.slots.length === 0) { container.innerHTML = '<div class="empty-state"><i class="fas fa-clock"></i><h3>No Slots</h3></div>'; return; }
+                let html = '<table class="data-table"><thead><tr><th>Name</th><th>Start</th><th>End</th><th>Action</th></tr></thead><tbody>';
+                data.slots.forEach(slot => { html += `<tr><td><strong>${slot.name}</strong></td><td>${formatTime12(slot.start)}</td><td>${formatTime12(slot.end)}</td><td><button class="btn btn-danger btn-sm" onclick="deleteSlot(${slot.id})"><i class="fas fa-trash"></i></button></td></tr>`; });
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } catch (err) { console.error('Error loading slots:', err); }
+        }
+
+        async function saveSlot() {
+            const name = q('#slotName').value.trim(); const start = q('#slotStart').value; const end = q('#slotEnd').value;
+            if (!name || !start || !end) return showToast('Please fill all fields', 'warning');
+            try {
+                const data = await apiPost(`/api/nightlife/slots?vendor_id=${vendorId}`, { name, start, end });
+                if (data.success) { showToast('Slot saved'); q('#slotName').value = ''; loadSlots(); }
+                else showToast(data.message || 'Failed to save', 'error');
+            } catch (err) { showToast('Error saving slot', 'error'); }
+        }
+
+        async function deleteSlot(id) { if (!confirm('Delete this slot?')) return; try { const data = await apiDelete(`/api/nightlife/slots/${id}?vendor_id=${vendorId}`); if (data.success) { showToast('Slot deleted'); loadSlots(); } } catch (err) { showToast('Error deleting slot', 'error'); } }
+
+        // ==================== BOOKINGS ====================
+        async function loadBookings(){
+
+    const vendorId = new URLSearchParams(window.location.search).get("vendor_id");
+
+    const res = await fetch(`/api/nightlife/bookings?vendor_id=${vendorId}`);
+    const data = await res.json();
+
+    console.log("Bookings:", data);
+
+    const container = document.getElementById("bookingsList");
+
+    if(!data.success || !data.bookings || data.bookings.length === 0){
+        container.innerHTML = "<p>No bookings yet</p>";
+        return;
+    }
+
+    let html = `
+    <table class="data-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Date</th>
+            <th>Slot</th>
+            <th>Table Type</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+    `;
+
+    data.bookings.forEach(b => {
+
+        html += `
+        <tr>
+            <td>#${b.id}</td>
+            <td>${b.user_name || "-"}</td>
+            <td>${b.user_phone || "-"}</td>
+            <td>${b.date}</td>
+            <td>${b.slot_name || "-"}</td>
+            <td>${b.table_type || "-"}</td>
+            <td>
+                <span class="badge ${b.status === "confirmed" ? "badge-success" : "badge-warning"}">
+                    ${b.status}
+                </span>
+            </td>
+        </tr>
+        `;
+    });
+
+    html += "</tbody></table>";
+
+    container.innerHTML = html;
+}
+        document.addEventListener("DOMContentLoaded", loadBookings);
+        async function toggleBooking(bookingId) {
+            try {
+                const data = await apiPost(`/api/nightlife/bookings/${bookingId}/toggle?vendor_id=${vendorId}`, {});
+                if (data.success) { showToast(`Booking ${data.status === 'confirmed' ? 'restored' : 'cancelled'}`); loadBookings(); loadAnalytics(); }
+                else showToast(data.message || 'Failed', 'error');
+            } catch (err) { showToast('Error updating booking', 'error'); }
+        }
+
+        // ==================== SETTINGS ====================
+        async function loadSettings() {
+            try {
+                const data = await apiGet(`/api/nightlife/vendor/me?vendor_id=${vendorId}`);
+                if (!data.success) return;
+                const settings = data.settings;
+                q('#maxAdvanceDays').value = settings.maxAdvanceDays || 30;
+                q('#cancelBeforeHours').value = settings.cancelBeforeHrs || 2;
+            } catch (err) { console.error('Error loading settings:', err); }
+        }
+
+        async function saveSettings() {
+            const maxAdvanceDays = parseInt(q('#maxAdvanceDays').value) || 30;
+            const cancelBeforeHrs = parseInt(q('#cancelBeforeHours').value) || 2;
+            try {
+                const data = await apiPost(`/api/nightlife/settings?vendor_id=${vendorId}`, { maxAdvanceDays, cancelBeforeHrs });
+                if (data.success) showToast('Settings saved');
+                else showToast(data.message || 'Failed to save', 'error');
+            } catch (err) { showToast('Error saving settings', 'error'); }
+        }
+
+        // ==================== LOCATION ====================
+        async function loadLocation() {
+            try {
+                const data = await apiGet(`/api/nightlife/vendor/me?vendor_id=${vendorId}`);
+                if (!data.success) return;
+                const location = data.location;
+                if (location) { q('#locAddr1').value = location.addr1 || ''; q('#locAddr2').value = location.addr2 || ''; q('#locCity').value = location.city || ''; q('#locState').value = location.state || ''; q('#locPincode').value = location.pincode || ''; }
+            } catch (err) { console.error('Error loading location:', err); }
+        }
+
+        async function detectLocation() {
+            const btn = q('#detectLocationBtn');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting...';
+            if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-crosshairs"></i> Detect My Location'; return; }
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude, lng = position.coords.longitude;
+                    try {
+                        const data = await apiPost(`/api/nightlife/location/auto?vendor_id=${vendorId}`, { latitude: lat, longitude: lng });
+                        if (data.success) { q('#locCity').value = data.city || ''; q('#locState').value = data.state || ''; q('#locPincode').value = data.pincode || ''; showToast('Location detected'); }
+                        else showToast(data.message || 'Failed to detect', 'error');
+                    } catch (err) { showToast('Error detecting location', 'error'); }
+                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-crosshairs"></i> Detect My Location';
+                },
+                (error) => { showToast('Location access denied', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-crosshairs"></i> Detect My Location'; }
+            );
+        }
+
+        async function saveLocation() {
+            const addr1 = q('#locAddr1').value.trim(); const addr2 = q('#locAddr2').value.trim(); const city = q('#locCity').value.trim(); const state = q('#locState').value.trim(); const pincode = q('#locPincode').value.trim();
+            if (!city || !state || !pincode) return showToast('Please fill city, state and pincode', 'warning');
+            try {
+                const data = await apiPost(`/api/nightlife/location?vendor_id=${vendorId}`, { addr1, addr2, city, state, pincode });
+                if (data.success) showToast('Location saved');
+                else showToast(data.message || 'Failed to save', 'error');
+            } catch (err) { showToast('Error saving location', 'error'); }
+        }
+
+        // ==================== AUTO LOAD ====================
+        if (vendorId) init();
+    </script>
+</body>
+</html>

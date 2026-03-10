@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Venue details - ZomaClone</title>
+    <link rel="icon" href="./Images/ZomaCloneFavicon.svg" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="navbar" style="position: static;">
+      <a href="#">Get the App</a>
+      <div class="navbar__menu_container">
+        <a href="index.html" class="link">Home</a>
+        <a href="nightlife.html" class="link">Nightlife</a>
+        <a href="login.html" class="link login-link">Login</a>
+  <a href="vendor.html" class="link signup-btn">Register your restaurant</a>
+      </div>
+    </header>
+
+    <main class="dining-wrapper" style="padding:18px 0;">
+      <div class="dining-wrapper" id="venueContent" style="max-width:1100px;margin:0 auto;">
+        <div id="venueHeader" class="card" style="display:flex; gap:12px; align-items:center;">
+          <!-- content injected by JS -->
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 320px; gap:18px; margin-top:12px;">
+          <section id="venueMain">
+            <!-- menu, info, reviews -->
+          </section>
+          <aside id="venueSide">
+            <!-- quick actions, hours, contact -->
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <!-- Menu modal reused from nightlife page behavior -->
+    <div id="venueMenuModal" class="modal-backdrop" aria-hidden="true">
+      <div class="modal">
+        <div class="modal-header"><strong id="venueMenuTitle">Menu</strong><button class="modal-close" id="venueMenuClose">✕</button></div>
+        <div class="modal-body" id="venueMenuBody"></div>
+        <div class="form-actions"><button id="venueMenuClose2" class="btn ghost small">Close</button></div>
+      </div>
+    </div>
+
+    <script>
+      // same sample data as nightlife page; keep in sync if you update venues
+      const venues = [
+        { id: 1, name: 'Neon Bar', type: 'Alcoholic', rating: 4.5, eta: '20-30', cost: '$$', img: './Images/collection1.jpg', online: true, menu: [ {id:1001,name:'Mojito',type:'Alcoholic',price:7,stock:10},{id:1002,name:'Margarita',type:'Alcoholic',price:9,stock:6},{id:1003,name:'Lime Soda',type:'Non-Alcoholic',price:3,stock:20} ] },
+        { id: 2, name: 'Sundowners Rooftop', type: 'Alcoholic', rating: 4.7, eta: '30-40', cost: '$$$', img: './Images/collection2.jpg', online: false, menu: [ {id:2001,name:'Old Fashioned',type:'Alcoholic',price:10,stock:4},{id:2002,name:'G&T',type:'Alcoholic',price:8,stock:5},{id:2003,name:'Virgin Mojito',type:'Non-Alcoholic',price:4,stock:12} ] },
+        { id: 3, name: 'Cafe Breeze', type: 'Non-Alcoholic', rating: 4.3, eta: '15-20', cost: '$', img: './Images/collection3.jpg', online: true, menu: [ {id:3001,name:'Iced Coffee',type:'Non-Alcoholic',price:3,stock:15},{id:3002,name:'Lemonade',type:'Non-Alcoholic',price:2,stock:18} ] },
+        { id: 4, name: 'The Whiskey Den', type: 'Alcoholic', rating: 4.8, eta: '25-35', cost: '$$$', img: './Images/collection4.jpg', online: true, menu: [ {id:4001,name:'Single Malt',type:'Alcoholic',price:12,stock:3},{id:4002,name:'Whiskey Sour',type:'Alcoholic',price:9,stock:6} ] }
+      ];
+
+      // helpers
+      function qs(name){ const params = new URLSearchParams(location.search); return params.get(name); }
+      const id = parseInt(qs('id'),10);
+      const venue = venues.find(v=>v.id===id);
+      if(!venue){ document.getElementById('venueContent').innerHTML = '<div class="card">Venue not found. <a href="nightlife.html">Back to Nightlife</a></div>'; throw new Error('Venue not found'); }
+
+      // render header
+      const header = document.getElementById('venueHeader');
+      header.innerHTML = `
+        <img src="${venue.img}" alt="${venue.name}" style="width:140px;height:100px;object-fit:cover;border-radius:8px;" />
+        <div style="flex:1">
+          <h2 style="margin:0">${venue.name}</h2>
+          <div class="muted">${venue.type} • ${venue.cost} • ⭐ ${venue.rating}</div>
+          <div style="margin-top:8px; display:flex; gap:8px;">
+            <button id="venueOrderBtn" class="btn" ${venue.online? '':'disabled'}>Order Online</button>
+            <button id="venueViewMenu" class="btn ghost small">View Menu</button>
+            <button id="venueReserve" class="btn outline small">Reserve</button>
+            <a href="nightlife.html" class="btn ghost small">Back</a>
+          </div>
+        </div>
+      `;
+
+      // render main section: menu and reviews placeholder
+      const main = document.getElementById('venueMain');
+      main.innerHTML = `<div class="card"><h3>About</h3><p class="muted">A popular spot for ${venue.type.toLowerCase()} lovers. Estimated time: ${venue.eta} min. Online ordering: ${venue.online? 'Available' : 'Not available'}</p></div><div class="card" style="margin-top:12px;"><h3>Menu</h3><div id="venueMenuList"></div></div><div class="card" style="margin-top:12px;"><h3>Reviews</h3><div class="muted">No reviews yet (demo)</div></div>`;
+
+      const menuList = document.getElementById('venueMenuList');
+      venue.menu.forEach(it=>{
+        const el = document.createElement('div'); el.style.display='flex'; el.style.justifyContent='space-between'; el.style.alignItems='center'; el.style.padding='8px 0';
+        el.innerHTML = `<div><strong>${it.name}</strong><div class="muted">${it.type} • $${it.price}</div></div><div>${it.stock>0? `<button class="btn small venue-add" data-id="${it.id}">Add</button>` : '<span class="muted">Unavailable</span>'}</div>`;
+        menuList.appendChild(el);
+      });
+
+      // side: quick info
+      const side = document.getElementById('venueSide');
+      side.innerHTML = `<div class="panel"><h4>Info</h4><div class="muted">Address: Demo Street, City</div><div class="muted">Phone: +91 99999 99999</div></div>`;
+
+      // menu modal (same structure)
+      const venueMenuModal = document.getElementById('venueMenuModal');
+      const venueMenuBody = document.getElementById('venueMenuBody');
+      const venueMenuTitle = document.getElementById('venueMenuTitle');
+      document.getElementById('venueMenuClose').addEventListener('click', ()=>venueMenuModal.classList.remove('show'));
+      document.getElementById('venueMenuClose2').addEventListener('click', ()=>venueMenuModal.classList.remove('show'));
+
+      document.getElementById('venueViewMenu').addEventListener('click', ()=>{
+        venueMenuTitle.textContent = venue.name + ' — Menu';
+        venueMenuBody.innerHTML = '';
+        venue.menu.forEach(item=>{
+          const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.padding='8px 0';
+          row.innerHTML = `<div><strong>${item.name}</strong><div class="muted">${item.type} • $${item.price} ${item.stock<=0? '<span style="color:red; font-weight:600;">(out of stock)</span>':''}</div></div><div>${item.stock>0? `<button class="btn small venue-modal-add" data-id="${item.id}">Add</button>` : '<span class="muted">Unavailable</span>'}</div>`;
+          venueMenuBody.appendChild(row);
+        });
+        venueMenuModal.classList.add('show');
+      });
+
+      // cart reuse (nightlife cart)
+      const nightCartKey = 'nightlife_cart';
+      let nightCart = JSON.parse(localStorage.getItem(nightCartKey) || '[]');
+      function saveCart(){ localStorage.setItem(nightCartKey, JSON.stringify(nightCart)); }
+
+      // add handlers to 'Add' buttons in main menu
+      document.addEventListener('click',(e)=>{
+        if(e.target && e.target.matches('.venue-add')){
+          const id = parseInt(e.target.getAttribute('data-id'),10);
+          const item = venue.menu.find(m=>m.id===id); if(!item || item.stock<=0){ alert('Unavailable'); return; }
+          const existing = nightCart.find(x=>x.id===id); if(existing) existing.qty+=1; else nightCart.push({ id: item.id, name: item.name, price: item.price, qty:1, img: venue.img, venue: venue.name });
+          item.stock -= 1;
+          saveCart();
+          alert('Added to cart');
+        }
+        if(e.target && e.target.matches('.venue-modal-add')){
+          const id = parseInt(e.target.getAttribute('data-id'),10);
+          const item = venue.menu.find(m=>m.id===id); if(!item || item.stock<=0){ alert('Unavailable'); return; }
+          const existing = nightCart.find(x=>x.id===id); if(existing) existing.qty+=1; else nightCart.push({ id: item.id, name: item.name, price: item.price, qty:1, img: venue.img, venue: venue.name });
+          item.stock -= 1; saveCart(); venueMenuModal.classList.remove('show'); alert('Added to cart');
+        }
+      });
+
+      // Order Online button opens modal list for ordering
+      document.getElementById('venueOrderBtn').addEventListener('click', ()=>{ document.getElementById('venueViewMenu').click(); });
+
+      // Reserve button – navigate to dining reserve modal (or reuse booking modal logic). For simplicity, link back to dining page.
+      document.getElementById('venueReserve').addEventListener('click', ()=>{ window.location.href = 'dining.html'; });
+    </script>
+  </body>
+</html>

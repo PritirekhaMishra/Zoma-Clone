@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nightlife & Clubs - ZomaClone</title>
+  <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="shared.css">
+  <script src="theme.js" defer></script>
+  <style>
+    /* Premium Nightlife Color System */
+    :root {
+      --bg: #050816;
+      --card: #0f172a;
+      --accent: #7c3aed;
+      --hover: #9333ea;
+      --text: #ffffff;
+      --muted: #94a3b8;
+      --border: rgba(255,255,255,0.06);
+      --glass: rgba(5, 8, 22, 0.8);
+      --shadow: 0 10px 40px rgba(0,0,0,0.3);
+      --shadow-hover: 0 20px 40px rgba(0,0,0,0.4);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --transition: 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Hero Section with Background Image */
+    .hero {
+      position: relative;
+      background: url('https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1920') center/cover no-repeat;
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(5, 8, 22, 0.75);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 40px;
+      max-width: 800px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: rgba(124, 58, 237, 0.2);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      border-radius: 30px;
+      font-size: 14px;
+      color: #a78bfa;
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-size: 56px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--muted);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-hero {
+      padding: 16px 32px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background: var(--hover);
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(124, 58, 237, 0.4);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: white;
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      background: rgba(124, 58, 237, 0.1);
+    }
+
+    /* Services Section */
+    .services {
+      padding: 80px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .section-title {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: var(--transition);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(124, 58, 237, 0.3);
+    }
+
+    .card-image {
+      position: relative;
+      height: 220px;
+      overflow: hidden;
+    }
+
+    .card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: var(--transition);
+    }
+
+    .card:hover .card-image img {
+      transform: scale(1.08);
+    }
+
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(5, 8, 22, 0.8) 0%, transparent 50%);
+    }
+
+    .card-icon {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      background: var(--accent);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+    }
+
+    .card-content {
+      padding: 28px;
+    }
+
+    .card-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .card-desc {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .card-features {
+      display: flex;
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .feature i {
+      color: var(--accent);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero {
+        min-height: 60vh;
+        padding: 20px;
+      }
+
+      .hero-title {
+        font-size: 36px;
+      }
+
+      .hero-subtitle {
+        font-size: 16px;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .btn-hero {
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+      }
+
+      .services {
+        padding: 50px 20px;
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .card-image {
+        height: 180px;
+      }
+
+      .card-content {
+        padding: 20px;
+      }
+
+      .card-title {
+        font-size: 20px;
+      }
+
+      .card-features {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="fas fa-moon"></i>
+        <span>Premium Nightlife Experience</span>
+      </div>
+      <h1 class="hero-title">Discover the Best<br>Clubs & Entertainment</h1>
+      <p class="hero-subtitle">Book tables at exclusive clubs, order drinks & food, and enjoy VIP experiences at the hottest venues in town.</p>
+      <div class="hero-buttons">
+        <a href="nightlife_order.html" class="btn-hero btn-primary">
+          <i class="fas fa-shopping-bag"></i>
+          Order Online
+        </a>
+        <a href="nightlife_table.html" class="btn-hero btn-outline">
+          <i class="fas fa-calendar-alt"></i>
+          Book a Table
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section class="services">
+    <div class="section-header">
+      <h2 class="section-title">Choose Your Experience</h2>
+      <p class="section-subtitle">What would you like to do tonight?</p>
+    </div>
+
+    <div class="cards-grid">
+      <!-- Order Online Card -->
+      <a href="nightlife_order.html" class="card">
+        <div class="card-image">
+          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600" alt="Order Food & Drinks">
+          <div class="card-overlay"></div>
+          <div class="card-icon">
+            <i class="fas fa-glass-cheers"></i>
+          </div>
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">Order Online</h3>
+          <p class="card-desc">Order food, drinks & snacks from your favorite clubs. Get it delivered to your table or pick up.</p>
+          <div class="card-features">
+            <span class="feature">
+              <i class="fas fa-check-circle"></i>
+              Fast Delivery
+            </span>
+            <span class="feature">
+              <i class="fas fa-check-circle"></i>
+              Live Tracking
+            </span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Book Table Card -->
+      <a href="nightlife_table.html" class="card">
+        <div class="card-image">
+          <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600" alt="Book a Table">
+          <div class="card-overlay"></div>
+          <div class="card-icon">
+            <i class="fas fa-chair"></i>
+          </div>
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">Book a Table</h3>
+          <p class="card-desc">Reserve your VIP table at top clubs. Choose your preferred seating, time & enjoy exclusive benefits.</p>
+          <div class="card-features">
+            <span class="feature">
+              <i class="fas fa-check-circle"></i>
+              Instant Confirm
+            </span>
+            <span class="feature">
+              <i class="fas fa-check-circle"></i>
+              VIP Access
+            </span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2025 ZomaClone Nightlife. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

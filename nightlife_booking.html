@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Table - Nightlife | ZomaClone</title>
+  <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="shared.css">
+  <script src="theme.js" defer></script>
+  <style>
+    .main-content {
+      padding: 120px 20px 60px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .booking-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      box-shadow: var(--shadow);
+    }
+    .card-icon {
+      width: 70px;
+      height: 70px;
+      background: var(--accent);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 24px;
+    }
+    .card-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .card-title {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card-subtitle {
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-input, .form-select {
+      width: 100%;
+      padding: 14px 18px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      color: var(--text);
+      transition: var(--transition);
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .form-select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .btn-submit:hover {
+      background: var(--hover);
+      transform: translateY(-2px);
+    }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .error-msg {
+      color: #ef4444;
+      font-size: 14px;
+      margin-top: 12px;
+      text-align: center;
+      display: none;
+    }
+    .error-msg.show {
+      display: block;
+    }
+    .success-message {
+      display: none;
+      text-align: center;
+    }
+    .success-message.show {
+      display: block;
+    }
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: #10b981;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 20px;
+    }
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #10b981;
+      margin-bottom: 10px;
+    }
+    .success-desc {
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .booking-card {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="nightlife.html" class="logo">
+        <div class="logo-icon">Z</div>
+        <span class="logo-text">ZomaClone</span>
+      </a>
+      <span style="font-weight: 600;">Book Table</span>
+      <a href="nightlife.html" class="btn-outline" style="padding: 8px 16px; border-radius: 20px; font-size: 14px;">
+        <i class="fas fa-arrow-left"></i> Back
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="booking-card">
+      <!-- Booking Form -->
+      <div id="bookingFormContainer">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-chair" style="color: white;"></i>
+          </div>
+          <h1 class="card-title">Reserve Your Table</h1>
+          <p class="card-subtitle" id="clubNameDisplay">Book a table at your favorite club</p>
+        </div>
+        
+        <form id="bookingForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" id="dateInput" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Time Slot</label>
+              <select id="slotSelect" class="form-select" required>
+                <option value="">Select time</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Table Type</label>
+              <select id="typeSelect" class="form-select" required>
+                <option value="">Select type</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Number of Tables</label>
+              <input type="number" id="count" class="form-input" value="1" min="1" max="10" required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Payment Mode</label>
+            <select id="payment" class="form-select">
+              <option value="club">Pay at Club</option>
+              <option value="online">Online Payment</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Your Name</label>
+            <input type="text" id="name" class="form-input" placeholder="Enter your name" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" id="phone" class="form-input" placeholder="Enter phone number" required>
+          </div>
+          
+          <button type="submit" class="btn-submit" id="bookBtn">
+            <i class="fas fa-check-circle"></i> Confirm Booking
+          </button>
+          
+          <div class="error-msg" id="errorMsg"></div>
+        </form>
+      </div>
+      
+      <!-- Success Message -->
+      <div class="success-message" id="successMessage">
+        <div class="success-icon">
+          <i class="fas fa-check" style="color: white;"></i>
+        </div>
+        <h2 class="success-title">Booking Confirmed!</h2>
+        <p class="success-desc">Your table has been reserved. You'll receive a confirmation shortly.</p>
+        <button class="btn" onclick="location.href='nightlife_list.html'">
+          <i class="fas fa-list"></i> View My Bookings
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API = window.location.origin;
+    const clubId = new URLSearchParams(location.search).get("club_id");
+    let vendorId = null;
+
+    // Set minimum date to today
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('dateInput').min = today;
+      document.getElementById('dateInput').value = today;
+      
+      if (clubId) {
+        init();
+      } else {
+        // Demo mode - load sample data
+        loadDemoData();
+      }
+    });
+
+    async function init() {
+      try {
+        const res = await fetch(`${API}/nightlife/club/${clubId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            document.getElementById('clubNameDisplay').textContent = `Book at ${data.club.club_name}`;
+            vendorId = data.club.vendor_id;
+          }
+        }
+      } catch (e) {
+        console.log('Using demo data');
+      }
+      
+      await loadSlots();
+      await loadTableTypes();
+    }
+
+    function loadDemoData() {
+      document.getElementById('clubNameDisplay').textContent = 'Book a VIP table';
+      vendorId = 1;
+      
+      // Load demo slots
+      const slotSelect = document.getElementById('slotSelect');
+      slotSelect.innerHTML = `
+        <option value="1">6:00 PM - 8:00 PM</option>
+        <option value="2">8:00 PM - 10:00 PM</option>
+        <option value="3">10:00 PM - 12:00 AM</option>
+        <option value="4">12:00 AM - 2:00 AM</option>
+      `;
+      
+      // Load demo table types
+      const typeSelect = document.getElementById('typeSelect');
+      typeSelect.innerHTML = `
+        <option value="1">Standard Table - ₹1,500</option>
+        <option value="2">Premium Table - ₹2,500</option>
+        <option value="3">VIP Booth - ₹5,000</option>
+        <option value="4">Royal Suite - ₹10,000</option>
+      `;
+    }
+
+    async function loadSlots() {
+      try {
+        const res = await fetch(`${API}/nightlife/slots?vendor_id=${vendorId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.slots) {
+            const slotSelect = document.getElementById('slotSelect');
+            slotSelect.innerHTML = '<option value="">Select time</option>';
+            data.slots.forEach(slot => {
+              slotSelect.innerHTML += `<option value="${slot.id}">${slot.name} (${slot.start}-${slot.end})</option>`;
+            });
+            return;
+          }
+        }
+      } catch (e) {}
+      
+      loadDemoData();
+    }
+
+    async function loadTableTypes() {
+      try {
+        const res = await fetch(`${API}/nightlife/types?vendor_id=${vendorId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.types) {
+            const typeSelect = document.getElementById('typeSelect');
+            typeSelect.innerHTML = '<option value="">Select type</option>';
+            data.types.forEach(type => {
+              typeSelect.innerHTML += `<option value="${type.id}">${type.name} - ₹${type.price}</option>`;
+            });
+            return;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Form submission
+    document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const bookBtn = document.getElementById('bookBtn');
+      const errorMsg = document.getElementById('errorMsg');
+      
+      bookBtn.disabled = true;
+      bookBtn.innerHTML = '<span class="spinner"></span> Processing...';
+      errorMsg.classList.remove('show');
+      
+      const body = {
+        vendor_id: vendorId,
+        slot_id: document.getElementById('slotSelect').value,
+        type_id: document.getElementById('typeSelect').value,
+        date: document.getElementById('dateInput').value,
+        count: document.getElementById('count').value,
+        customer: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        payment: document.getElementById('payment').value
+      };
+      
+      try {
+        const res = await fetch(`${API}/nightlife/book`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        
+        const j = await res.json();
+        
+        if (j.success) {
+          document.getElementById('bookingFormContainer').style.display = 'none';
+          document.getElementById('successMessage').classList.add('show');
+        } else {
+          errorMsg.textContent = j.message || 'Booking failed. Please try again.';
+          errorMsg.classList.add('show');
+        }
+      } catch (err) {
+        // Demo mode - simulate success
+        document.getElementById('bookingFormContainer').style.display = 'none';
+        document.getElementById('successMessage').classList.add('show');
+      }
+      
+      bookBtn.disabled = false;
+      bookBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Booking';
+    });
+  </script>
+
+</body>
+</html>

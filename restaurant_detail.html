@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order from Club - Nightlife | ZomaClone</title>
+  <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="shared.css">
+  <script src="theme.js" defer></script>
+  <style>
+    :root { --bg: #050816; --card: #0f172a; --accent: #7c3aed; --hover: #9333ea; --text: #ffffff; --muted: #94a3b8; --border: rgba(255,255,255,0.06); --glass: rgba(5, 8, 22, 0.8); --shadow: 0 10px 40px rgba(0,0,0,0.3); --radius: 18px; --transition: 0.3s ease; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .header { position: fixed; top: 0; left: 0; right: 0; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--hover)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: white; }
+    .logo-text { font-weight: 700; font-size: 20px; }
+    .main-content { padding: 100px 20px 120px; max-width: 1200px; margin: 0 auto; }
+    .vendor-header { display: flex; gap: 24px; margin-bottom: 30px; }
+    .vendor-image { width: 180px; height: 180px; border-radius: var(--radius); object-fit: cover; }
+    .vendor-info { flex: 1; }
+    .vendor-name { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .vendor-meta { display: flex; gap: 16px; color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+    .vendor-meta span { display: flex; align-items: center; gap: 6px; }
+    .vendor-desc { color: var(--muted); line-height: 1.6; }
+    .menu-section { margin-bottom: 40px; }
+    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .menu-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: var(--transition); }
+    .menu-item:hover { border-color: rgba(124, 58, 237, 0.3); transform: translateY(-4px); }
+    .menu-item-image { width: 100%; height: 160px; object-fit: cover; }
+    .menu-item-content { padding: 16px; }
+    .menu-item-name { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .menu-item-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.4; }
+    .menu-item-footer { display: flex; justify-content: space-between; align-items: center; }
+    .menu-item-price { font-size: 18px; font-weight: 700; color: var(--accent); }
+    .add-btn { padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: var(--transition); }
+    .add-btn:hover { background: var(--hover); }
+    .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 16px 20px; z-index: 100; }
+    .cart-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .cart-info { display: flex; align-items: center; gap: 16px; }
+    .cart-icon { width: 50px; height: 50px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .cart-count { font-weight: 700; font-size: 18px; }
+    .cart-total { color: var(--muted); font-size: 14px; }
+    .checkout-btn { padding: 14px 32px; background: linear-gradient(135deg, var(--accent), var(--hover)); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--card); border-radius: var(--radius); width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .modal-close { width: 32px; height: 32px; background: var(--bg); border: none; border-radius: 50%; color: var(--muted); cursor: pointer; }
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .form-input { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; }
+    .form-input:focus { outline: none; border-color: var(--accent); }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .cart-item-name { font-weight: 600; }
+    .cart-item-price { color: var(--accent); }
+    .cart-item-qty { display: flex; align-items: center; gap: 12px; }
+    .qty-btn { width: 28px; height: 28px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); cursor: pointer; }
+    .bill-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .bill-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--muted); }
+    .bill-row.total { font-size: 18px; font-weight: 700; color: var(--text); margin-top: 12px; }
+    .loading { text-align: center; padding: 60px; color: var(--muted); }
+    @media (max-width: 768px) { .vendor-header { flex-direction: column; } .vendor-image { width: 100%; height: 200px; } .menu-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="nightlife_order.html" class="logo">
+        <div class="logo-icon">Z</div>
+        <span class="logo-text">ZomaClone</span>
+      </a>
+      <a href="nightlife_order.html" style="color: var(--text); text-decoration: none;"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+  </header>
+  <main class="main-content">
+    <div id="loadingState" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading menu...</div>
+    <div id="contentArea" style="display: none;">
+      <div class="vendor-header">
+        <img id="vendorImage" class="vendor-image" src="" alt="Vendor">
+        <div class="vendor-info">
+          <h1 class="vendor-name" id="vendorName">Loading...</h1>
+          <div class="vendor-meta">
+            <span><i class="fas fa-star" style="color: #fbbf24;"></i> <span id="vendorRating">0.0</span></span>
+            <span><i class="fas fa-motorcycle"></i> <span id="deliveryInfo">Calculated at checkout</span></span>
+          </div>
+          <p class="vendor-desc" id="vendorDesc">Order food and drinks from your favorite club</p>
+        </div>
+      </div>
+      <div class="menu-section">
+        <h2 class="section-title">Menu</h2>
+        <div class="menu-grid" id="menuGrid"></div>
+      </div>
+    </div>
+  </main>
+  <div class="cart-bar" id="cartBar" style="display: none;">
+    <div class="cart-inner">
+      <div class="cart-info">
+        <div class="cart-icon"><i class="fas fa-shopping-bag"></i></div>
+        <div>
+          <div class="cart-count"><span id="cartCount">0</span> items</div>
+          <div class="cart-total">Total: ₹<span id="cartTotal">0</span></div>
+        </div>
+      </div>
+      <button class="checkout-btn" onclick="openCheckout()"><i class="fas fa-shopping-cart"></i> Checkout</button>
+    </div>
+  </div>
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Checkout</h3>
+        <button class="modal-close" onclick="closeCheckout()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Delivery Address</label>
+          <textarea class="form-input" id="deliveryAddress" rows="3" placeholder="Enter your delivery address"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Location (for delivery fee)</label>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" class="form-input" id="userLat" placeholder="Latitude">
+            <input type="text" class="form-input" id="userLon" placeholder="Longitude">
+          </div>
+        </div>
+        <h4 style="margin-bottom: 12px;">Your Order</h4>
+        <div id="cartItems"></div>
+        <div class="bill-section">
+          <div class="bill-row"><span>Subtotal</span><span>₹<span id="billSubtotal">0</span></span></div>
+          <div class="bill-row"><span>Delivery Fee</span><span>₹<span id="billDelivery">0</span></span></div>
+          <div class="bill-row"><span>Packing Fee</span><span>₹<span id="billPacking">0</span></span></div>
+          <div class="bill-row total"><span>Total</span><span>₹<span id="billTotal">0</span></span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeCheckout()">Cancel</button>
+        <button class="btn" onclick="placeOrder()">Place Order</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const API_BASE = window.location.origin;
+const vendorId = new URLSearchParams(location.search).get('vendor_id');
+
+let restaurantData = null;
+let cart = [];
+
+document.addEventListener('DOMContentLoaded', init);
+
+async function init() {
+
+  if (!vendorId) {
+    document.getElementById('loadingState').innerHTML =
+      "<p>No vendor selected.</p>";
+    return;
+  }
+
+  try {
+
+    /* LOAD VENDOR DETAILS */
+    const vendorRes = await fetch(
+      API_BASE + "/api/nightlife/clubs/" + vendorId + "/details"
+    );
+
+    const vendorData = await vendorRes.json();
+
+    if (vendorData.success) {
+
+      restaurantData = {
+        id: vendorData.vendor.id,
+        name: vendorData.vendor.name,
+        description: vendorData.vendor.address || "Nightlife venue",
+        banner_image: vendorData.vendor.banner,
+        rating: 4.5
+      };
+
+      renderRestaurant();
+    }
+
+  } catch (err) {
+    console.error("Vendor load error:", err);
+  }
+
+  try {
+
+    /* LOAD MENU ITEMS */
+    const menuRes = await fetch(
+      API_BASE + "/api/vendor/menus?vendor_id=" + vendorId
+    );
+
+    const menuData = await menuRes.json();
+
+    const items = menuData.menu || [];
+
+    if (items.length > 0) {
+
+      const transformed = items.map(item => ({
+        id: item.id,
+        name: item.name || item.item_name,
+        description: item.description,
+        price: item.price,
+        image: item.image_url || item.image
+      }));
+
+      renderMenu(transformed);
+      return;
+    }
+
+  } catch (err) {
+    console.error("Menu load error:", err);
+  }
+
+  document.getElementById("menuGrid").innerHTML =
+    `<div style="grid-column:1/-1;text-align:center;padding:40px;">
+      <i class="fas fa-utensils" style="font-size:48px;opacity:0.5;"></i>
+      <p>No menu items available</p>
+    </div>`;
+}
+
+/* RENDER RESTAURANT */
+function renderRestaurant() {
+
+  document.getElementById("loadingState").style.display = "none";
+  document.getElementById("contentArea").style.display = "block";
+
+  document.getElementById("vendorName").textContent =
+    restaurantData.name;
+
+  document.getElementById("vendorRating").textContent =
+    restaurantData.rating;
+
+  document.getElementById("vendorDesc").textContent =
+    restaurantData.description;
+
+  document.getElementById("vendorImage").src =
+    restaurantData.banner_image ||
+    "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400";
+}
+
+/* RENDER MENU */
+function renderMenu(items) {
+
+  const grid = document.getElementById("menuGrid");
+
+  grid.innerHTML = items.map(item => {
+
+    let img = item.image;
+
+    // Convert raw base64 to proper image format
+    if (img && !img.startsWith("http") && !img.startsWith("data:image")) {
+        img = "data:image/jpeg;base64," + img.replace(/^\/+/, "");
+    }
+
+    // fallback image
+    if (!img) {
+        img = "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400";
+    }
+
+    return `
+      <div class="menu-item">
+        <img class="menu-item-image" src="${img}">
+        <div class="menu-item-content">
+
+          <h3 class="menu-item-name">${item.name}</h3>
+
+          <p class="menu-item-desc">${item.description || ""}</p>
+
+          <div class="menu-item-footer">
+            <span class="menu-item-price">₹${item.price}</span>
+
+            <button class="add-btn"
+              onclick="addToCart(${item.id},${item.price})">
+              <i class="fas fa-plus"></i> Add
+            </button>
+
+          </div>
+
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+/* CART */
+function addToCart(id, price) {
+
+  const existing = cart.find(i => i.id === id);
+
+  if (existing) existing.quantity++;
+  else cart.push({ id, price, quantity: 1 });
+
+  updateCart();
+}
+
+function updateCart() {
+
+  const count = cart.reduce((s, i) => s + i.quantity, 0);
+
+  const total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+
+  document.getElementById("cartCount").textContent = count;
+  document.getElementById("cartTotal").textContent = total;
+
+  document.getElementById("cartBar").style.display =
+    count > 0 ? "block" : "none";
+}
+function openCheckout() {
+
+  const modal = document.getElementById("checkoutModal");
+
+  const itemsHtml = cart.map(item => {
+    return `
+      <div class="cart-item">
+
+        <div>
+          <div class="cart-item-name">Item ${item.id}</div>
+          <div class="cart-item-price">
+            ₹${item.price} x ${item.quantity}
+          </div>
+        </div>
+
+        <div class="cart-item-qty">
+          <button class="qty-btn" onclick="updateQty(${item.id},-1)">-</button>
+          <span>${item.quantity}</span>
+          <button class="qty-btn" onclick="updateQty(${item.id},1)">+</button>
+        </div>
+
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("cartItems").innerHTML = itemsHtml;
+
+  const subtotal = cart.reduce((s,i)=>s+i.price*i.quantity,0);
+
+  document.getElementById("billSubtotal").textContent = subtotal;
+  document.getElementById("billPacking").textContent = 20;
+  document.getElementById("billDelivery").textContent = 0;
+  document.getElementById("billTotal").textContent = subtotal + 20;
+
+  modal.classList.add("active");
+}
+function closeCheckout() {
+
+  const modal = document.getElementById("checkoutModal");
+
+  if (modal) {
+    modal.classList.remove("active");
+  }
+
+}
+/* PLACE ORDER */
+async function placeOrder() {
+
+  const address = document.getElementById("deliveryAddress").value;
+
+  if (!address) {
+    alert("Enter delivery address");
+    return;
+  }
+
+  const items = cart.map(i => ({
+  item_id: i.id,
+  qty: i.quantity,
+  price: i.price
+}));
+
+  const subtotal = cart.reduce(
+    (s, i) => s + i.price * i.quantity,
+    0
+  );
+
+  const total = subtotal + 20;
+
+  const payload = {
+  restaurant_id: vendorId,
+  customer_name: "Guest",
+  items: items,
+  total: total,
+  payment_status: "paid"
+};
+
+  try {
+
+    const res = await fetch(API_BASE + "/api/orders/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+
+      alert("Order placed! ID: " + data.order_id);
+
+      cart = [];
+      updateCart();
+      closeCheckout();
+
+      window.location.href = "nightlife_order.html";
+
+    } else {
+      alert(data.message || "Order failed");
+    }
+
+  } catch (err) {
+
+    console.error(err);
+    alert("Server error");
+
+  }
+}
+
+</script>
+</body>
+</html>

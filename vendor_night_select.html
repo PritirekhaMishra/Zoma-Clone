@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Nightlife - ZomaClone</title>
+  <link rel="icon" type="image/png" sizes="512x512" href="Images/logo_512.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="shared.css">
+  <script src="theme.js" defer></script>
+  <style>
+    .banner-section {
+      min-height: 220px;
+      padding: 100px 40px 40px;
+      background: linear-gradient(rgba(5, 8, 22, 0.85), rgba(5, 8, 22, 0.7)), 
+                  url('https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600') center/cover no-repeat;
+    }
+    .banner-title {
+      font-size: 34px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .banner-sub {
+      font-size: 16px;
+      color: var(--muted);
+    }
+    .vendor-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--glass);
+      border-radius: 20px;
+      font-size: 14px;
+    }
+    .vendor-info i {
+      color: var(--accent);
+    }
+    @media (max-width: 768px) {
+      .banner-section {
+        padding: 100px 20px 30px;
+      }
+      .banner-title {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  /* Read vendor_id from URL */
+  const params = new URLSearchParams(window.location.search);
+  const vendorId = params.get("vendor_id");
+
+  if (!vendorId) {
+    alert("Vendor ID missing. Please login again.");
+    window.location.href = "vendor.html";
+  }
+
+  /* Pass vendor_id to next page */
+  function goTo(page) {
+    window.location.href = page + "?vendor_id=" + vendorId;
+  }
+</script>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="vendor.html" class="logo">
+        <div class="logo-icon">Z</div>
+        <span class="logo-text">ZomaClone</span>
+      </a>
+      <div class="header-brand">
+        <span class="brand-sub">Vendor</span>
+        <span class="brand-main">Nightlife</span>
+      </div>
+      <div class="header-actions">
+        <div class="vendor-info">
+          <i class="fas fa-store"></i>
+          <span>Club #<span id="vendorIdDisplay"></span></span>
+        </div>
+        <button class="btn-theme" id="themeToggle" onclick="toggleTheme()">
+          <i class="fas fa-sun"></i> Day
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner -->
+  <section class="banner-section">
+    <div class="banner-content">
+      <h1 class="banner-title">Nightlife & Club Services</h1>
+      <p class="banner-sub">Choose panel you want to manage</p>
+    </div>
+  </section>
+
+  <!-- Cards -->
+  <main class="container" style="padding: 40px 40px 80px;">
+    <div class="grid">
+      <!-- Food Orders -->
+      <div class="card" onclick="goTo('vendor_order_online.html')">
+        <div class="card-image">
+          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400" alt="Food Orders">
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">Food Orders</h3>
+          <p class="card-desc">Manage cuisines, restaurant page, orders & revenue.</p>
+        </div>
+      </div>
+
+      <!-- Table Booking -->
+      <div class="card" onclick="goTo('vendor_night_table.html')">
+        <div class="card-image">
+          <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400" alt="Table Booking">
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">Table Booking</h3>
+          <p class="card-desc">Manage clubs, tables, events & booking requests.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2025 ZomaClone — Vendor Nightlife Portal</p>
+  </footer>
+
+  <script>
+    // Display vendor ID
+    document.getElementById('vendorIdDisplay').textContent = vendorId || 'N/A';
+  </script>
+
+</body>
+</html>
